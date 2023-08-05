@@ -1,27 +1,12 @@
-import Users from "./users";
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
 class UnAbled extends Model { }
 UnAbled.init({
-    _id: {
+    unabledId: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
-        validate: {
-            isDecimal: true
-        }
-    },
-    uid: {
-        type: DataTypes.UUIDV4,
-        allowNull: false,
-        validate: {
-            isUUID: true
-        },
-        references: {
-            model: Users,
-            key: 'loginId',
-        }
     },
     unAccessMsg: {
         type: DataTypes.STRING(50),
@@ -30,13 +15,6 @@ UnAbled.init({
         validate: {
             len: [2, 50]
         }
-    },
-    unAccessTime: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        validate: {
-            isDate: true
-        }
     }
 }, {
     sequelize,
@@ -44,13 +22,15 @@ UnAbled.init({
     indexes: [
         {
             unique: true,
-            fields: ['_id', 'uid'],
+            fields: ['uId'],
         },
         {
-            fields: ['unAccessTime']
+            fields: ['createdAt', 'unabledId']
         }
     ],
-    createdAt: true
+    createdAt: true,
+    deletedAt: true,
+    paranoid: true
 })
 
-export default UnAbled
+module.exports = UnAbled;

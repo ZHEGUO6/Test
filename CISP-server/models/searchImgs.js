@@ -1,18 +1,17 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
-class Groups extends Model { }
-Groups.init({
-    groupId: {
+class SearchImages extends Model { }
+SearchImages.init({
+    searchImgId: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
     },
-    name: {
-        type: DataTypes.STRING(10),
-        allowNull: false,
+    imgUrl: {
+        type: DataTypes.STRING,
         validate: {
-            len: [2, 10]
+            isUrl: true
         }
     },
 }, {
@@ -20,16 +19,12 @@ Groups.init({
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            fields: ['groupId', 'name'],
+            fields: ['sId', 'imgUrl']
         },
-        {
-            unique: true,
-            fields: ['uId']
-        }
     ],
     createdAt: true,
     deletedAt: true,
     paranoid: true
 })
 
-module.exports = Groups;
+module.exports = SearchImages;

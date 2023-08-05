@@ -2,20 +2,17 @@ const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
 class News extends Model { }
 News.init({
-    _id: {
+    newId: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
-        validate: {
-            isDecimal: true
-        }
     },
     title: {
         type: DataTypes.STRING(20),
         allowNull: false,
         validate: {
-            len: [4, 20]
+            len: [2, 20]
         },
     },
     content: {
@@ -29,7 +26,7 @@ News.init({
         type: DataTypes.INTEGER,
         defaultValue: 0,
         validate: {
-            min: 0
+            min: 0,
         }
     },
 }, {
@@ -38,13 +35,15 @@ News.init({
     indexes: [
         {
             unique: true,
-            fields: ['_id'],
+            fields: ['aId'],
         },
         {
-            fields: ['title', 'content', 'createAt']
+            fields: ['title', 'content', 'newId']
         }
     ],
-    createdAt: true
+    createdAt: true,
+    deletedAt: true,
+    paranoid: true
 })
 
-export default News
+module.exports = News;

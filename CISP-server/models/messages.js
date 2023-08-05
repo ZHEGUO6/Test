@@ -2,20 +2,17 @@ const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
 class Messages extends Model { }
 Messages.init({
-    _id: {
+    messageId: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         allowNull: false,
         primaryKey: true,
-        validate: {
-            isDecimal: true
-        }
     },
     title: {
         type: DataTypes.STRING(20),
         allowNull: false,
         validate: {
-            len: [4, 20]
+            len: [2, 20]
         },
     },
     content: {
@@ -28,8 +25,9 @@ Messages.init({
     scanNumber: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
+        allowNull: false,
         validate: {
-            min: 0
+            min: 0,
         }
     },
 }, {
@@ -38,13 +36,15 @@ Messages.init({
     indexes: [
         {
             unique: true,
-            fields: ['_id'],
+            fields: ['aId']
         },
         {
-            fields: ['title', 'content', 'createAt']
+            fields: ['messageId', 'title', 'content'],
         }
     ],
     createdAt: true,
+    deletedAt: true,
+    paranoid: true
 })
 
-export default Messages
+module.exports = Messages;

@@ -1,51 +1,13 @@
-import Users from "./users";
-import Groups from "./groups";
 const { getAgeByBirthDay } = require("../utils/index");
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
 class Friends extends Model { }
 Friends.init({
-    _id: {
+    friendId: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         allowNull: false,
-        primaryKey: true,
-        validate: {
-            isDecimal: true
-        }
-    },
-    uid: {
-        type: DataTypes.UUIDV4,
-        allowNull: false,
-        validate: {
-            isUUID: true
-        },
-        references: {
-            model: Users,
-            key: 'loginId',
-        }
-    },
-    fid: {
-        type: DataTypes.UUIDV4,
-        allowNull: false,
-        validate: {
-            isUUID: true
-        },
-        references: {
-            model: Users,
-            key: 'loginId',
-        }
-    },
-    group: {
-        type: DataTypes.STRING(10),
-        allowNull: false,
-        validate: {
-            len: [2, 10]
-        },
-        references: {
-            model: Groups,
-            key: 'name',
-        }
+        primaryKey: true
     },
     makeDate: {
         type: DataTypes.VIRTUAL,//虚拟字段
@@ -61,15 +23,16 @@ Friends.init({
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            unique: true,
-            fields: ['_id'],
+            fields: ['friendId'],
         },
         {
-            fields: ['uid', 'fid', 'createdAt']
+            unique: true,
+            fields: ['uId', 'fId']
         },
     ],
     createdAt: true,
-    deletedAt: true
+    deletedAt: true,
+    paranoid: true
 })
 
-export default Friends
+module.exports = Friends;

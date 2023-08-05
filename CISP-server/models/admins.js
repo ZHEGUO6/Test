@@ -1,26 +1,17 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
-const { validators: { password } } = require("../utils/index");
+const { permissionOpt } = require("../utils/index");
+const Messages = require('./messages');
+const News = require('./news');
 class Admins extends Model { }
 Admins.init({
-    _id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        allowNull: false,
-        primaryKey: true,
-        validate: {
-            isDecimal: true
-        }
-    },
     loginId: {
-        type: DataTypes.UUIDV4,
+        type: DataTypes.STRING(128),
         allowNull: false,
         validate: {
-            isUUID: {
-                args: 4,
-                msg: 'loginId is invailde'
-            }
-        }
+            len: 36
+        },
+        primaryKey: true
     },
     loginPwd: {
         type: DataTypes.STRING(16),
@@ -30,7 +21,7 @@ Admins.init({
                 args: [8, 16],
                 msg: 'loginPwd must between than 8 and 16 characters'
             },
-            is: [password(8, 16), 'g'],//不能为纯数字或字母，必须有特殊符号并且不能有空白字符
+            is: /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*\.\-])[a-zA-Z\d!#@*&\.\-]{8,16}$/g,//不能为纯数字或字母，必须有特殊符号并且不能有空白字符
         }
     },
     avatar: {
@@ -47,36 +38,37 @@ Admins.init({
             len: [2, 10]
         }
     },
-    enabled: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
-        validate: {
-            isIn: [[false, true]]
-        }
-    },
-    permission: {
-        type: DataTypes.INTEGER(1),
-        allowNull: false,
-        defaultValue: 0,
-        validate: {
-            min: 0,
-            max: 1,
-            isDecimal: true
-        }
-    },
+    enabled: permissionOpt,
+    permission: permissionOpt
 }, {
     sequelize,
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            unique: true,
-            fields: ['_id'],
-        },
-        {
-            fields: ['loginPwd', 'nickname']
+            fields: ['loginId', 'loginPwd', 'nickname']
         }
-    ]
+    ],
+    createdAt: true,
+    deletedAt: true,
+    paranoid: true,
+    hooks: {
+        async beforeBulkDestroy({ where: { loginId, ...obj } }) {
+            const opt = {
+                where: obj
+            };
+            if (loginId && loginId.length === 36) {
+                opt.where.aId = loginId;
+            }
+            else {
+                // 禁止删除
+                return Promise.reject(new Error('you must provide loginId to destory'));
+            }
+            // 删除相关消息
+            Messages.destroy(opt);
+            // 删除相关新闻
+            News.destroy(opt);
+        }
+    }
 })
 
-export default Admins
+module.exports = Admins;

@@ -1,3 +1,4 @@
+const { DataTypes } = require("sequelize");
 const obj = {
     // 根据生日获取年龄
     getAgeByBirthDay(birthDay) {
@@ -35,13 +36,21 @@ const obj = {
         * @param {*} max 最大长度
         */
         password(min, max) {
-            return new RegExp(`^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*\.\-])[a-zA-Z\d!#@*&\.\-]{${min},${max}}$`, 'g')
+            return new RegExp(`^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*\.\-])[a-zA-Z\d!#@*&\.\-]{${min},${max}}$`)
         },
         addr() {
             return /^([0-9]+\-){1,2}[0-9]+$/
         },
         phone() {
             return /^1[3-9][0-9]{9}$/
+        }
+    },
+    permissionOpt: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        validate: {
+            min: 0,
+            max: 1,
         }
     }
 }
