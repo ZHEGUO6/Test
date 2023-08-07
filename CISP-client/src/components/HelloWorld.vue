@@ -1,12 +1,6 @@
-<script setup lang="ts">
-defineProps<{
-  msg: string
-}>()
-</script>
-
 <template>
   <div class="greetings">
-    <h1 class="green">{{ msg }}</h1>
+    <h1 class="green">{{ props }}</h1>
     <h3>
       You’ve successfully created a project with
       <a href="https://vitejs.dev/" target="_blank" rel="noopener">Vite</a> +
@@ -14,6 +8,16 @@ defineProps<{
     </h3>
   </div>
 </template>
+
+<script setup lang="ts">
+const props = defineProps({
+  foo: String,
+  bar: {
+    type: Number,
+    required: true
+  }
+})
+</script>
 
 <style scoped>
 h1 {

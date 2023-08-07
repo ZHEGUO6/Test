@@ -9,6 +9,7 @@ const Searches = require('./searches');
 const UnAbled = require('./unabled');
 const Users = require('./users');
 const SearchImgs = require('./searchImgs');
+const CommentReplys = require('./commentReplys');
 const { DataTypes } = require('sequelize')
 
 // 一个管理员可以上传多个消息和新闻
@@ -19,20 +20,26 @@ Admins.hasMany(News, { foreignKeyConstraint: true, foreignKey: { allowNull: fals
 Messages.belongsTo(Admins, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'aId', type: DataTypes.STRING(128) }, as: 'admin_Message' });
 News.belongsTo(Admins, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'aId', type: DataTypes.STRING(128) }, as: 'admin_News' });
 
-// 一个用户可以有多条评论，多个朋友，多条搜索信息，多个分组，多个禁用记录
-Users.hasMany(Comments, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Comments' });
+// 一个用户可以有多条评论，多个朋友，多条搜索信息，多个分组，多个禁用记录，多个回复
 Users.hasMany(Friends, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Friends' });
 Users.hasMany(Groups, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Groups' });
 Users.hasMany(Searches, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Searches' });
 Users.hasMany(UnAbled, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_UnAbled' });
+Users.hasMany(CommentReplys, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_CommentReply' });
 
-// 一条搜索对应一个用户，对应多图片
+// 一条搜索对应一个用户，对应多图片，有多条评论
 Searches.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Searches' });
 Searches.hasMany(SearchImgs, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'sId', type: DataTypes.INTEGER }, as: 'search_Images' });
+Searches.hasMany(Comments, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'sId', type: DataTypes.INTEGER }, as: 'search_Comments' });
 
-// 一条评论对应两个用户
+// 一条评论对应一条搜索，对应一个用户，拥有多条回复
+Comments.belongsTo(Searches, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'sId', type: DataTypes.STRING(128) }, as: 'search_Comments' });
 Comments.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Comments' });
-Comments.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'toUid', type: DataTypes.STRING(128) }, as: 'user_To_Comments' });
+
+
+// 一条回复对应一条评论，对应一个用户
+CommentReplys.belongsTo(Comments, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'cId', type: DataTypes.INTEGER }, as: 'comment_Reply' });
+CommentReplys.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_CommentReply' });
 
 // 一个朋友可以对应两个用户
 Friends.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Friends' });

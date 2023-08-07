@@ -17,14 +17,14 @@ Users.init({
         primaryKey: true
     },
     loginPwd: {
-        type: DataTypes.STRING(16),
+        type: DataTypes.STRING(64),
         allowNull: false,
         validate: {
             len: {
-                args: [8, 16],
-                msg: 'loginPwd must between than 8 and 16 characters'
+                args: [32, 64],
+                msg: '密码必须在8位到32位之间'
             },
-            is: /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*\.\-])[a-zA-Z\d!#@*&\.\-]{8,16}$/g,//不能为纯数字或字母，必须有特殊符号并且不能有空白字符
+            is: /^[0-9a-z]{32,64}$/g,//不能为纯数字或字母，必须有特殊符号并且不能有空白字符
         }
     },
     avatar: {

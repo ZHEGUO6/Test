@@ -52,6 +52,6 @@ const obj = {
             min: 0,
             max: 1,
         }
-    }
+    },
 }
 module.exports = obj
