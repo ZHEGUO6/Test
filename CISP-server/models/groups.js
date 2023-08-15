@@ -20,11 +20,11 @@ Groups.init({
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            fields: ['groupId', 'name'],
+            fields: ['name', 'uId'],
         },
         {
             unique: true,
-            fields: ['uId']
+            fields: ['groupId']
         }
     ],
     createdAt: true,

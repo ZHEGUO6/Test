@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
-const { permissionOpt } = require("../utils/index");
+const { permissionOpt, enabledOpt } = require("../utils/index");
 const Messages = require('./messages');
 const News = require('./news');
 class Admins extends Model { }
@@ -34,18 +34,23 @@ Admins.init({
     nickname: {
         type: DataTypes.STRING(10),
         allowNull: false,
+        defaultValue: '新增管理员',
         validate: {
             len: [2, 10]
         }
     },
-    enabled: permissionOpt,
-    permission: permissionOpt
+    enabled: enabledOpt(),
+    permission: permissionOpt()
 }, {
     sequelize,
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            fields: ['loginId', 'loginPwd', 'nickname']
+            fields: ['loginPwd', 'nickname', 'enabled', 'permission'],
+        },
+        {
+            unique: true,
+            fields: ['loginId']
         }
     ],
     createdAt: true,

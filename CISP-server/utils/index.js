@@ -25,10 +25,10 @@ const obj = {
     },
     validators: {
         qq() {
-            return /^\d{5,11}$/
+            return /^(\d{5,11}|'')$/g
         },
         wechat() {
-            return /^[a-zA-Z][\w\-]{5,19}$/
+            return /^([a-zA-Z][\w\-]{5,19}|'')$/g
         },
         /**
         * 密码正则 数字字母下划线特殊字符 !#@*&.-
@@ -39,19 +39,26 @@ const obj = {
             return new RegExp(`^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*\.\-])[a-zA-Z\d!#@*&\.\-]{${min},${max}}$`)
         },
         addr() {
-            return /^([0-9]+\-){1,2}[0-9]+$/
+            return /^([0-9]+\-){1,2}[0-9]+$/g
         },
         phone() {
-            return /^1[3-9][0-9]{9}$/
+            return /^(1[3-9][0-9]{9}|'')$/g
         }
     },
-    permissionOpt: {
+    permissionOpt: () => ({
         type: DataTypes.INTEGER,
         defaultValue: 0,
         validate: {
             min: 0,
-            max: 1,
+            max: 1
         }
-    },
+    }),
+    enabledOpt: () => ({
+        type: DataTypes.BOOLEAN,
+        defaultValue: true,
+        validate: {
+            isIn: [[false, true]]
+        }
+    })
 }
 module.exports = obj

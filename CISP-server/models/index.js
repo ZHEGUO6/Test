@@ -20,7 +20,7 @@ Admins.hasMany(News, { foreignKeyConstraint: true, foreignKey: { allowNull: fals
 Messages.belongsTo(Admins, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'aId', type: DataTypes.STRING(128) }, as: 'admin_Message' });
 News.belongsTo(Admins, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'aId', type: DataTypes.STRING(128) }, as: 'admin_News' });
 
-// 一个用户可以有多条评论，多个朋友，多条搜索信息，多个分组，多个禁用记录，多个回复
+// 一个用户可以有多个朋友，多条搜索信息，多个分组，多个禁用记录，多个回复
 Users.hasMany(Friends, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Friends' });
 Users.hasMany(Groups, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Groups' });
 Users.hasMany(Searches, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Searches' });
@@ -45,12 +45,12 @@ CommentReplys.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allow
 Friends.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Friends' });
 Friends.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'fId', type: DataTypes.STRING(128) }, as: 'user_To_Friends' });
 // 一个朋友对应一个分组
-Friends.belongsTo(Groups, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'gId', type: DataTypes.INTEGER }, as: 'friend_Groups' });
+Friends.belongsTo(Groups, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'gId', type: DataTypes.INTEGER, defaultValue: 1 }, as: 'friend_Groups' });
 
 // 一个分组对应一个用户
 Groups.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Groups' });
 // 一个分组对应多个朋友
-Groups.hasMany(Friends, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'gId', type: DataTypes.INTEGER }, as: 'friend_Groups' })
+Groups.hasMany(Friends, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'gId', type: DataTypes.INTEGER, defaultValue: 1 }, as: 'friend_Groups' })
 
 // 一个禁用记录对应一个用户
 UnAbled.belongsTo(Users, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_UnAbled' });

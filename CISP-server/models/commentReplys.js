@@ -20,8 +20,12 @@ CommentReplys.init({
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            fields: ['CommentReplyId'],
+            fields: ['cId', 'uId'],
         },
+        {
+            unique: true,
+            fields: ['CommentReplyId']
+        }
     ],
     createdAt: true,
     deletedAt: true,

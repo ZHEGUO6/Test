@@ -5,7 +5,7 @@ const Friends = require('./friends');
 const UnAbled = require('./unabled');
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
-const { getAgeByBirthDay, validators: { qq, wechat, addr, phone } } = require("../utils");
+const { getAgeByBirthDay, validators: { qq, wechat, addr, phone }, enabledOpt } = require("../utils");
 class Users extends Model { }
 Users.init({
     loginId: {
@@ -37,31 +37,39 @@ Users.init({
     nickname: {
         type: DataTypes.STRING(10),
         allowNull: false,
+        defaultValue: '新增用户',
         validate: {
             len: [2, 10]
         }
     },
     mail: {
         type: DataTypes.STRING(32),
+        defaultValue: '',
+        allowNull: false,
         validate: {
-            isEmail: true
+            is: /^([A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+|'')$/
         }
     },
     qq: {
         type: DataTypes.STRING(11),
+        defaultValue: '',
+        allowNull: false,
         validate: {
             is: qq(),
         }
     },
     wechat: {
         type: DataTypes.STRING(20),
+        defaultValue: '',
+        allowNull: false,
         validate: {
             is: wechat(),
-            len: [6, 20]
         }
     },
     intro: {
         type: DataTypes.STRING(255),
+        allowNull: false,
+        defaultValue: '',
         validate: {
             len: [0, 255]
         }
@@ -73,15 +81,7 @@ Users.init({
             isDate: true
         }
     },
-    enabled: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-        allowNull: false,
-        validate: {
-            min: 0,
-            max: 1,
-        }
-    },
+    enabled: enabledOpt(),
     type: {
         type: DataTypes.STRING(7),
         allowNull: false,
@@ -94,6 +94,7 @@ Users.init({
     addr: {
         type: DataTypes.STRING('30'),
         allowNull: false,
+        defaultValue: '',
         validate: {
             len: [10, 30],
             is: addr()
@@ -101,6 +102,8 @@ Users.init({
     },
     phone: {
         type: DataTypes.STRING(11),
+        defaultValue: '',
+        allowNull: false,
         validate: {
             is: phone()
         }
@@ -134,7 +137,7 @@ Users.init({
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            fields: ['online', 'phone']
+            fields: ['online', 'phone', 'qq', 'wechat', 'loginPwd', 'nickname']
         },
         {
             unique: true,
@@ -149,6 +152,15 @@ Users.init({
                 uId: users.getDataValue('loginId'),
                 name: '我的好友'
             })
+        },
+        // 注册多个用户的回调
+        async afterBulkCreate(instances, options) {
+            await Promise.all(instances.map(async i => {
+                await Groups.create({
+                    uId: i.getDataValue('loginId'),
+                    name: '我的好友'
+                })
+            }))
         },
         // 删除用户之前的回调
         async beforeBulkDestroy({ where: { loginId, ...obj } }) {
@@ -172,7 +184,7 @@ Users.init({
             await Groups.destroy(opt);
             await Friends.destroy(opt);
             await Comments.destroy(opt);
-        },
+        }
     },
     createdAt: true,
     deletedAt: true,

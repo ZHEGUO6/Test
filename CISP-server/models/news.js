@@ -35,10 +35,10 @@ News.init({
     indexes: [
         {
             unique: true,
-            fields: ['aId'],
+            fields: ['newId'],
         },
         {
-            fields: ['title', 'content', 'newId']
+            fields: ['title', 'content', 'aId']
         }
     ],
     createdAt: true,

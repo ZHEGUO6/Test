@@ -16,6 +16,8 @@
     "query-string": "^8.1.0",
     "querystring": "^0.2.1",
     "sequelize": "^6.32.1",
-    "tedious": "^16.1.0"
+    "svg-captcha": "^1.4.0",
+    "tedious": "^16.1.0",
+    "uuidv4": "^6.2.13"
   }
 }

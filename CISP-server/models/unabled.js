@@ -22,10 +22,10 @@ UnAbled.init({
     indexes: [
         {
             unique: true,
-            fields: ['uId'],
+            fields: ['unabledId'],
         },
         {
-            fields: ['createdAt', 'unabledId']
+            fields: ['createdAt', 'uId']
         }
     ],
     createdAt: true,

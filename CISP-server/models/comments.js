@@ -20,12 +20,12 @@ Comments.init({
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
-            fields: ['commentId'],
+            fields: ['uId', 'sId'],
         },
-        // {
-        //     unique: true,
-        //     fields: ['uId']
-        // }
+        {
+            unique: true,
+            fields: ['commentId']
+        }
     ],
     createdAt: true,
     deletedAt: true,

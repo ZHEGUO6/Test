@@ -10,6 +10,7 @@ SearchImages.init({
     },
     imgUrl: {
         type: DataTypes.STRING,
+        allowNull: false,
         validate: {
             isUrl: true
         }
@@ -21,6 +22,10 @@ SearchImages.init({
         {
             fields: ['sId', 'imgUrl']
         },
+        {
+            unique: true,
+            fields: ['searchImgId']
+        }
     ],
     createdAt: true,
     deletedAt: true,

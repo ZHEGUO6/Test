@@ -36,10 +36,10 @@ Messages.init({
     indexes: [
         {
             unique: true,
-            fields: ['aId']
+            fields: ['messageId']
         },
         {
-            fields: ['messageId', 'title', 'content'],
+            fields: ['title', 'content', 'aId'],
         }
     ],
     createdAt: true,

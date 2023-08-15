@@ -40,33 +40,25 @@ Searches.init({
             min: 0,
         }
     },
-    typeId: permissionOpt
+    typeId: permissionOpt()
 }, {
     sequelize,
     freezeTableName: true,//表名与模型名相同
     indexes: [
         {
             unique: true,
-            fields: ['uId'],
+            fields: ['searchId'],
         },
         {
-            fields: ['scanNumber', 'commentNumber', 'intro', 'title', 'searchId']
+            fields: ['scanNumber', 'commentNumber', 'intro', 'title', 'uId']
         },
     ],
     createdAt: true,
     deletedAt: true,
     paranoid: true,
     hooks: {
-        async beforeBulkDestroy({ where: { uId } }) {
-            if (uId && uId.length !== 36) {
-                return Promise.reject(new Error('you must provide searchId'));
-            }
-            const searches = await Searches.findAll({
-                where: {
-                    uId
-                }
-            });
-            await Promise.all(searches.map(i => SearchImgs.destroy({ where: { sId: i.get('searchId') } })));
+        async beforeBulkDestroy({ where: { searchId } }) {
+            await SearchImgs.destroy({ where: { sId: searchId } })
         }
     }
 })

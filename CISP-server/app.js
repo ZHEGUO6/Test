@@ -2,10 +2,11 @@ const { Users, Admins, Comments, Friends, Groups, Messages, News, Searches, UnAb
 const express = require('express');
 const sequelize = require('./sequelize');
 const encryptOrDecrypt = require('./utils/encryptOrDecrypt');
-const { AdminRouter } = require('./routes');
+const { AdminRouter, staticMiddleware, CommentReplyRouter, CommentRouter, FriendRouter, GroupRouter, MessageRouter, NewsRouter, SearchRouter, SearchImgRouter, UnableRouter, UserRouter, CaptchaRouter } = require('./routes');
+const path = require('path');
 // 对数据库进行测试
 (async () => {
-    await sequelize.sync({ force: true })
+    await sequelize.sync({ force: true });
     // await Users.create({
     //     loginId: 'a9c1942a-2ee4-11ee-ad02-cf3d6326sw1s',
     //     loginPwd: 'a563b295dc53c9486054e6374692d53140b0cfbad5c7f77e3551916ccb277e58',
@@ -70,5 +71,17 @@ const { AdminRouter } = require('./routes');
 // console.log(str);
 // console.log(encryptOrDecrypt.decrypt(str));
 const app = express();
-app.use('/admin', AdminRouter);
+app.use(staticMiddleware);
+app.use('/api/admin', AdminRouter);
+app.use('/api/commentReply', CommentReplyRouter);
+app.use('/api/comment', CommentRouter);
+app.use('/api/friend', FriendRouter);
+app.use('/api/group', GroupRouter);
+app.use('/api/message', MessageRouter);
+app.use('/api/news', NewsRouter);
+app.use('/api/search', SearchRouter);
+app.use('/api/searchImg', SearchImgRouter);
+app.use('/api/unable', UnableRouter);
+app.use('/api/user', UserRouter);
+app.use('/api/captcha', CaptchaRouter);
 module.exports = app
