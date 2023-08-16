@@ -1,6 +1,6 @@
 const express = require('express');
 const UnAbled = require('../models/unabled');
-const { baseSend, commonVaildate } = require('../utils/server');
+const { baseSend, commonVaildate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
 const Router = express.Router({ caseSensitivea: true });
 
@@ -21,39 +21,37 @@ Router.get('/', async function (req, res) {
 })
 
 // 分页获取禁用记录
-Router.get('/list', async function (req, res) {
+Router.get('/list', async function (req, res, next) {
     let { page, limit } = req.query;
     limit = +limit;
     if (page < 0 || !limit && limit < 0) {
         // 请求未满足期望值
-        res.send(baseSend(417, ''));
-        return
+        return catchError(next, '请求的参数数据类型或值不满足要求')();
     }
-    const { rows, count } = await UnAbled.findAndCountAll({
+    const result = await UnAbled.findAndCountAll({
         limit,
         offset: (+page - 1) * limit
-    })
-    res.send(baseSend(200, '', { datas: rows, count }));
+    }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
 // 获取单个禁用记录
-Router.get('/:id', async function (req, res) {
+Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const query = await UnAbled.findByPk(+id);
-    res.send(baseSend(200, '', { datas: query }));
+    const query = await UnAbled.findByPk(id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    query && res.send(baseSend(200, '', { datas: query }));
 });
 
 // 新增一个禁用记录
-Router.post('/add', async function (req, res) {
-    const unabledInstance = await commonVaildate(req, res, UnAbled, vaildateAdd, 'create', async item => {
+Router.post('/add', async function (req, res, next) {
+    const unabledInstance = await commonVaildate(req, next, UnAbled, vaildateAdd, 'create', async item => {
         const has = await UnAbled.findOne({
             where: {
                 uId: item.uId
             }
         })
         if (has) {
-            res.send(baseSend(417, '该用户已经被禁用了，无法多次禁用'));
-            return false;
+            return catchError(next, '该用户已经被禁用了，无法多次禁用')();
         }
         return true;
     });
@@ -61,12 +59,11 @@ Router.post('/add', async function (req, res) {
 });
 
 // 新增多个禁用记录
-Router.post('/addList', async function (req, res) {
+Router.post('/addList', async function (req, res, next) {
     const set = new Set();
-    const unabledInstances = await commonVaildate(req, res, UnAbled, vaildateAdd, 'bulkCreate', async item => {
+    const unabledInstances = await commonVaildate(req, next, UnAbled, vaildateAdd, 'bulkCreate', async item => {
         if (set.has(item.uId)) {
-            res.send(baseSend(417, `传递了相同的用户id`));
-            return false;
+            return catchError(next, `传递了相同的用户id`)();
         }
         const has = await UnAbled.findOne({
             where: {
@@ -74,8 +71,7 @@ Router.post('/addList', async function (req, res) {
             }
         })
         if (has) {
-            res.send(baseSend(417, '该用户已经被禁用了，无法多次禁用'));
-            return false;
+            return catchError(next, '该用户已经被禁用了，无法多次禁用')();
         }
         set.add(item.uId);
         return true
@@ -84,11 +80,11 @@ Router.post('/addList', async function (req, res) {
 })
 
 // 修改禁用记录信息
-Router.put('/:id', async function (req, res) {
+Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, res, UnAbled, vaildateModify, 'update', null, {
+    const result = await commonVaildate(req, next, UnAbled, vaildateModify, 'update', null, {
         where: {
-            unabledId: +id
+            unabledId: id
         },
         returning: true
     });
@@ -96,14 +92,14 @@ Router.put('/:id', async function (req, res) {
 })
 
 // 删除一个禁用记录
-Router.delete('/:id', async function (req, res) {
+Router.delete('/:id', async function (req, res, next) {
     const id = req.params.id;
     const deleteRows = await UnAbled.destroy({
         where: {
-            unabledId: +id
+            unabledId: id
         },
-    });
-    res.send(baseSend(200, '', { datas: null, count: deleteRows }));
+    }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 
 module.exports = Router;

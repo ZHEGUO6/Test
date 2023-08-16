@@ -18,13 +18,20 @@ const readReqData = (req) => new Promise((resolve, reject) => {
     })
 });
 
+const catchError = (next, error) => {
+    return () => {
+        next(error);
+        return false;
+    }
+};
+
 module.exports = {
     baseSend,
     readReqData,
     /**
      * 通用的响应需要验证的方法
      * @param {*} req 请求对象
-     * @param {*} res 响应对象
+     * @param {*} next 移交给下个中间件函数
      * @param {*} instance 模型实例
      * @param {*} validateFunc 参数验证方法
      * @param {*} action 针对模型的动作，如：create、update
@@ -32,7 +39,7 @@ module.exports = {
      * @param {*} modelOption 调用模型方法传递的第二个参数
      * @returns
      */
-    async commonVaildate(req, res, instance, validateFunc, action, filterCallback, modelOption = {}) {
+    async commonVaildate(req, next, instance, validateFunc, action, filterCallback, modelOption = {}) {
         async function _vaildate(item) {
             let yetOver = true;
             filterCallback && (yetOver = await filterCallback(item));
@@ -47,8 +54,7 @@ module.exports = {
                 const item = await validateFunc(params[index]);
                 if (!item) {
                     // 检测不通过
-                    res.send(baseSend(417, `传递的信息数量与预期的不一致`));
-                    return false;
+                    return catchError(next, `传递的信息数量与预期的不一致`)();
                 }
                 filter.push(item);
                 const result = await _vaildate(item);
@@ -62,8 +68,7 @@ module.exports = {
             params = await validateFunc(params);
             if (!params) {
                 // 检测不通过
-                res.send(baseSend(417, `传递的信息数量与预期的不一致`));
-                return false;
+                return catchError(next, `传递的信息数量与预期的不一致`)();
             }
             const result = await _vaildate(params);
             if (!result) {
@@ -71,9 +76,9 @@ module.exports = {
             }
         }
         const result = await instance[action](params, modelOption).catch(err => {
-            res.send(baseSend(417, `传入的数据类型验证未通过，${err.name}`));
-            return false
+            return catchError(next, `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`)();
         });
         return result;
-    }
+    },
+    catchError
 }

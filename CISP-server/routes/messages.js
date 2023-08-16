@@ -1,6 +1,6 @@
 const express = require('express');
 const Messages = require('../models/messages');
-const { baseSend, commonVaildate } = require('../utils/server');
+const { baseSend, commonVaildate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
 const Router = express.Router({ caseSensitivea: true });
 
@@ -21,44 +21,43 @@ Router.get('/', async function (req, res) {
 });
 
 // 分页获取消息
-Router.get('/list', async function (req, res) {
+Router.get('/list', async function (req, res, next) {
     let { page, limit } = req.query;
     limit = +limit;
     if (page < 0 || !limit && limit < 0) {
         // 请求未满足期望值
-        res.send(baseSend(417, ''));
-        return
+        return catchError(next, '请求的参数数据类型或值不满足要求')();
     }
-    const { rows, count } = await Messages.findAndCountAll({
+    const result = await Messages.findAndCountAll({
         limit,
         offset: (+page - 1) * limit
-    })
-    res.send(baseSend(200, '', { datas: rows, count }));
+    }).catch(catchError(next, '请求的参数数据类型或值不满足要求'))
+    result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
 // 获取单个消息
-Router.get('/:id', async function (req, res) {
+Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const query = await Messages.findByPk(+id);
+    const query = await Messages.findByPk(+id).catch(catchError(next, '传递的数据类型有误，请检查'));
     res.send(baseSend(200, '', { datas: query }));
 });
 
 // 新增一个消息
-Router.post('/add', async function (req, res) {
-    const MessagesInstance = await commonVaildate(req, res, Messages, vaildateAdd, 'create');
+Router.post('/add', async function (req, res, next) {
+    const MessagesInstance = await commonVaildate(req, next, Messages, vaildateAdd, 'create');
     MessagesInstance && res.send(baseSend(200, '', { datas: MessagesInstance }));
 });
 
 // 新增多个消息
-Router.post('/addList', async function (req, res) {
-    const MessagesInstances = await commonVaildate(req, res, Messages, vaildateAdd, 'bulkCreate');
+Router.post('/addList', async function (req, res, next) {
+    const MessagesInstances = await commonVaildate(req, next, Messages, vaildateAdd, 'bulkCreate');
     MessagesInstances && res.send(baseSend(200, '', { datas: MessagesInstances, count: MessagesInstances.length }));
 });
 
 // 修改单个消息信息
-Router.put('/:id', async function (req, res) {
+Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, res, Messages, vaildateModify, 'update', null, {
+    const result = await commonVaildate(req, next, Messages, vaildateModify, 'update', null, {
         where: {
             messageId: +id
         },
@@ -68,14 +67,14 @@ Router.put('/:id', async function (req, res) {
 })
 
 // 删除一个消息
-Router.delete('/:id', async function (req, res) {
+Router.delete('/:id', async function (req, res, next) {
     const id = req.params.id;
     const deleteRows = await Messages.destroy({
         where: {
             messageId: +id
         },
-    });
-    res.send(baseSend(200, '', { datas: null, count: deleteRows }));
+    }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 
 module.exports = Router;
