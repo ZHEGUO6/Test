@@ -32,6 +32,10 @@ Router.get('/list', async function (req, res, next) {
         limit,
         offset: (+page - 1) * limit
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('查询评论数据失败');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -43,6 +47,10 @@ Router.get('/search/:sId', async function (req, res, next) {
             sId
         }
     }).catch(catchError(next, '传递的数据类型有误'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 })
 
@@ -62,7 +70,11 @@ Router.get('/search/list/:sId', async function (req, res, next) {
         },
         limit,
         offset: (+page - 1) * limit
-    }).catch(catchError(next, '传递的数据类型有误，请检查'))
+    }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -70,12 +82,20 @@ Router.get('/search/list/:sId', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await Comments.findByPk(+id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     query && res.send(baseSend(200, '', { datas: query }));
 });
 
 // 新增一个评论
 Router.post('/add', async function (req, res, next) {
     const CommentsInstance = await commonVaildate(req, next, Comments, vaildateAdd, 'create');
+    if (CommentsInstance == null) {
+        next('新增评论失败');
+        return;
+    }
     CommentsInstance && res.send(baseSend(200, '', { datas: CommentsInstance }));
 });
 
@@ -88,6 +108,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -99,6 +123,10 @@ Router.delete('/:id', async function (req, res, next) {
             commentId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

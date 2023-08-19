@@ -23,6 +23,10 @@ Router.get('/comment/:cId', async function (req, res, next) {
             cId
         }
     }).catch(catchError(next, '传递的id有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 })
 
@@ -42,6 +46,10 @@ Router.get('/list/:cId', async function (req, res, next) {
         limit,
         offset: (+page - 1) * limit
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -49,6 +57,10 @@ Router.get('/list/:cId', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await CommentReplys.findByPk(id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     query && res.send(baseSend(200, '', { datas: query }));
 });
 
@@ -63,6 +75,10 @@ Router.post('/add', async function (req, res, next) {
         }
         return true;
     });
+    if (cInstance == null) {
+        next('新增评论回复失败');
+        return;
+    }
     CommentReplysInstance && res.send(baseSend(200, '', { datas: CommentReplysInstance }));
 });
 
@@ -75,6 +91,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -86,6 +106,10 @@ Router.delete('/:id', async function (req, res, next) {
             CommentReplyId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (deleteRows == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

@@ -28,18 +28,30 @@ Router.get('/search/:id', async function (req, res, next) {
             sId: +id
         }
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
 // 新增一个寻人寻物图片
 Router.post('/add', async function (req, res, next) {
     const SearchImgsInstance = await commonVaildate(req, next, SearchImgs, vaildateAdd, 'create');
+    if (SearchImgsInstance == null) {
+        next('新增搜寻图片失败');
+        return;
+    }
     SearchImgsInstance && res.send(baseSend(200, '', { datas: SearchImgsInstance }));
 });
 
 // 新增多个寻人寻物图片
 Router.post('/addList', async function (req, res, next) {
     const SearchImgsInstances = await commonVaildate(req, next, SearchImgs, vaildateAdd, 'bulkCreate');
+    if (SearchImgsInstances == null) {
+        next('新增搜寻图片失败');
+        return;
+    }
     SearchImgsInstances && res.send(baseSend(200, '', { datas: SearchImgsInstances, count: SearchImgsInstances.length }));
 });
 
@@ -52,6 +64,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -63,6 +79,10 @@ Router.delete('/:id', async function (req, res, next) {
             searchImgId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

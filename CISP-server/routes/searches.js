@@ -32,6 +32,10 @@ Router.get('/list', async function (req, res, next) {
         limit,
         offset: (+page - 1) * limit
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('查询搜寻数据失败');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -43,6 +47,10 @@ Router.get('/type/:typeId', async function (req, res, next) {
             typeId
         }
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -62,6 +70,10 @@ Router.get('/list/type/:typeId', async function (req, res, next) {
             typeId
         }
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -69,18 +81,30 @@ Router.get('/list/type/:typeId', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await Searches.findByPk(+id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     query && res.send(baseSend(200, '', { datas: query }));
 });
 
 // 新增一个寻人寻物
 Router.post('/add', async function (req, res, next) {
     const SearchesInstance = await commonVaildate(req, next, Searches, vaildateAdd, 'create');
+    if (SearchesInstance == null) {
+        next('新增搜寻失败');
+        return;
+    }
     SearchesInstance && res.send(baseSend(200, '', { datas: SearchesInstance }));
 });
 
 // 新增多个寻人寻物 (暂时不添加该功能)
 Router.post('/addList', async function (req, res, next) {
     const SearchesInstances = await commonVaildate(req, next, Searches, vaildateAdd, 'bulkCreate');
+    if (SearchesInstances == null) {
+        next('新增搜寻失败');
+        return;
+    }
     SearchesInstances && res.send(baseSend(200, '', { datas: SearchesInstances, count: SearchesInstances.length }));
 });
 
@@ -93,6 +117,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -104,6 +132,10 @@ Router.delete('/:id', async function (req, res, next) {
             searchId: id,
         }
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (deleteRows == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

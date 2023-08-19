@@ -31,7 +31,11 @@ Router.get('/list', async function (req, res, next) {
     const result = await News.findAndCountAll({
         limit,
         offset: (+page - 1) * limit
-    }).catch(catchError(next, '传递的数据类型有误，请检查'))
+    }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('查询新闻数据失败');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -39,18 +43,30 @@ Router.get('/list', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await News.findByPk(+id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     query && res.send(baseSend(200, '', { datas: query }));
 });
 
 // 新增一个新闻
 Router.post('/add', async function (req, res, next) {
     const NewsInstance = await commonVaildate(req, next, News, vaildateAdd, 'create');
+    if (NewsInstance == null) {
+        next('新增新闻失败');
+        return;
+    }
     NewsInstance && res.send(baseSend(200, '', { datas: NewsInstance }));
 });
 
 // 新增多个新闻
 Router.post('/addList', async function (req, res, next) {
     const NewsInstances = await commonVaildate(req, next, News, vaildateAdd, 'bulkCreate');
+    if (NewsInstances == null) {
+        next('新增新闻失败');
+        return;
+    }
     NewsInstances && res.send(baseSend(200, '', { datas: NewsInstances, count: NewsInstances.length }));
 });
 
@@ -63,6 +79,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -74,6 +94,10 @@ Router.delete('/:id', async function (req, res, next) {
             newId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (deleteRows == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

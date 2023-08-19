@@ -1,8 +1,8 @@
 const aes = require('aes-js');
-const key = (Date.now().toString(10) + Math.random().toString(8).slice(3, 6)).split('').map(i => Number(i));
+const key = [1, 6, 49, 2, 2, 7, 89, 8, 2, 1, 37, 96, 3, 61, 5, 1];
 
 // The initialization vector (must be 16 bytes)
-const iv = (Date.now().toString(10) + Math.random().toString(8).slice(3, 6)).split('').map(i => Number(i));
+const iv = [10, 21, 7, 9, 1, 6, 25, 6, 8, 18, 7, 2, 2, 9, 46, 1];
 // 加密
 const encrypt = (str) => {
     const textBytes = aes.utils.utf8.toBytes(str);

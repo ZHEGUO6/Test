@@ -28,6 +28,10 @@ Router.get('/list/:uId', async function (req, res, next) {
             uId
         }
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 })
 
@@ -35,18 +39,30 @@ Router.get('/list/:uId', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await Groups.findByPk(+id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     query && res.send(baseSend(200, '', { datas: query }));
 });
 
 // 新增一个分组
 Router.post('/add', async function (req, res, next) {
     const groupInstance = await commonVaildate(req, next, Groups, vaildateAdd, 'create');
+    if (groupInstance == null) {
+        next('新增分组失败');
+        return;
+    }
     groupInstance && res.send(baseSend(200, '', { datas: groupInstance }));
 });
 
 // 新增多个分组
 Router.post('/addList', async function (req, res, next) {
     const groupInstances = await commonVaildate(req, next, Groups, vaildateAdd, 'bulkCreate');
+    if (groupInstances == null) {
+        next('新增分组失败');
+        return;
+    }
     groupInstances && res.send(baseSend(200, '', { datas: groupInstances, count: groupInstances.length }));
 })
 
@@ -59,6 +75,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -70,6 +90,10 @@ Router.delete('/:id', async function (req, res, next) {
             groupId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

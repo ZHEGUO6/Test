@@ -1,6 +1,6 @@
 const express = require('express');
 const Admins = require('../models/admins');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonVaildate, catchError, readReqData } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
 const Router = express.Router({ caseSensitivea: true });
 const { encrypt, meetEncrypt } = require('../utils/encryptOrDecrypt');
@@ -59,31 +59,77 @@ Router.get('/:id', async function (req, res, next) {
 });
 
 // 验证帐号密码是否正确
-Router.get('/vaildate', async function (req, res, next) {
-    const { loginId, loginPwd } = req.query;
+Router.post('/vaildate', async function (req, res, next) {
+    const body = await readReqData(req).catch(err => catchError(next, err)());
+    if (!body) return;
+    const { nickname, loginPwd } = body;
     const result = await Admins.findOne({
         where: {
-            loginId,
-            loginPwd
+            nickname,
+            loginPwd: encrypt(meetEncrypt(loginPwd))
         }
     }).catch(catchError(next, '传递的数据类型有误'));
+    if (result == null) {
+        next('帐号或密码不正确');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result }))
 })
 
 // 管理员登录
 Router.post('/login', async function (req, res, next) {
-    // req.session.
+    // 验证登录是否成功
+    const body = await readReqData(req).catch(err => catchError(next, `传递的请求体有误，${err}`)());
+    const { nickname, loginPwd, saveTime = 1000 * 60 } = body;
+    if (!body) return;
+    const adminInstance = await Admins.findOne({ where: { nickname, loginPwd: encrypt(meetEncrypt(loginPwd)) } }).catch(catchError(next, '传递的数据类型有误，登录失败'));
+    if (adminInstance) {
+        req.session.adminId = adminInstance.getDataValue('loginId');
+        req.session.cookie.maxAge = saveTime;
+        res.send(baseSend(200, '登录成功', { datas: adminInstance }));
+        return;
+    }
+    if (adminInstance == null) {
+        next(`登录失败，帐号或密码有误`);
+    }
+})
+
+// 管理员恢复登录状态
+Router.get('/login/whoamI', async function (req, res, next) {
+    if (req.session.adminId) {
+        const adminInstance = await Admins.findByPk(req.session.adminId).catch(catchError(next, `登录信息有误，请重新登录`));
+        if (adminInstance == null) {
+            next('登录信息已失效，请重新登录');
+        }
+        adminInstance && res.send(baseSend(200, '恢复登录成功', { datas: adminInstance }));
+        return
+    }
+    next('登录信息已失效，请重新登录');
+})
+
+// 管理员退出登录
+Router.post('/logout', async function (req, res, next) {
+    req.session.adminId = null;
+    res.send(baseSend(200, '退出登录成功'));
 })
 
 // 新增一个管理员
 Router.post('/add', async function (req, res, next) {
     const adminInstance = await commonVaildate(req, next, Admins, vaildateAddAdmin, 'create');
+    if (adminInstance == null) {
+        next('新增管理员失败');
+        return;
+    }
     adminInstance && res.send(baseSend(200, '', { datas: adminInstance }));
 });
 
 // 新增多个管理员
 Router.post('/addList', async function (req, res, next) {
     const adminInstances = await commonVaildate(req, next, Admins, vaildateAddAdmin, 'bulkCreate');
+    if (adminInstances == null) {
+        next('新增管理员失败');
+        return;
+    }
     adminInstances && res.send(baseSend(200, '', { datas: adminInstances, count: adminInstances.length }));
 })
 
@@ -96,6 +142,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('修改管理员信息失败');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -107,6 +157,10 @@ Router.delete('/:id', async function (req, res, next) {
             loginId: id
         },
     }).catch(catchError(next, `传递的数据格式不对，请更正后再操作`));
+    if (deleteRows == null) {
+        next('删除管理员失败');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

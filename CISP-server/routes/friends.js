@@ -1,6 +1,5 @@
 const express = require('express');
 const Friends = require('../models/friends');
-const Users = require('../models/users');
 const { baseSend, commonVaildate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
 const sequelize = require('../sequelize');
@@ -23,6 +22,10 @@ Router.get('/:uId', async function (req, res, next) {
         bind: [uId],
         type: QueryTypes.SELECT
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (userInstances == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     userInstances && res.send(baseSend(200, '', { datas: userInstances, count: userInstances.length }));
 });
 
@@ -33,6 +36,10 @@ Router.get('/:uId/:gId', async function (req, res, next) {
         bind: [uId, gId],
         type: QueryTypes.SELECT
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (fdInstances == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     fdInstances && res.send(baseSend(200, '', { datas: fdInstances, count: fdInstances.length }));
 });
 
@@ -50,6 +57,10 @@ Router.post('/add', async function (req, res, next) {
         }
         return true;
     });
+    if (FriendsInstance == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     FriendsInstance && res.send(baseSend(200, '', { datas: FriendsInstance }));
 });
 
@@ -72,6 +83,10 @@ Router.post('/addList', async function (req, res, next) {
         }
         return true;
     });
+    if (FriendsInstances == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     FriendsInstances && res.send(baseSend(200, '', { datas: FriendsInstances, count: FriendsInstances.length }));
 })
 
@@ -84,6 +99,10 @@ Router.put('/:fId', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -95,6 +114,10 @@ Router.delete('/:fId', async function (req, res, next) {
             friendId: fId
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (deleteRows == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

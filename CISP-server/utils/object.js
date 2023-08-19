@@ -7,6 +7,9 @@ module.exports = {
      * @returns object or boolean
      */
     async getMeetItemFromObj(obj, mustMeetKeys, weekMeetKeys = []) {
+        if (typeof obj !== 'object') {
+            return false
+        }
         async function _vaildate(meetKey, must = false) {
             if (typeof meetKey === 'string') {
                 (!objOfKeys.includes(meetKey)) && (delete obj[meetKey] && must && meetKeyCont--);

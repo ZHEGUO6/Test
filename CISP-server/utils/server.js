@@ -14,7 +14,11 @@ const readReqData = (req) => new Promise((resolve, reject) => {
         str += data.toString();
     });
     req.on('end', () => {
-        resolve(JSON.parse(str))
+        try {
+            resolve(JSON.parse(str));
+        } catch (error) {
+            reject(error);
+        }
     })
 });
 
@@ -46,7 +50,7 @@ module.exports = {
             return yetOver;
         }
         // 剔除不需要的键值对
-        let params = await readReqData(req);
+        let params = await readReqData(req).catch(err => catchError(next, err)());
         if (Array.isArray(params)) {
             let filter = [];
             // 剔除不需要的键值对

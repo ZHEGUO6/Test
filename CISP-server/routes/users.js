@@ -1,6 +1,6 @@
 const express = require('express');
 const Users = require('../models/users');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonVaildate, catchError, readReqData } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
 const Router = express.Router({ caseSensitivea: true });
 const { encrypt, meetEncrypt } = require('../utils/encryptOrDecrypt');
@@ -48,6 +48,10 @@ Router.get('/list', async function (req, res, next) {
         limit,
         offset: (+page - 1) * limit
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('查询用户数据失败');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: rows, count }));
 });
 
@@ -55,18 +59,84 @@ Router.get('/list', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await Users.findByPk(id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     query && res.send(baseSend(200, '', { datas: query }));
 });
+
+// 验证帐号密码是否正确
+Router.post('/vaildate', async function (req, res, next) {
+    const body = await readReqData(req).catch(err => catchError(next, `传递的请求体有误，${err}`)())
+    if (!body) return;
+    const { nickname, loginPwd } = body;
+    const result = await Users.findOne({
+        where: {
+            nickname,
+            loginPwd: encrypt(meetEncrypt(loginPwd))
+        }
+    }).catch(catchError(next, '传递的数据类型有误'));
+    if (result == null) {
+        next('帐号或密码不正确');
+        return
+    }
+    result && res.send(baseSend(200, '', { datas: result }))
+})
+
+// 用户登录
+Router.post('/login', async function (req, res, next) {
+    // 验证登录是否成功
+    const body = await readReqData(req).catch(err => catchError(next, `传递的请求体有误，${err}`)());
+    if (!body) return;
+    const { nickname, loginPwd, saveTime = 1000 * 60 } = body;
+    const userInstance = await Users.findOne({ where: { nickname, loginPwd: encrypt(meetEncrypt(loginPwd)) } }).catch(catchError(next, '传递的数据类型有误，登录失败'));
+    if (userInstance) {
+        req.session.userId = userInstance.getDataValue('loginId');
+        req.session.cookie.maxAge = saveTime;
+        res.send(baseSend(200, '登录成功', { datas: userInstance }));
+    }
+    if (userInstance == null) {
+        res.send(baseSend(417, '帐号密码不正确，登录失败'));
+    }
+})
+
+// 用户恢复登录状态
+Router.get('/login/whoamI', async function (req, res, next) {
+    if (req.session.userId) {
+        const userInstance = await Users.findByPk(req.session.userId).catch(catchError(next, `登录信息有误，请重新登录`));
+        if (userInstance == null) {
+            next('登录信息已失效，请重新登录');
+        }
+        userInstance && res.send(baseSend(200, '恢复登录成功', { datas: userInstance }));
+        return
+    }
+    next('登录信息已失效，请重新登录');
+})
+
+// 用户退出登录
+Router.post('/logout', async function (req, res, next) {
+    req.session.userId = null;
+    res.send(baseSend(200, '退出登录成功'));
+})
 
 // 新增一个用户
 Router.post('/add', async function (req, res, next) {
     const userInstance = await commonVaildate(req, next, Users, vaildateAdd, 'create');
+    if (userInstance == null) {
+        next('新增用户失败');
+        return;
+    }
     userInstance && res.send(baseSend(200, '', { datas: userInstance }));
 });
 
 // 新增多个用户
 Router.post('/addList', async function (req, res, next) {
     const userInstances = await commonVaildate(req, next, Users, vaildateAdd, 'bulkCreate');
+    if (userInstances == null) {
+        next('新增用户失败');
+        return;
+    }
     userInstances && res.send(baseSend(200, '', { datas: userInstances, count: userInstances.length }));
 })
 
@@ -79,6 +149,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -90,7 +164,11 @@ Router.delete('/:id', async function (req, res, next) {
             loginId: id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
-    res.send(baseSend(200, '', { datas: null, count: deleteRows }));
+    if (deleteRows == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
+    deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 
 module.exports = Router;

@@ -31,7 +31,11 @@ Router.get('/list', async function (req, res, next) {
     const result = await Messages.findAndCountAll({
         limit,
         offset: (+page - 1) * limit
-    }).catch(catchError(next, '请求的参数数据类型或值不满足要求'))
+    }).catch(catchError(next, '请求的参数数据类型或值不满足要求'));
+    if (result == null) {
+        next('查询消息数据失败');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -39,18 +43,30 @@ Router.get('/list', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await Messages.findByPk(+id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     res.send(baseSend(200, '', { datas: query }));
 });
 
 // 新增一个消息
 Router.post('/add', async function (req, res, next) {
     const MessagesInstance = await commonVaildate(req, next, Messages, vaildateAdd, 'create');
+    if (MessagesInstance == null) {
+        next('新增消息失败');
+        return;
+    }
     MessagesInstance && res.send(baseSend(200, '', { datas: MessagesInstance }));
 });
 
 // 新增多个消息
 Router.post('/addList', async function (req, res, next) {
     const MessagesInstances = await commonVaildate(req, next, Messages, vaildateAdd, 'bulkCreate');
+    if (MessagesInstances == null) {
+        next('新增消息失败');
+        return;
+    }
     MessagesInstances && res.send(baseSend(200, '', { datas: MessagesInstances, count: MessagesInstances.length }));
 });
 
@@ -63,6 +79,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -74,6 +94,10 @@ Router.delete('/:id', async function (req, res, next) {
             messageId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (deleteRows == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 

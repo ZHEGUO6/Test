@@ -32,6 +32,10 @@ Router.get('/list', async function (req, res, next) {
         limit,
         offset: (+page - 1) * limit
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('查询禁用记录数据失败');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result.rows, count: result.count }));
 });
 
@@ -39,6 +43,10 @@ Router.get('/list', async function (req, res, next) {
 Router.get('/:id', async function (req, res, next) {
     const { id } = req.params;
     const query = await UnAbled.findByPk(id).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (query == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     query && res.send(baseSend(200, '', { datas: query }));
 });
 
@@ -55,6 +63,10 @@ Router.post('/add', async function (req, res, next) {
         }
         return true;
     });
+    if (unabledInstance == null) {
+        next('新增禁用记录失败');
+        return;
+    }
     unabledInstance && res.send(baseSend(200, '', { datas: unabledInstance }));
 });
 
@@ -76,6 +88,10 @@ Router.post('/addList', async function (req, res, next) {
         set.add(item.uId);
         return true
     });
+    if (unabledInstances == null) {
+        next('新增禁用记录失败');
+        return;
+    }
     unabledInstances && res.send(baseSend(200, '', { datas: unabledInstances, count: unabledInstances.length }));
 })
 
@@ -88,6 +104,10 @@ Router.put('/:id', async function (req, res, next) {
         },
         returning: true
     });
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     result && res.send(baseSend(200, '', { datas: result[1], count: result[0] }));
 })
 
@@ -99,6 +119,10 @@ Router.delete('/:id', async function (req, res, next) {
             unabledId: id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    if (result == null) {
+        next('传递的id有误，请检查');
+        return;
+    }
     deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 
