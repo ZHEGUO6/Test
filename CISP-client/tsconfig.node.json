@@ -8,9 +8,6 @@
     "playwright.config.*"
   ],
   "compilerOptions": {
-    "composite": true,
-    "module": "ESNext",
-    "types": ["node"],
-    "moduleResolution": "Node"
+    "composite": true
   }
 }
