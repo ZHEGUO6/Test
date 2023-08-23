@@ -163,12 +163,12 @@ Router.delete('/:id', async function (req, res, next) {
         where: {
             loginId: id
         },
-    }).catch(catchError(next, '传递的数据类型有误，请检查'));
+    }).catch(err => catchError(next, '传递的数据类型有误，请检查'));
     if (deleteRows == null) {
         next('传递的id有误，请检查');
         return;
     }
-    deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
+    typeof deleteRows === 'number' && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 
 module.exports = Router;

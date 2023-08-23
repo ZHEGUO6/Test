@@ -1,8 +1,9 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
 const { permissionOpt } = require('../utils');
-const SearchImgs = require('./searchImgs');
+
 class Searches extends Model { }
+
 Searches.init({
     searchId: {
         type: DataTypes.INTEGER,
@@ -56,11 +57,6 @@ Searches.init({
     createdAt: true,
     deletedAt: true,
     paranoid: true,
-    hooks: {
-        async beforeBulkDestroy({ where: { searchId } }) {
-            await SearchImgs.destroy({ where: { sId: searchId } })
-        }
-    }
 })
 
 module.exports = Searches;

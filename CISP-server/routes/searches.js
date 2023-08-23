@@ -136,7 +136,7 @@ Router.delete('/:id', async function (req, res, next) {
         next('传递的id有误，请检查');
         return;
     }
-    deleteRows && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
+    typeof deleteRows === 'number' && res.send(baseSend(200, '', { datas: null, count: deleteRows }));
 });
 
 module.exports = Router;

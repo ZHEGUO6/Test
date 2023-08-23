@@ -1,6 +1,8 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
+
 class UnAbled extends Model { }
+
 UnAbled.init({
     unabledId: {
         type: DataTypes.INTEGER,

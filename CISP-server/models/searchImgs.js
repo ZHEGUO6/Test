@@ -1,6 +1,8 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
+
 class SearchImages extends Model { }
+
 SearchImages.init({
     searchImgId: {
         type: DataTypes.INTEGER,

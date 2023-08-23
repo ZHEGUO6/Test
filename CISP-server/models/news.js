@@ -1,6 +1,8 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
+
 class News extends Model { }
+
 News.init({
     newId: {
         type: DataTypes.INTEGER,
