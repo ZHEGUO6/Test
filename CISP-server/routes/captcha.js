@@ -1,6 +1,6 @@
 const express = require('express');
 const { baseSend, readReqData, catchError } = require('../utils/server');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 const svgCaptcha = require('svg-captcha');
 const { encrypt, meetEncrypt } = require('../utils/encryptOrDecrypt');
 
@@ -22,16 +22,17 @@ Router.get('/', async (req, res) => {
 })
 
 // 检测验证码是否正确
-Router.post('/vaildate', async (req, res, next) => {
+Router.post('/validate', async (req, res, next) => {
     const body = await readReqData(req).catch(err => catchError(next, `传递的请求体有误，${err}`)());
     if (!body) {
         return
     }
     if (req.signedCookies.captcha) {
-        encrypt(meetEncrypt(body.captcha)) === req.signedCookies.captcha ? res.send(baseSend(200, '验证已通过')) : res.send(baseSend(417, '验证码有误，请重新输入验证码'));
+        encrypt(meetEncrypt(body.captcha)) === req.signedCookies.captcha ? res.send(baseSend(200, '验证已通过')) : next('验证码有误，请重新输入验证码');
         req.signedCookies.captcha = null;
         return
     }
-    res.send(baseSend(417, '验证码已过期，请重新获取验证码'));
-})
+    res.send(baseSend(200, '验证码已过期，请重新获取验证码'));
+});
+
 module.exports = Router;

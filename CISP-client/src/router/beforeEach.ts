@@ -1,18 +1,20 @@
 import { RouteLocationNormalized, NavigationGuardNext } from 'vue-router'
-import { whoamI } from '@/api/user'
+import { whoAmI } from '@/api/user'
 import { useUserStore } from '@/stores/user'
+import {ElMessage} from "element-plus";
 
-const vaildateLogin = async () => {
-  const userStore = useUserStore()
-  return !!(
-    userStore.isLogined ||
-    (await whoamI().then((res) => {
-      if (res?.data?.datas) {
-        userStore.$patch((state) => (state.userInfo = res.data.datas))
-        return true
-      }
-      return false
-    }))
+
+const vailDateLogin = async () => {
+  const userStore = useUserStore();
+  return (
+      userStore.isLogin ||
+      (await whoAmI().then((res) => {
+        if (res?.data) {
+          userStore.$patch((state) => (state.userInfo = res.data?.datas as UserInfo))
+          return true
+        }
+        return false
+      },err=>false))
   )
 }
 
@@ -24,19 +26,22 @@ export default async (
   if (to.path === '/login') {
     // // 判断是否已经登录
     // // 如果已经登录，就直接跳转到首页
-    if (await vaildateLogin()) {
-      next('/')
+    if (await vailDateLogin()) {
+      next('/');
+      ElMessage.success('您已登陆，请勿重复登录');
+      console.log(111)
       return
     }
     next()
     return
   }
   if (to.path !== '/') {
-    if (await vaildateLogin()) {
+    if (await vailDateLogin()) {
       next()
       return
     }
-    next('/login')
+    next('/login');
+    ElMessage.warning('登录已过期，请您重新登录');
     return
   }
   next()

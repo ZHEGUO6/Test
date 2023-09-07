@@ -13,7 +13,7 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 const userStore = useUserStore()
 const {
-  isLogined: { value: userLogined },
+  isLogin: { value: userLogin },
   userInfo: {
     value: { nickname }
   }
@@ -21,7 +21,7 @@ const {
 const router = useRouter()
 
 const handleOut = async () => {
-  await userStore.loginOut()
-  router.push('/login')
+  await userStore.loginOut();
+  await router.push('/login');
 }
 </script>

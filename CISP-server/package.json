@@ -5,11 +5,12 @@
   "main": "./bin/www",
   "scripts": {
     "dev": "pm2-devmon start pm2.config.js --raw --env dev",
-    "start": "pm2 start pm2.config.js --env prod",
-    "stop": "pm2 delete pm2.config.js --env prod",
-    "restart": "pm2 restart pm2.config.js --env prod",
+    "start": "pm2 start ./bin/www",
+    "stop": "pm2 stop ./bin/www",
+    "restart": "pm2 restart ./bin/www",
     "status": "pm2 status",
-    "log": "pm2 log @myapp/server"
+    "log": "pm2 log @myapp/server",
+    "test": "node ./bin/www"
   },
   "dependencies": {
     "aes-js": "^3.1.2",

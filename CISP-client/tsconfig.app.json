@@ -6,10 +6,17 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@": ["./src"]
+      "@": ["./src"],
+      "@@/": ["./public"]
     },
     "types": ["node"],
     "moduleResolution": "node",
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
+    "pluginOptions": {
+      "style-resource-loader": {
+        "preProcessor":"less",
+        "patterns": ["./src/styles/var.less","./src/styles/mixin.less"]
+      }
+    }
   }
 }

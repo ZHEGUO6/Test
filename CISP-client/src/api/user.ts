@@ -1,18 +1,29 @@
 import request from './request'
-import {requestType, requestUrl} from '@/types/enum'
+import {RequestType, RequestUrl} from '@/types/enum'
 
-export const validate = async (info: API.User.validateLogin) => {
-  return await request(requestType.post, requestUrl.user_validate,info);
+// 验证昵称密码是否正确
+export const validate = async (info: API.User.ValidateLogin) => {
+  return await request(RequestType.POST, RequestUrl.User_Validate,info);
 }
 
-export const login = async (info: API.User.login) => {
-  return await request(requestType.post, requestUrl.user_login,info);
+// 用户登录
+export const login = async (info: API.User.Login) => {
+  return await request(RequestType.POST, RequestUrl.User_Login,info);
 }
 
-export const whoamI = async () => {
-  return await request(requestType.get, requestUrl.user_whoamI);
+// 用户恢复登录
+export const whoAmI = async () => {
+  return await request(RequestType.GET, RequestUrl.User_WhoAmI);
 }
 
+// 用户退出登录
 export const loginOut = async () => {
-  return await request(requestType.post, requestUrl.user_logout);
+  return await request(RequestType.POST, RequestUrl.User_Logout);
 }
+
+// 修改用户信息
+export const modify=async (id:string, info:API.User.Modify) => {
+  return await request(RequestType.PUT, RequestUrl.User_Modify+`/${id}`,info);
+}
+
+// export const

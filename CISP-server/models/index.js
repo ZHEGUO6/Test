@@ -19,7 +19,6 @@ Admins.hasMany(News, { foreignKeyConstraint: true, foreignKey: { allowNull: fals
 // 一条新闻和消息对应一个管理员
 Messages.belongsTo(Admins, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'aId', type: DataTypes.STRING(128) }, as: 'admin_Message' });
 News.belongsTo(Admins, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'aId', type: DataTypes.STRING(128) }, as: 'admin_News' });
-console.log(Friends, 'index');
 // 一个用户可以有多个朋友，多条搜索信息，多个分组，多个禁用记录，多个回复
 Users.hasMany(Friends, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Friends' });
 Users.hasMany(Groups, { foreignKeyConstraint: true, foreignKey: { allowNull: false, name: 'uId', type: DataTypes.STRING(128) }, as: 'user_Groups' });

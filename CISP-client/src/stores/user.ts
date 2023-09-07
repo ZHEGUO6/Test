@@ -20,18 +20,17 @@ export const useUserStore = defineStore('user', {
     }
   },
   getters: {
-    isLogined: (state) => {
+    isLogin: (state) => {
       return !!state.userInfo.loginId
     }
   },
   actions: {
-    async validate(info: API.User.validateLogin) {},
-    async login(info: API.User.login) {
+    async validate(info: API.User.ValidateLogin) {},
+    async login(info: API.User.Login) {
       const res = await login(info)
-
       if (res.data?.datas) {
         // 登录成功
-        this.$patch((state) => (state.userInfo = res.data?.datas))
+        this.$patch((state) => (state.userInfo = res.data?.datas as UserInfo))
       }
       return res
     },

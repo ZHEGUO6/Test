@@ -5,7 +5,7 @@ const { getMeetItemFromObj } = require('../utils/object');
 const Router = express.Router({ caseSensitivea: true });
 
 // 验证添加禁用记录
-async function vaildateAdd(info) {
+async function validateAdd(info) {
     return await getMeetItemFromObj(info, ['unAccessMsg', 'uId']);
 }
 
@@ -52,7 +52,7 @@ Router.get('/:id', async function (req, res, next) {
 
 // 新增一个禁用记录
 Router.post('/add', async function (req, res, next) {
-    const unabledInstance = await commonVaildate(req, next, UnAbled, vaildateAdd, 'create', async item => {
+    const unableInstance = await commonVaildate(req, next, UnAbled, validateAdd, 'create', async item => {
         const has = await UnAbled.findOne({
             where: {
                 uId: item.uId
@@ -63,17 +63,17 @@ Router.post('/add', async function (req, res, next) {
         }
         return true;
     });
-    if (unabledInstance == null) {
+    if (unableInstance == null) {
         next('新增禁用记录失败');
         return;
     }
-    unabledInstance && res.send(baseSend(200, '', { datas: unabledInstance }));
+    unableInstance && res.send(baseSend(200, '', { datas: unableInstance }));
 });
 
 // 新增多个禁用记录
 Router.post('/addList', async function (req, res, next) {
     const set = new Set();
-    const unabledInstances = await commonVaildate(req, next, UnAbled, vaildateAdd, 'bulkCreate', async item => {
+    const unabledInstances = await commonVaildate(req, next, UnAbled, validateAdd, 'bulkCreate', async item => {
         if (set.has(item.uId)) {
             return catchError(next, `传递了相同的用户id`)();
         }

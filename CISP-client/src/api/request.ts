@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { requestType, requestUrl } from '@/types/enum'
+import { RequestType, RequestUrl } from '@/types/enum'
 
 const request = axios.create({
   baseURL: '/api',
@@ -15,11 +15,13 @@ const request = axios.create({
 // 响应拦截
 request.interceptors.response.use((options) => options.data)
 
-export default async (method: requestType, url: requestUrl, options?: object) => {
-  return await request[method](url, options).catch((err) => {
+const requestWrapper:(method: RequestType, url: RequestUrl, options?: object)=>Promise<API.ServerResponse>=async (method, url, options)=>{
+  return await request[method](url, options).then(res=>res,(err) => {
     if (err.response) {
       return err.response.data
     }
     return { code: err.code, msg: err.message, data: null }
   })
 }
+
+export default requestWrapper

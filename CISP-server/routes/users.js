@@ -106,12 +106,12 @@ Router.get('/login/whoamI', async function (req, res, next) {
     if (req.session.userId) {
         const userInstance = await Users.findByPk(req.session.userId).catch(catchError(next, `登录信息有误，请重新登录`));
         if (userInstance == null) {
-            next('登录信息已失效，请重新登录');
+            res.send(baseSend(200,'登录信息已失效，请重新登录'))
         }
         userInstance && res.send(baseSend(200, '恢复登录成功', { datas: userInstance }));
         return
     }
-    next('登录信息已失效，请重新登录');
+    res.send(baseSend(200,'登录信息已失效，请重新登录'));
 })
 
 // 用户退出登录
