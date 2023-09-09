@@ -25,9 +25,28 @@ export enum RequestType {
   PATCH = 'patch'
 }
 
+// 验证登录表单相关表单项
 export enum  ValidateLoginEnum{
   NickName='nickname',
   LoginPwd='loginPwd',
   SaveTime='saveTime',
   Captcha='captcha'
+}
+
+// 验证注册表单相关表单项
+export enum ValidateRegistryEnum{
+  NickName = 'nickname',
+  LoginPwd = 'loginPwd',
+  ConfirmPwd = 'confirmPwd',
+  Avatar = 'avatar',
+  Email = 'email',
+  QQ = 'qq',
+  Wechat = 'wechat',
+  Intro = 'intro',
+  Type = 'type',
+  Address = 'addr',
+  Phone = 'phone',
+  BirthDay = 'birthDay',
+  SaveTime = 'saveTime',
+  Captcha = 'captcha',
 }

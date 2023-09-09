@@ -66,11 +66,11 @@ const routes: readonly RouteRecord[]=[
     {
         path: '/login',
         name: 'login',
-        component: ()=>import('@/views/loginPage.vue'),
+        component: ()=>import('@/views/loginAndRegistryPage.vue'),
         meta:{
             layout:false
         }
-    },
+    }
 ];
 
 export  default  routes;

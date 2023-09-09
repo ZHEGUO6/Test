@@ -25,3 +25,7 @@ const handleOut = async () => {
   await router.push('/login');
 }
 </script>
+
+<style scoped>
+
+</style>
