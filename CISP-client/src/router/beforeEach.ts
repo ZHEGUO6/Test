@@ -35,7 +35,7 @@ export default async (
     next()
     return
   }
-  if (to.path !== '/') {
+  if (to.path !== '/'&&to.meta.auth) {
     if (await vailDateLogin()) {
       next()
       return
