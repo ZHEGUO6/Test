@@ -43,6 +43,9 @@ const obj = {
         },
         phone() {
             return /^(1[3-9][0-9]{9}|'')$/g
+        },
+        url(){
+            return /(http|https):\/\/\w+(:\d{2,})?(\/[\w_]+)*(\/[\w_]+\.(jpg|png|webp|bmp|gif|svg))/g
         }
     },
     permissionOpt: () => ({

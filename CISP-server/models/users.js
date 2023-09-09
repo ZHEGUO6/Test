@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
-const { getAgeByBirthDay, validators: { qq, wechat, addr, phone }, enabledOpt } = require("../utils");
+const { getAgeByBirthDay, validators: { qq, wechat, addr, phone,url }, enabledOpt } = require("../utils");
 
 class Users extends Model { }
 
@@ -29,7 +29,7 @@ Users.init(
             type: DataTypes.STRING,
             allowNull: false,
             validate: {
-                isUrl: true
+                is:url()
             }
         },
         nickname: {
@@ -42,32 +42,28 @@ Users.init(
         },
         mail: {
             type: DataTypes.STRING(32),
-            defaultValue: '',
-            allowNull: false,
+            allowNull: true,
             validate: {
                 is: /^([A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+|'')$/
             }
         },
         qq: {
             type: DataTypes.STRING(11),
-            defaultValue: '',
-            allowNull: false,
+            allowNull: true,
             validate: {
                 is: qq(),
             }
         },
         wechat: {
             type: DataTypes.STRING(20),
-            defaultValue: '',
-            allowNull: false,
+            allowNull: true,
             validate: {
                 is: wechat(),
             }
         },
         intro: {
             type: DataTypes.STRING(255),
-            allowNull: false,
-            defaultValue: '',
+            allowNull: true,
             validate: {
                 len: [0, 255]
             }
@@ -91,8 +87,7 @@ Users.init(
         },
         addr: {
             type: DataTypes.STRING('30'),
-            allowNull: false,
-            defaultValue: '',
+            allowNull: true,
             validate: {
                 len: [10, 30],
                 is: addr()
@@ -100,8 +95,7 @@ Users.init(
         },
         phone: {
             type: DataTypes.STRING(11),
-            defaultValue: '',
-            allowNull: false,
+            allowNull: true,
             validate: {
                 is: phone()
             }
@@ -116,7 +110,7 @@ Users.init(
         },
         birthDay: {
             type: DataTypes.DATE,
-            allowNull: false,
+            allowNull: true,
             validate: {
                 isDate: true
             }

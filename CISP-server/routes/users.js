@@ -6,14 +6,15 @@ const Router = express.Router({ caseSensitivea: true });
 const { encrypt, meetEncrypt } = require('../utils/encryptOrDecrypt');
 const { getRandom } = require('../utils/math');
 const fs = require('fs');
+const {resolve} = require("path");
 
 // 验证添加用户
 async function vaildateAdd(userInfo) {
     return await getMeetItemFromObj(userInfo, ['loginId', ['loginPwd', (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd)))]], ['nickname', 'enabled', 'type', ['avatar', async (avatar) => {
         if (!avatar) {
             // 使用默认图片
-            const images = await fs.promises.readdir(path.resolve(__dirname, '../public/images'));
-            return `http://localhost:${process.env.PORT || 3000}/public/images/${images[getRandom(1, images.length - 1)]}`
+            const images = await fs.promises.readdir(resolve(__dirname, '../public/images'));
+            return `http://localhost:${process.env.PORT || 3000}/static/images/${images[getRandom(1, images.length - 1)]}`
         }
         return avatar
     }], 'mail', 'qq', 'wechat', 'intro', 'lastLoginDate', 'addr', 'phone', 'online', 'birthDay']);
@@ -89,7 +90,7 @@ Router.post('/login', async function (req, res, next) {
     // 验证登录是否成功
     const body = await readReqData(req).catch(err => catchError(next, `传递的请求体有误，${err}`)());
     if (!body) return;
-    const { nickname, loginPwd, saveTime = 1000 * 60 } = body;
+    const { nickname, loginPwd, saveTime = 0 } = body;
     const userInstance = await Users.findOne({ where: { nickname, loginPwd: encrypt(meetEncrypt(loginPwd)) } }).catch(catchError(next, '传递的数据类型有误，登录失败'));
     if (userInstance) {
         req.session.userId = userInstance.getDataValue('loginId');

@@ -4,10 +4,11 @@ const cookieParser = require('cookie-parser');
 const expressSession = require('express-session');
 const { AdminRouter, staticMiddleware, CommentReplyRouter, CommentRouter, FriendRouter, GroupRouter, MessageRouter, NewsRouter, SearchRouter, SearchImgRouter, UnableRouter, UserRouter, CaptchaRouter } = require('./routes');
 const errorMiddleware = require('./middleware/errorMiddleWare');
+const sequelize = require("./sequelize");
 // 对数据库进行测试
-(async () => {
-    // await sequelize.sync({ force: true });
-})()
+// (async () => {
+//     await sequelize.sync({ force: true });
+// })()
 const secret = Date.now().toString(36).slice(4) + Math.random().toString(36).slice(4) + 'CISP-Alen';
 
 const app = express();
