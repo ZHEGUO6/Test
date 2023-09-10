@@ -1,5 +1,4 @@
 module.exports.AdminRouter = require('./admin');
-module.exports.staticMiddleware = require('./static');
 module.exports.CommentReplyRouter = require('./commentReplys');
 module.exports.CommentRouter = require('./comments');
 module.exports.FriendRouter = require('./friends');
@@ -11,3 +10,4 @@ module.exports.SearchImgRouter = require('./searchImgs');
 module.exports.UnableRouter = require('./unabled');
 module.exports.UserRouter = require('./users');
 module.exports.CaptchaRouter = require('./captcha');
+module.exports.ImageRouter = require('./images');
