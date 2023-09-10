@@ -1,8 +1,8 @@
 const express = require('express');
 const UnAbled = require('../models/unabled');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonValidate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 
 // 验证添加禁用记录
 async function validateAdd(info) {
@@ -52,7 +52,7 @@ Router.get('/:id', async function (req, res, next) {
 
 // 新增一个禁用记录
 Router.post('/add', async function (req, res, next) {
-    const unableInstance = await commonVaildate(req, next, UnAbled, validateAdd, 'create', async item => {
+    const unableInstance = await commonValidate(req, next, UnAbled, validateAdd, 'create', async item => {
         const has = await UnAbled.findOne({
             where: {
                 uId: item.uId
@@ -73,7 +73,7 @@ Router.post('/add', async function (req, res, next) {
 // 新增多个禁用记录
 Router.post('/addList', async function (req, res, next) {
     const set = new Set();
-    const unabledInstances = await commonVaildate(req, next, UnAbled, validateAdd, 'bulkCreate', async item => {
+    const unabledInstances = await commonValidate(req, next, UnAbled, validateAdd, 'bulkCreate', async item => {
         if (set.has(item.uId)) {
             return catchError(next, `传递了相同的用户id`)();
         }
@@ -98,7 +98,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改禁用记录信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, UnAbled, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, UnAbled, vaildateModify, 'update', null, {
         where: {
             unabledId: id
         },
@@ -119,7 +119,7 @@ Router.delete('/:id', async function (req, res, next) {
             unabledId: id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
-    if (result == null) {
+    if (deleteRows == null) {
         next('传递的id有误，请检查');
         return;
     }

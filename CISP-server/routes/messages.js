@@ -1,16 +1,16 @@
 const express = require('express');
 const Messages = require('../models/messages');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonValidate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 
 // 验证添加消息
-async function vaildateAdd(info) {
+async function validateAdd(info) {
     return await getMeetItemFromObj(info, ['title', 'content', 'aId'], ['scanNumber']);
 }
 
 // 验证修改消息
-async function vaildateModify(info) {
+async function validateModify(info) {
     return await getMeetItemFromObj(info, [], ['title', 'content', 'scanNumber']);
 }
 
@@ -52,7 +52,7 @@ Router.get('/:id', async function (req, res, next) {
 
 // 新增一个消息
 Router.post('/add', async function (req, res, next) {
-    const MessagesInstance = await commonVaildate(req, next, Messages, vaildateAdd, 'create');
+    const MessagesInstance = await commonValidate(req, next, Messages, validateAdd, 'create');
     if (MessagesInstance == null) {
         next('新增消息失败');
         return;
@@ -62,7 +62,7 @@ Router.post('/add', async function (req, res, next) {
 
 // 新增多个消息
 Router.post('/addList', async function (req, res, next) {
-    const MessagesInstances = await commonVaildate(req, next, Messages, vaildateAdd, 'bulkCreate');
+    const MessagesInstances = await commonValidate(req, next, Messages, validateAdd, 'bulkCreate');
     if (MessagesInstances == null) {
         next('新增消息失败');
         return;
@@ -73,7 +73,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改单个消息信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, Messages, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, Messages, validateModify, 'update', null, {
         where: {
             messageId: +id
         },

@@ -1,16 +1,16 @@
 const express = require('express');
 const Groups = require('../models/groups');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonValidate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 
 // 验证添加分组
-async function vaildateAdd(groupInfo) {
+async function validateAdd(groupInfo) {
     return await getMeetItemFromObj(groupInfo, ['name', 'uId']);
 }
 
 // 验证修改
-async function vaildateModify(groupInfo) {
+async function validateModify(groupInfo) {
     return await getMeetItemFromObj(groupInfo, [], ['name']);
 }
 
@@ -48,7 +48,7 @@ Router.get('/:id', async function (req, res, next) {
 
 // 新增一个分组
 Router.post('/add', async function (req, res, next) {
-    const groupInstance = await commonVaildate(req, next, Groups, vaildateAdd, 'create');
+    const groupInstance = await commonValidate(req, next, Groups, validateAdd, 'create');
     if (groupInstance == null) {
         next('新增分组失败');
         return;
@@ -58,7 +58,7 @@ Router.post('/add', async function (req, res, next) {
 
 // 新增多个分组
 Router.post('/addList', async function (req, res, next) {
-    const groupInstances = await commonVaildate(req, next, Groups, vaildateAdd, 'bulkCreate');
+    const groupInstances = await commonValidate(req, next, Groups, validateAdd, 'bulkCreate');
     if (groupInstances == null) {
         next('新增分组失败');
         return;
@@ -69,7 +69,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改分组信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, Groups, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, Groups, validateModify, 'update', null, {
         where: {
             groupId: +id
         },
@@ -90,7 +90,7 @@ Router.delete('/:id', async function (req, res, next) {
             groupId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
-    if (result == null) {
+    if (deleteRows == null) {
         next('传递的id有误，请检查');
         return;
     }

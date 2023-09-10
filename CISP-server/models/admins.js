@@ -1,13 +1,14 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
 const { permissionOpt, enabledOpt } = require("../utils/index");
-const Messages = require('./messages');
-const News = require('./news');
+const uuidv4=require('uuidv4');
+
 class Admins extends Model { }
 Admins.init({
     loginId: {
         type: DataTypes.STRING(128),
-        allowNull: false,
+        allowNull: true,
+        defaultValue: uuidv4.uuid(),
         validate: {
             len: 36
         },
@@ -56,24 +57,6 @@ Admins.init({
     createdAt: true,
     deletedAt: true,
     paranoid: true,
-    hooks: {
-        async beforeBulkDestroy({ where: { loginId, ...obj } }) {
-            const opt = {
-                where: obj
-            };
-            if (loginId && loginId.length === 36) {
-                opt.where.aId = loginId;
-            }
-            else {
-                // 禁止删除
-                return Promise.reject(new Error('you must provide loginId to destory'));
-            }
-            // 删除相关消息
-            Messages.destroy(opt);
-            // 删除相关新闻
-            News.destroy(opt);
-        }
-    }
 })
 
 module.exports = Admins;

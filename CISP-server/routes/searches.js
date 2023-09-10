@@ -1,8 +1,8 @@
 const express = require('express');
 const Searches = require('../models/searches');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonValidate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 
 // 验证添加寻人寻物
 async function vaildateAdd(info) {
@@ -90,7 +90,7 @@ Router.get('/:id', async function (req, res, next) {
 
 // 新增一个寻人寻物
 Router.post('/add', async function (req, res, next) {
-    const SearchesInstance = await commonVaildate(req, next, Searches, vaildateAdd, 'create');
+    const SearchesInstance = await commonValidate(req, next, Searches, vaildateAdd, 'create');
     if (SearchesInstance == null) {
         next('新增搜寻失败');
         return;
@@ -100,7 +100,7 @@ Router.post('/add', async function (req, res, next) {
 
 // 新增多个寻人寻物 (暂时不添加该功能)
 Router.post('/addList', async function (req, res, next) {
-    const SearchesInstances = await commonVaildate(req, next, Searches, vaildateAdd, 'bulkCreate');
+    const SearchesInstances = await commonValidate(req, next, Searches, vaildateAdd, 'bulkCreate');
     if (SearchesInstances == null) {
         next('新增搜寻失败');
         return;
@@ -111,7 +111,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改单个寻人寻物信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, Searches, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, Searches, vaildateModify, 'update', null, {
         where: {
             searchId: +id
         },

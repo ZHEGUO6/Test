@@ -7,19 +7,23 @@ const baseSend = (code = 200, msg = '', data = null) => {
     }
 };
 
-// 读取请求体
-const readReqData = (req) => new Promise((resolve, reject) => {
+const readImageReqData=(req)=>new Promise((resolve, reject) => {
     let str = '';
     req.on('data', (data) => {
         str += data.toString();
     });
     req.on('end', () => {
-        try {
-            resolve(JSON.parse(str));
-        } catch (error) {
-            reject(error);
-        }
+        resolve(str)
     })
+});
+// 读取请求体
+const readReqData = (req) => new Promise(async(resolve, reject) => {
+    const str=await readImageReqData(req);
+    try {
+        resolve(JSON.parse(str));
+    } catch (error) {
+        reject(error);
+    }
 });
 
 const catchError = (next, error) => {
@@ -32,6 +36,7 @@ const catchError = (next, error) => {
 module.exports = {
     baseSend,
     readReqData,
+    readImageReqData,
     /**
      * 通用的响应需要验证的方法
      * @param {*} req 请求对象
@@ -43,8 +48,8 @@ module.exports = {
      * @param {*} modelOption 调用模型方法传递的第二个参数
      * @returns
      */
-    async commonVaildate(req, next, instance, validateFunc, action, filterCallback, modelOption = {}) {
-        async function _vaildate(item) {
+    async commonValidate(req, next, instance, validateFunc, action, filterCallback=undefined, modelOption = {}) {
+        async function _validate(item) {
             let yetOver = true;
             filterCallback && (yetOver = await filterCallback(item));
             return yetOver;
@@ -61,7 +66,7 @@ module.exports = {
                     return catchError(next, `传递的信息数量与预期的不一致`)();
                 }
                 filter.push(item);
-                const result = await _vaildate(item);
+                const result = await _validate(item);
                 if (!result) {
                     return false;
                 }
@@ -74,15 +79,14 @@ module.exports = {
                 // 检测不通过
                 return catchError(next, `传递的信息数量与预期的不一致`)();
             }
-            const result = await _vaildate(params);
+            const result = await _validate(params);
             if (!result) {
                 return false;
             }
         }
-        const result = await instance[action](params, modelOption).catch(err => {
+        return await instance[action](params, modelOption).catch(err => {
             return catchError(next, `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`)();
         });
-        return result;
     },
     catchError
 }

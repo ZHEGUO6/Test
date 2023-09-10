@@ -1,16 +1,16 @@
 const express = require('express');
 const Comments = require('../models/comments');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonValidate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 
 // 验证添加评论
-async function vaildateAdd(info) {
+async function validateAdd(info) {
     return await getMeetItemFromObj(info, ['content', 'uId', 'sId']);
 }
 
 // 验证修改
-async function vaildateModify(info) {
+async function validateModify(info) {
     return await getMeetItemFromObj(info, [], ['content']);
 }
 
@@ -91,7 +91,7 @@ Router.get('/:id', async function (req, res, next) {
 
 // 新增一个评论
 Router.post('/add', async function (req, res, next) {
-    const CommentsInstance = await commonVaildate(req, next, Comments, vaildateAdd, 'create');
+    const CommentsInstance = await commonValidate(req, next, Comments, validateAdd, 'create');
     if (CommentsInstance == null) {
         next('新增评论失败');
         return;
@@ -102,7 +102,7 @@ Router.post('/add', async function (req, res, next) {
 // 修改评论信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, Comments, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, Comments, validateModify, 'update', null, {
         where: {
             commentId: +id
         },
@@ -123,7 +123,7 @@ Router.delete('/:id', async function (req, res, next) {
             commentId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
-    if (result == null) {
+    if (deleteRows == null) {
         next('传递的id有误，请检查');
         return;
     }

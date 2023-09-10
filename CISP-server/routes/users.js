@@ -1,11 +1,11 @@
 const express = require('express');
 const Users = require('../models/users');
-const { baseSend, commonVaildate, catchError, readReqData } = require('../utils/server');
+const { baseSend, commonValidate, catchError, readReqData } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 const { encrypt, meetEncrypt } = require('../utils/encryptOrDecrypt');
 const { getRandom } = require('../utils/math');
-const fs = require('fs');
+const {promises} = require('fs');
 const {resolve} = require("path");
 
 // 验证添加用户
@@ -13,7 +13,7 @@ async function vaildateAdd(userInfo) {
     return await getMeetItemFromObj(userInfo, ['loginId', ['loginPwd', (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd)))]], ['nickname', 'enabled', 'type', ['avatar', async (avatar) => {
         if (!avatar) {
             // 使用默认图片
-            const images = await fs.promises.readdir(resolve(__dirname, '../public/images'));
+            const images = await promises.readdir(resolve(__dirname, '../public/images'));
             return `http://localhost:${process.env.PORT || 3000}/static/images/${images[getRandom(1, images.length - 1)]}`
         }
         return avatar
@@ -25,8 +25,8 @@ async function vaildateModify(userInfo) {
     return await getMeetItemFromObj(userInfo, [], [['loginPwd', (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd)))], 'nickname', 'enabled', 'type', ['avatar', async (avatar) => {
         if (!avatar) {
             // 使用默认图片
-            const images = await fs.promises.readdir(path.resolve(__dirname, '../public/images'));
-            return `http://localhost:${process.env.PORT || 3000}/public/images/${images[getRandom(1, images.length - 1)]}`
+            const images = await fs.promises.readdir(resolve(__dirname, '../public/images'));
+            return `http://localhost:${process.env.PORT || 3000}/static/images/${images[getRandom(1, images.length - 1)]}`
         }
     }], 'mail', 'qq', 'wechat', 'intro', 'lastLoginDate', 'addr', 'phone', 'online', 'birthDay']);
 }
@@ -53,7 +53,7 @@ Router.get('/list', async function (req, res, next) {
         next('查询用户数据失败');
         return;
     }
-    result && res.send(baseSend(200, '', { datas: rows, count }));
+    result && res.send(baseSend(200, '', { datas: result.rows, count:result.count }));
 });
 
 // 获取单个用户
@@ -68,7 +68,7 @@ Router.get('/:id', async function (req, res, next) {
 });
 
 // 验证帐号密码是否正确
-Router.post('/vaildate', async function (req, res, next) {
+Router.post('/validate', async function (req, res, next) {
     const body = await readReqData(req).catch(err => catchError(next, `传递的请求体有误，${err}`)())
     if (!body) return;
     const { nickname, loginPwd } = body;
@@ -103,7 +103,7 @@ Router.post('/login', async function (req, res, next) {
 })
 
 // 用户恢复登录状态
-Router.get('/login/whoamI', async function (req, res, next) {
+Router.get('/login/whoAmI', async function (req, res, next) {
     if (req.session.userId) {
         const userInstance = await Users.findByPk(req.session.userId).catch(catchError(next, `登录信息有误，请重新登录`));
         if (userInstance == null) {
@@ -123,7 +123,7 @@ Router.post('/logout', async function (req, res, next) {
 
 // 新增一个用户
 Router.post('/add', async function (req, res, next) {
-    const userInstance = await commonVaildate(req, next, Users, vaildateAdd, 'create');
+    const userInstance = await commonValidate(req, next, Users, vaildateAdd, 'create');
     if (userInstance == null) {
         next('新增用户失败');
         return;
@@ -133,7 +133,7 @@ Router.post('/add', async function (req, res, next) {
 
 // 新增多个用户
 Router.post('/addList', async function (req, res, next) {
-    const userInstances = await commonVaildate(req, next, Users, vaildateAdd, 'bulkCreate');
+    const userInstances = await commonValidate(req, next, Users, vaildateAdd, 'bulkCreate');
     if (userInstances == null) {
         next('新增用户失败');
         return;
@@ -144,7 +144,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改用户信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, Users, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, Users, vaildateModify, 'update', null, {
         where: {
             loginId: id
         },

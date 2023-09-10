@@ -77,7 +77,7 @@ async function resetGroupId(instance) {
             instance.setDataValue('gId', myFriendGroupInstance.getDataValue('gId'));
         }
     }
-};
+}
 
 Admins.addHook('afterDestroy', async (instance, { where: { loginId, ...obj } }) => {
     const opt = {

@@ -1,6 +1,7 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require('../sequelize');
 const { getAgeByBirthDay, validators: { qq, wechat, addr, phone,url }, enabledOpt } = require("../utils");
+const uuidv4=require('uuidv4');
 
 class Users extends Model { }
 
@@ -8,7 +9,8 @@ Users.init(
     {
         loginId: {
             type: DataTypes.STRING(128),
-            allowNull: false,
+            allowNull: true,
+            defaultValue:uuidv4.uuid(),
             validate: {
                 len: 36
             },

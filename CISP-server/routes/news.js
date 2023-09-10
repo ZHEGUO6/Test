@@ -1,8 +1,8 @@
 const express = require('express');
 const News = require('../models/news');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonValidate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 
 // 验证添加新闻
 async function vaildateAdd(info) {
@@ -52,7 +52,7 @@ Router.get('/:id', async function (req, res, next) {
 
 // 新增一个新闻
 Router.post('/add', async function (req, res, next) {
-    const NewsInstance = await commonVaildate(req, next, News, vaildateAdd, 'create');
+    const NewsInstance = await commonValidate(req, next, News, vaildateAdd, 'create');
     if (NewsInstance == null) {
         next('新增新闻失败');
         return;
@@ -62,7 +62,7 @@ Router.post('/add', async function (req, res, next) {
 
 // 新增多个新闻
 Router.post('/addList', async function (req, res, next) {
-    const NewsInstances = await commonVaildate(req, next, News, vaildateAdd, 'bulkCreate');
+    const NewsInstances = await commonValidate(req, next, News, vaildateAdd, 'bulkCreate');
     if (NewsInstances == null) {
         next('新增新闻失败');
         return;
@@ -73,7 +73,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改单个新闻信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, News, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, News, vaildateModify, 'update', null, {
         where: {
             newId: +id
         },

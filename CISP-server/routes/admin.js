@@ -1,26 +1,27 @@
 const express = require('express');
 const Admins = require('../models/admins');
-const { baseSend, commonVaildate, catchError, readReqData } = require('../utils/server');
+const { baseSend, commonValidate, catchError, readReqData } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 const { encrypt, meetEncrypt } = require('../utils/encryptOrDecrypt');
 const { getRandom } = require('../utils/math');
 const fs = require('fs');
+const path=require('path');
 
 // 验证添加管理员
-async function vaildateAddAdmin(adminInfo) {
-    return await getMeetItemFromObj(adminInfo, ['loginId', ['loginPwd', (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd)))]], ['nickname', 'enabled', 'permission', ['avatar', async (avatar) => {
+async function validateAddAdmin(adminInfo) {
+    return await getMeetItemFromObj(adminInfo, [['loginPwd', (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd)))]], ['nickname', 'enabled', 'permission', ['avatar', async (avatar) => {
         if (!avatar) {
             // 使用默认图片
             const images = await fs.promises.readdir(path.resolve(__dirname, '../public/images'));
-            return `http://localhost:${process.env.PORT || 3000}/public/images/${images[getRandom(1, images.length - 1)]}`
+            return `http://localhost:${process.env.PORT || 3000}/static/images/${images[getRandom(1, images.length - 1)]}`
         }
         return avatar
     }]]);
 }
 
 // 验证修改管理员
-async function vaildateModifyAdmin(adminInfo) {
+async function validateModifyAdmin(adminInfo) {
     return await getMeetItemFromObj(adminInfo, [], [['loginPwd', (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd)))], ['avatar', async (avatar) => {
         if (!avatar) {
             // 使用默认图片
@@ -48,7 +49,7 @@ Router.get('/list', async function (req, res, next) {
         limit,
         offset: (+page - 1) * limit
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
-    result && res.send(baseSend(200, '', { datas: rows, count }));
+    result && res.send(baseSend(200, '', { datas: result.rows, count:result.count }));
 });
 
 // 获取单个管理员
@@ -59,7 +60,7 @@ Router.get('/:id', async function (req, res, next) {
 });
 
 // 验证帐号密码是否正确
-Router.post('/vaildate', async function (req, res, next) {
+Router.post('/validate', async function (req, res, next) {
     const body = await readReqData(req).catch(err => catchError(next, err)());
     if (!body) return;
     const { nickname, loginPwd } = body;
@@ -95,7 +96,7 @@ Router.post('/login', async function (req, res, next) {
 })
 
 // 管理员恢复登录状态
-Router.get('/login/whoamI', async function (req, res, next) {
+Router.get('/login/whoAmI', async function (req, res, next) {
     if (req.session.adminId) {
         const adminInstance = await Admins.findByPk(req.session.adminId).catch(catchError(next, `登录信息有误，请重新登录`));
         if (adminInstance == null) {
@@ -115,7 +116,7 @@ Router.post('/logout', async function (req, res, next) {
 
 // 新增一个管理员
 Router.post('/add', async function (req, res, next) {
-    const adminInstance = await commonVaildate(req, next, Admins, vaildateAddAdmin, 'create');
+    const adminInstance = await commonValidate(req, next, Admins, validateAddAdmin, 'create');
     if (adminInstance == null) {
         next('新增管理员失败');
         return;
@@ -125,7 +126,7 @@ Router.post('/add', async function (req, res, next) {
 
 // 新增多个管理员
 Router.post('/addList', async function (req, res, next) {
-    const adminInstances = await commonVaildate(req, next, Admins, vaildateAddAdmin, 'bulkCreate');
+    const adminInstances = await commonValidate(req, next, Admins, validateAddAdmin, 'bulkCreate');
     if (adminInstances == null) {
         next('新增管理员失败');
         return;
@@ -136,7 +137,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改管理员信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, Admins, vaildateModifyAdmin, 'update', null, {
+    const result = await commonValidate(req, next, Admins, validateModifyAdmin, 'update', null, {
         where: {
             loginId: id
         },

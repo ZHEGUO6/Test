@@ -1,8 +1,8 @@
 const express = require('express');
 const SearchImgs = require('../models/searchImgs');
-const { baseSend, commonVaildate, catchError } = require('../utils/server');
+const { baseSend, commonValidate, catchError } = require('../utils/server');
 const { getMeetItemFromObj } = require('../utils/object');
-const Router = express.Router({ caseSensitivea: true });
+const Router = express.Router({ caseSensitive: true });
 
 // 验证添加寻人寻物图片
 async function vaildateAdd(info) {
@@ -37,7 +37,7 @@ Router.get('/search/:id', async function (req, res, next) {
 
 // 新增一个寻人寻物图片
 Router.post('/add', async function (req, res, next) {
-    const SearchImgsInstance = await commonVaildate(req, next, SearchImgs, vaildateAdd, 'create');
+    const SearchImgsInstance = await commonValidate(req, next, SearchImgs, vaildateAdd, 'create');
     if (SearchImgsInstance == null) {
         next('新增搜寻图片失败');
         return;
@@ -47,7 +47,7 @@ Router.post('/add', async function (req, res, next) {
 
 // 新增多个寻人寻物图片
 Router.post('/addList', async function (req, res, next) {
-    const SearchImgsInstances = await commonVaildate(req, next, SearchImgs, vaildateAdd, 'bulkCreate');
+    const SearchImgsInstances = await commonValidate(req, next, SearchImgs, vaildateAdd, 'bulkCreate');
     if (SearchImgsInstances == null) {
         next('新增搜寻图片失败');
         return;
@@ -58,7 +58,7 @@ Router.post('/addList', async function (req, res, next) {
 // 修改单个寻人寻物图片信息
 Router.put('/:id', async function (req, res, next) {
     const { id } = req.params;
-    const result = await commonVaildate(req, next, SearchImgs, vaildateModify, 'update', null, {
+    const result = await commonValidate(req, next, SearchImgs, vaildateModify, 'update', null, {
         where: {
             searchImgId: +id
         },
@@ -79,7 +79,7 @@ Router.delete('/:id', async function (req, res, next) {
             searchImgId: +id
         },
     }).catch(catchError(next, '传递的数据类型有误，请检查'));
-    if (result == null) {
+    if (deleteRows == null) {
         next('传递的id有误，请检查');
         return;
     }
