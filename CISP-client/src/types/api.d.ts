@@ -1,6 +1,5 @@
 declare namespace API {
   declare namespace User {
-
     // 验证昵称密码
     interface ValidateLogin {
       nickname: string
@@ -19,63 +18,63 @@ declare namespace API {
       /**
        * 地址
        */
-      addr: string;
+      addr?: string
       /**
        * 头像
        */
-      avatar: string;
+      avatar: string
       /**
        * 生日
        */
-      birthDay: number;
+      birthDay: number
       /**
        * 禁用状态
        */
-      enabled: number;
+      enabled?: number
       /**
        * 自我介绍
        */
-      intro?: string;
+      intro?: string
       /**
        * 上次登录时间
        */
-      lastLoginDate: number;
+      lastLoginDate: number
       /**
        * 帐号id
        */
-      loginId: string;
+      loginId?: string
       /**
        * 密码
        */
-      loginPwd: string;
+      loginPwd: string
       /**
        * 邮箱
        */
-      mail?: string;
+      mail?: string
       /**
        * 昵称
        */
-      nickname: string;
+      nickname: string
       /**
        * 在线状态
        */
-      online: string;
+      online?: string
       /**
        * 手机号
        */
-      phone?: string;
+      phone?: string
       /**
        * qq号
        */
-      qq?: string;
+      qq?: string
       /**
        * 用户类型
        */
-      type: string;
+      type?: 'student' | 'teacher'
       /**
        * 微信号
        */
-      wechat?: string;
+      wechat?: string
     }
 
     // 修改用户信息
@@ -83,79 +82,78 @@ declare namespace API {
       /**
        * 地址
        */
-      addr?: string;
+      addr?: string
       /**
        * 头像
        */
-      avatar?: string;
+      avatar?: string
       /**
        * 生日
        */
-      birthDay?: number;
+      birthDay?: number
       /**
        * 禁用状态
        */
-      enabled?: number;
+      enabled?: number
       /**
        * 自我介绍
        */
-      intro?: string;
+      intro?: string
       /**
        * 上次登录时间
        */
-      lastLoginDate?: number;
+      lastLoginDate?: number
       /**
        * 密码
        */
-      loginPwd?: string;
+      loginPwd?: string
       /**
        * 邮箱
        */
-      mail?: string;
+      mail?: string
       /**
        * 昵称
        */
-      nickname?: string;
+      nickname?: string
       /**
        * 在线状态
        */
-      online?: string;
+      online?: string
       /**
        * 手机号
        */
-      phone?: string;
+      phone?: string
       /**
        * QQ号
        */
-      qq?: string;
+      qq?: string
       /**
        * 用户类型
        */
-      type?: string;
+      type?: string
       /**
        * 微信号
        */
-      wechat?: string;
+      wechat?: string
     }
   }
 
-  declare namespace Captcha{
-
+  declare namespace Captcha {
     // 检查验证码
     interface Validate {
       /**
        * 验证码
        */
-      captcha: string;
+      captcha: string
     }
   }
 
-  declare interface ServerResponse{
-    code:number,
-    msg:string,
-    data:{
-      datas:[]|{},
-      count?:number
-    }|null
+  declare interface ServerResponse {
+    code: number
+    msg: string
+    data: {
+      datas: [] | {}
+      count?: number
+    } | null
   }
 }

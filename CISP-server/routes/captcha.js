@@ -32,7 +32,7 @@ Router.post('/validate', async (req, res, next) => {
         req.signedCookies.captcha = null;
         return
     }
-    res.send(baseSend(200, '验证码已过期，请重新获取验证码'));
+    res.send(baseSend(201, '验证码已过期，请重新获取验证码'));
 });
 
 module.exports = Router;

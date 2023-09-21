@@ -28,9 +28,11 @@ PiNia.use((context) => {
 app.use(ElementPlus)
     .use(Antd)
     .use(PiNia)
-    .use(router)
-    .mount('#app');
+    .use(router);
 
 // 全局属性
 app.config.globalProperties.$message=Message({showClose:true});
 app.config.globalProperties.$messageRaw=Message();
+
+// 所有的导航，包括第一个导航，现在都是异步的，这意味着，如果你使用一个 transition，你可能需要等待路由 ready 好后再挂载程序
+router.isReady().then(() => app.mount('#app'));

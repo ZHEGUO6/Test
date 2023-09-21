@@ -15,7 +15,7 @@ const decrypt = (cryptStr) => {
     const encryptedBytes = aes.utils.hex.toBytes(cryptStr)
     const aesCbc = new aes.ModeOfOperation.cbc(key, iv)
     const decryptedBytes = aesCbc.decrypt(encryptedBytes)
-    return aes.utils.utf8.fromBytes(decryptedBytes)
+    return aes.utils.utf8.fromBytes(decryptedBytes).match(/[^+]+/)[0]
 }
 // 使字符串满足加密要求：字符串的字节数必须是16的倍数
 const meetEncrypt = (str) => {

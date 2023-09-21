@@ -12,6 +12,10 @@ export enum RequestUrl {
   User_Validate = '/user/validate',
   User_WhoAmI = '/user/login/whoAmI',
 
+
+  Image_GetInitialAll='/static/image/all',
+  Image_UploadOne='/static/upload/add',
+
   Captcha_Get='/captcha',
   Captcha_Validate='/captcha/validate',
 }

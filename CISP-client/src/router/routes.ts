@@ -1,8 +1,9 @@
 import type {RouteRecordRaw} from "vue-router";
-import {RouteMeta} from "@/types/route";
+import {Meta} from "@/types/route";
+import {HomeFilled,ChatDotRound,Setting} from '@element-plus/icons-vue'
 
-type RouteRecord = RouteRecordRaw&{
-    meta:RouteMeta
+export type RouteRecord = RouteRecordRaw&{
+    meta:Meta
 }
 
 const routes: readonly RouteRecord[]=[
@@ -11,7 +12,9 @@ const routes: readonly RouteRecord[]=[
         name: 'home',
         component:() => import('@/views/homePage.vue'),
         meta:{
-            layout:true
+            layout:true,
+            label:'首页',
+            icon:HomeFilled
         }
     },
     {
@@ -26,7 +29,8 @@ const routes: readonly RouteRecord[]=[
         //     }
         // ],
         meta:{
-            layout:true
+            layout:true,
+            label:'通讯录'
         }
     },
     {
@@ -34,7 +38,8 @@ const routes: readonly RouteRecord[]=[
         name: 'search',
         component: () => import('@/views/searchPage.vue'),
         meta:{
-            layout:true
+            layout:true,
+            label:'搜寻'
         }
     },
     {
@@ -42,7 +47,8 @@ const routes: readonly RouteRecord[]=[
         name: 'bulletin',
         component: () => import('@/views/bulletinBoard.vue'),
         meta:{
-            layout: true
+            layout: true,
+            label:'公告栏'
         }
     },
     {
@@ -51,7 +57,8 @@ const routes: readonly RouteRecord[]=[
         component: () => import('@/views/newsPage.vue'),
         meta:{
             auth:true,
-            layout:true
+            layout:true,
+            label: '新闻'
         }
     },
     {
@@ -60,15 +67,17 @@ const routes: readonly RouteRecord[]=[
         component: () => import('@/views/settingPage.vue'),
         meta:{
             auth:true,
-            layout:true
+            layout:true,
+            label:'设置'
         }
     },
     {
-        path: '/login',
+        path: '/loginOrRegistry',
         name: 'login',
         component: ()=>import('@/views/loginAndRegistryPage.vue'),
         meta:{
-            layout:false
+            layout:false,
+            hideInMenu:true
         }
     }
 ];

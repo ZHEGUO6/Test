@@ -23,7 +23,7 @@ export default async (
   from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
-  if (to.path === '/login') {
+  if (to.name === 'login') {
     // // 判断是否已经登录
     // // 如果已经登录，就直接跳转到首页
     if (await vailDateLogin()) {
@@ -40,7 +40,7 @@ export default async (
       next()
       return
     }
-    next('/login');
+    next({name:'login'});
     ElMessage.warning('登录已过期，请您重新登录');
     return
   }

@@ -22,7 +22,7 @@ const router = useRouter()
 
 const handleOut = async () => {
   await userStore.loginOut();
-  await router.push('/login');
+  await router.push({name:'login'});
 }
 </script>
 
