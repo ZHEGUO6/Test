@@ -9,9 +9,9 @@ import CountDown from '@/components/CounDown.vue'
 import { ValidateLoginEnum } from '@/types/enum'
 import { FormInstance, FormRules } from 'element-plus'
 import { MessageOptions } from 'element-plus/lib/components'
-import {Sunny} from "@element-plus/icons-vue";
+import { Sunny } from '@element-plus/icons-vue'
 
-const {changeType}=defineProps<{changeType:()=>void}>();
+const { changeType } = defineProps<{ changeType: () => void }>()
 
 /**
  * data定义
@@ -21,13 +21,13 @@ const form = reactive<API.User.Login & { captcha: string }>({
   loginPwd: '',
   captcha: '',
   saveTime: 0
-});
-const captchaValidated=ref(false);// 验证码是否验证通过
+})
+const captchaValidated = ref(false) // 验证码是否验证通过
 const router = useRouter()
 const { login } = useUserStore()
 const { isLogin } = storeToRefs(useUserStore())
-const screenLoading=ref<boolean>(false);// 是否整个页面设置loading
-const btnLoading=ref<boolean>(false);// 是否登录按钮loading
+const screenLoading = ref<boolean>(false) // 是否整个页面设置loading
+const btnLoading = ref<boolean>(false) // 是否登录按钮loading
 const app = getCurrentInstance()?.appContext.config.globalProperties
 const countDownTime = ref<number>(0)
 const captcha = ref<HTMLElement>()
@@ -68,16 +68,16 @@ const rules = reactive<FormRules<typeof form>>({
     {
       validator: (_, value, callback) => {
         validateCaptcha({ captcha: value }).then(
-          (res:API.ServerResponse) => {
+          (res: API.ServerResponse) => {
             if (res.code !== 200) {
               callback(res.msg)
               return
             }
             callback()
-            captchaValidated.value=true;
-            onSubmit();// 验证码验证通过，提交表单
+            captchaValidated.value = true
+            onSubmit() // 验证码验证通过，提交表单
           },
-          (err:Error) => {
+          (err: Error) => {
             callback(err.message)
           }
         )
@@ -91,24 +91,26 @@ const rules = reactive<FormRules<typeof form>>({
  */
 
 // 关闭所有的Loading状态
-const closeAllLoading=()=>{
-  screenLoading.value=false;
-  btnLoading.value=false;
+const closeAllLoading = () => {
+  screenLoading.value = false
+  btnLoading.value = false
 }
 
 // 登录
-const _login=async ()=>{
-  screenLoading.value=true;
-  btnLoading.value=true;
+const _login = async () => {
+  screenLoading.value = true
+  btnLoading.value = true
   // 进行密码验证
-  const res = await validate({ nickname: form.nickname, loginPwd: form.loginPwd }).catch((err:Error) => {
-    app?.$message({
-      type: 'error',
-      message: `服务器响应出错，${err.message}`,
-      duration: 3000
-    } as MessageOptions)
-    return { code: 500 }
-  })
+  const res = await validate({ nickname: form.nickname, loginPwd: form.loginPwd }).catch(
+    (err: Error) => {
+      app?.$message({
+        type: 'error',
+        message: `服务器响应出错，${err.message}`,
+        duration: 3000
+      } as MessageOptions)
+      return { code: 500 }
+    }
+  )
   if (res.code !== 200 && res.code !== 500) {
     app?.$message({
       type: 'error',
@@ -122,21 +124,21 @@ const _login=async ()=>{
         getCaptchaAsync()
       }
     } as MessageOptions)
-    closeAllLoading();
+    closeAllLoading()
     return
   }
-  if(!useAutoLogin.value){
+  if (!useAutoLogin.value) {
     //   未开启免登录，将免登录时间改为0
-    form.saveTime=0;
+    form.saveTime = 0
   }
   await login(form)
   if (isLogin.value) {
     app?.$message({
       type: 'success',
       message: '恭喜您，登录成功'
-    } as MessageOptions);
-    closeAllLoading();
-    await router.push('/');
+    } as MessageOptions)
+    closeAllLoading()
+    await router.push('/')
     return
   }
   app?.$message({
@@ -149,18 +151,20 @@ const _login=async ()=>{
 
 // 表单提交事件
 const onSubmit = async () => {
-  if(captchaValidated.value){
-  //   验证码已通过验证
-    formRef.value?.validateField([ValidateLoginEnum.NickName,ValidateLoginEnum.LoginPwd],async(isValid, invalidFields)=>{
-      if(isValid){
-        await _login();
+  if (captchaValidated.value) {
+    //   验证码已通过验证
+    formRef.value?.validateField(
+      [ValidateLoginEnum.NickName, ValidateLoginEnum.LoginPwd],
+      async (isValid, invalidFields) => {
+        if (isValid) {
+          await _login()
+        }
       }
-    })
-  }
-  else{
+    )
+  } else {
     // 进行整体表单校验
-    const formValidate=await formRef.value?.validate().catch((err:Error)=>err);
-    if(typeof formValidate==='object'){
+    const formValidate = await formRef.value?.validate().catch((err: Error) => err)
+    if (typeof formValidate === 'object') {
       //   表单校验未通过
       app?.$message({
         type: 'error',
@@ -170,9 +174,8 @@ const onSubmit = async () => {
       return
     }
     // 表单验证通过
-    await _login();
+    await _login()
   }
-
 }
 
 // 计时器组件时间改变回调
@@ -197,8 +200,8 @@ const getCaptchaAsync = async () => {
 // 按钮更换验证码
 const btnGetCaptcha = async () => {
   resetCountDownTime()
-  await getCaptchaAsync();
-  form.captcha='';
+  await getCaptchaAsync()
+  form.captcha = ''
 }
 
 onBeforeMount(async () => {
@@ -232,9 +235,15 @@ onBeforeMount(async () => {
     element-loading-background="rgb(39 82 92 / 54%)"
   >
     <el-form-item label="昵称" :required="true" prop="nickname" :key="ValidateLoginEnum.NickName">
-      <el-input v-model="form.nickname" placeholder="请输入昵称"  autocomplete="on" />
+      <el-input v-model="form.nickname" placeholder="请输入昵称" autocomplete="on" />
     </el-form-item>
-    <el-form-item label="密码" :required="true" prop="loginPwd" :key="ValidateLoginEnum.LoginPwd"  autocomplete="on">
+    <el-form-item
+      label="密码"
+      :required="true"
+      prop="loginPwd"
+      :key="ValidateLoginEnum.LoginPwd"
+      autocomplete="on"
+    >
       <el-input
         type="password"
         v-model="form.loginPwd"
@@ -271,11 +280,15 @@ onBeforeMount(async () => {
       </el-col>
     </el-form-item>
 
-    <el-form-item
-      :key="ValidateLoginEnum.SaveTime"
-    >
+    <el-form-item :key="ValidateLoginEnum.SaveTime">
       <el-col>
-        <el-switch active-text="关闭免登录" inactive-text="开启免登录" v-model="useAutoLogin" :inline-prompt="true" >开启免登录</el-switch>
+        <el-switch
+          active-text="关闭免登录"
+          inactive-text="开启免登录"
+          v-model="useAutoLogin"
+          :inline-prompt="true"
+          >开启免登录</el-switch
+        >
         <el-select v-if="useAutoLogin" v-model="form.saveTime" placeholder="请选择免登录时间">
           <el-option
             v-for="item in selectOptions"
@@ -287,7 +300,9 @@ onBeforeMount(async () => {
       </el-col>
     </el-form-item>
     <el-form-item>
-      <el-button class="btnCenter" @click="onSubmit" :loading-icon="Sunny" :loading="btnLoading">登录</el-button>
+      <el-button class="btnCenter" @click="onSubmit" :loading-icon="Sunny" :loading="btnLoading"
+        >登录</el-button
+      >
     </el-form-item>
     <el-link class="changeFormBtn" @click="changeType">
       <el-text class="txt">注册</el-text>
@@ -322,7 +337,7 @@ onBeforeMount(async () => {
   margin-left: calc(50% - 200px);
 }
 
-.captchaContainer{
+.captchaContainer {
   background-color: #3e3535;
 }
 </style>

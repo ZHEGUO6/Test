@@ -21,11 +21,9 @@ const {
 const router = useRouter()
 
 const handleOut = async () => {
-  await userStore.loginOut();
-  await router.push({name:'login'});
+  await userStore.loginOut()
+  await router.push({ name: 'login' })
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

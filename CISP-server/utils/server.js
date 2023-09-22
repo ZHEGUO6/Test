@@ -1,92 +1,105 @@
 // 与服务器响应相关的函数
-const baseSend = (code = 200, msg = '', data = null) => {
-    return {
-        code,
-        msg,
-        data
-    }
+const baseSend = (code = 200, msg = "", data = null) => {
+  return {
+    code,
+    msg,
+    data,
+  };
 };
 
-const readImageReqData=(req)=>new Promise((resolve, reject) => {
-    let str = '';
-    req.on('data', (data) => {
-        str += data.toString();
+const readImageReqData = (req) =>
+  new Promise((resolve, reject) => {
+    let str = "";
+    req.on("data", (data) => {
+      str += data.toString();
     });
-    req.on('end', () => {
-        resolve(str)
-    })
-});
+    req.on("end", () => {
+      resolve(str);
+    });
+  });
 // 读取请求体
-const readReqData = (req) => new Promise(async(resolve, reject) => {
-    const str=await readImageReqData(req);
+const readReqData = (req) =>
+  new Promise(async (resolve, reject) => {
+    const str = await readImageReqData(req);
     try {
-        resolve(JSON.parse(str));
+      resolve(JSON.parse(str));
     } catch (error) {
-        reject(error);
+      reject(error);
     }
-});
+  });
 
 const catchError = (next, error) => {
-    return () => {
-        next(error);
-        return false;
-    }
+  return () => {
+    next(error);
+    return false;
+  };
 };
 
 module.exports = {
-    baseSend,
-    readReqData,
-    readImageReqData,
-    /**
-     * 通用的响应需要验证的方法
-     * @param {*} req 请求对象
-     * @param {*} next 移交给下个中间件函数
-     * @param {*} instance 模型实例
-     * @param {*} validateFunc 参数验证方法
-     * @param {*} action 针对模型的动作，如：create、update
-     * @param {*} filterCallback 过滤的回调，可能会有二次过滤
-     * @param {*} modelOption 调用模型方法传递的第二个参数
-     * @returns
-     */
-    async commonValidate(req, next, instance, validateFunc, action, filterCallback=undefined, modelOption = {}) {
-        async function _validate(item) {
-            let yetOver = true;
-            filterCallback && (yetOver = await filterCallback(item));
-            return yetOver;
+  baseSend,
+  readReqData,
+  readImageReqData,
+  /**
+   * 通用的响应需要验证的方法
+   * @param {*} req 请求对象
+   * @param {*} next 移交给下个中间件函数
+   * @param {*} instance 模型实例
+   * @param {*} validateFunc 参数验证方法
+   * @param {*} action 针对模型的动作，如：create、update
+   * @param {*} filterCallback 过滤的回调，可能会有二次过滤
+   * @param {*} modelOption 调用模型方法传递的第二个参数
+   * @returns
+   */
+  async commonValidate(
+    req,
+    next,
+    instance,
+    validateFunc,
+    action,
+    filterCallback = undefined,
+    modelOption = {}
+  ) {
+    async function _validate(item) {
+      let yetOver = true;
+      filterCallback && (yetOver = await filterCallback(item));
+      return yetOver;
+    }
+    // 剔除不需要的键值对
+    let params = await readReqData(req).catch((err) => catchError(next, err)());
+    if (Array.isArray(params)) {
+      let filter = [];
+      // 剔除不需要的键值对
+      for (let index = 0; index < params.length; index++) {
+        const item = await validateFunc(params[index]);
+        if (!item) {
+          // 检测不通过
+          return catchError(next, `传递的信息数量与预期的不一致`)();
         }
-        // 剔除不需要的键值对
-        let params = await readReqData(req).catch(err => catchError(next, err)());
-        if (Array.isArray(params)) {
-            let filter = [];
-            // 剔除不需要的键值对
-            for (let index = 0; index < params.length; index++) {
-                const item = await validateFunc(params[index]);
-                if (!item) {
-                    // 检测不通过
-                    return catchError(next, `传递的信息数量与预期的不一致`)();
-                }
-                filter.push(item);
-                const result = await _validate(item);
-                if (!result) {
-                    return false;
-                }
-            }
-            params = filter;
+        filter.push(item);
+        const result = await _validate(item);
+        if (!result) {
+          return false;
         }
-        else {
-            params = await validateFunc(params);
-            if (!params) {
-                // 检测不通过
-                return catchError(next, `传递的信息数量与预期的不一致`)();
-            }
-            const result = await _validate(params);
-            if (!result) {
-                return false;
-            }
-        }
-        return await instance[action](params, modelOption).catch(err => {
-            return catchError(next, `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`)();
-        });
-    },
-    catchError
-}
+      }
+      params = filter;
+    } else {
+      params = await validateFunc(params);
+      if (!params) {
+        // 检测不通过
+        return catchError(next, `传递的信息数量与预期的不一致`)();
+      }
+      const result = await _validate(params);
+      if (!result) {
+        return false;
+      }
+    }
+    return await instance[action](params, modelOption).catch((err) => {
+      console.log(err);
+      return catchError(
+        next,
+        `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`
+      )();
+    });
+  },
+  catchError,
+};

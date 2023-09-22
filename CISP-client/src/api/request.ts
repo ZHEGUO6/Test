@@ -15,13 +15,20 @@ const request = axios.create({
 // 响应拦截
 request.interceptors.response.use((options) => options.data)
 
-const requestWrapper:(method: RequestType, url: RequestUrl, options?: object)=>Promise<API.ServerResponse>=async (method, url, options)=>{
-  return await request[method](url, options).then(res=>res,(err) => {
-    if (err.response) {
-      return err.response.data
+const requestWrapper: (
+  method: RequestType,
+  url: RequestUrl,
+  options?: object
+) => Promise<API.ServerResponse> = async (method, url, options) => {
+  return await request[method](url, options).then(
+    (res) => res,
+    (err) => {
+      if (err.response) {
+        return err.response.data
+      }
+      return { code: err.code, msg: err.message, data: null }
     }
-    return { code: err.code, msg: err.message, data: null }
-  })
+  )
 }
 
 export default requestWrapper

@@ -11,7 +11,7 @@ import { FormInstance, FormRules } from 'element-plus'
 import { MessageOptions } from 'element-plus/lib/components'
 import { getAllInitialAvatar } from '@/api/image'
 
-const {changeType}=defineProps<{changeType:()=>void}>()
+const { changeType } = defineProps<{ changeType: () => void }>()
 
 /**
  * data定义
@@ -366,7 +366,7 @@ onBeforeMount(async () => {
   margin-left: calc(50% - 200px);
 }
 
-.captchaContainer{
+.captchaContainer {
   background-color: #3d878e;
 }
 </style>
