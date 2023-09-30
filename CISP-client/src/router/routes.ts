@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { Meta } from '@/types/route'
-import { HomeFilled, ChatDotRound, Setting } from '@element-plus/icons-vue'
+import { HomeFilled } from '@element-plus/icons-vue'
 
 export type RouteRecord = RouteRecordRaw & {
   meta: Meta
@@ -30,7 +30,8 @@ const routes: readonly RouteRecord[] = [
     // ],
     meta: {
       layout: true,
-      label: '通讯录'
+      label: '通讯录',
+      icon: HomeFilled
     }
   },
   {

@@ -13,7 +13,7 @@ export enum RequestUrl {
   User_WhoAmI = '/user/login/whoAmI',
 
   Image_GetInitialAll = '/static/image/all',
-  Image_UploadOne = '/static/upload/add',
+  Image_UploadOne = '/api/static/upload/add', // 直接上传
 
   Captcha_Get = '/captcha',
   Captcha_Validate = '/captcha/validate'
@@ -51,5 +51,25 @@ export enum ValidateRegistryEnum {
   Phone = 'phone',
   BirthDay = 'birthDay',
   SaveTime = 'saveTime',
-  Captcha = 'captcha'
+  Captcha = 'captcha',
+  Enabled = 'enabled',
+  LastLoginTime = 'lastLoginDate',
+  LoginId = 'loginId',
+  Online = 'online'
+}
+
+// 本地存储空间 key
+export enum LocalStorageItemName {
+  User = 'user' //  当前的用户信息
+}
+
+// 会话存储空间 key
+export enum SessionStorageItemName {
+  GdWebApiDistrict = 'GD-WEB-API-District', // 高德地图api行政区域查询
+  LoginAndRegistryPageType = 'loginAndRegistryPageType', // 当前为登录表单还是注册表单 registry / login
+  RegistryCaptchaValidateTime = 'registryCaptchaValidateTime', // 登录表单验证码验证剩余时间
+  LoginCaptchaValidateTime = 'loginCaptchaValidateTime', // 登录表单验证码验证剩余时间
+  RegistryCaptcha = 'registryCaptcha', // 注册表单验证码
+  LoginCaptcha = 'loginCaptcha', // 登录表单验证码
+  InitialAvatarLinks = 'initialAvatars' // 系统初始头像links
 }

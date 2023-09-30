@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
-
+import { BASE_URL } from './src/config/env'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
@@ -14,7 +14,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: BASE_URL,
         changeOrigin: true
       }
     }

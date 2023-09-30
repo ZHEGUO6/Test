@@ -1,4 +1,4 @@
-import './styles/global.less'
+import './styles/base.css'
 import App from './App.vue'
 import router from './router'
 import { createApp } from 'vue'
@@ -9,6 +9,8 @@ import 'ant-design-vue/dist/reset.css'
 import ElementPlus from 'element-plus'
 import { createPersistedStatePlugin } from 'pinia-plugin-persistedstate-2'
 import Message from '@/directives/Message'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
+import 'hover.css/css/hover-min.css'
 
 const app = createApp(App)
 
@@ -22,6 +24,11 @@ PiNia.use((context) => {
 })
 
 // 全局指令
+
+// 全局组件
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
 
 // 全局使用
 app.use(ElementPlus).use(Antd).use(PiNia).use(router)

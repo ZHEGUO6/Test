@@ -52,6 +52,12 @@ const selectOptions = [
 
 const useAutoLogin = ref<boolean>(false) // 是否启用免登录
 const formRef = ref<FormInstance>()
+
+// 校验器
+const formValidators = {
+  password: /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*.-])[a-zA-Z\d!#@*&.-]{8,32}/g
+}
+
 const rules = reactive<FormRules<typeof form>>({
   nickname: [
     { required: true, message: '请填写昵称' },
@@ -60,11 +66,20 @@ const rules = reactive<FormRules<typeof form>>({
   loginPwd: [
     { required: true, message: '请填写密码' },
     { min: 8, message: '密码不能小于8位', trigger: ['blur'] },
-    { max: 32, message: '密码不能超过32位', trigger: ['blur'] }
+    { max: 32, message: '密码不能超过32位', trigger: ['blur'] },
+    {
+      validator: (_, value, callback) => {
+        if (formValidators.password.test(value)) {
+          callback()
+        } else {
+          callback('密码格式不对，请重新填写')
+        }
+      }
+    }
   ],
   captcha: [
     { required: true, message: '请填写验证码' },
-    { len: 6, message: '请正确输入验证码' },
+    { len: 6, message: '请正确填写验证码，正确填写后自动登录哦' },
     {
       validator: (_, value, callback) => {
         validateCaptcha({ captcha: value }).then(
@@ -155,7 +170,7 @@ const onSubmit = async () => {
     //   验证码已通过验证
     formRef.value?.validateField(
       [ValidateLoginEnum.NickName, ValidateLoginEnum.LoginPwd],
-      async (isValid, invalidFields) => {
+      async (isValid) => {
         if (isValid) {
           await _login()
         }
@@ -235,7 +250,12 @@ onBeforeMount(async () => {
     element-loading-background="rgb(39 82 92 / 54%)"
   >
     <el-form-item label="昵称" :required="true" prop="nickname" :key="ValidateLoginEnum.NickName">
-      <el-input v-model="form.nickname" placeholder="请输入昵称" autocomplete="on" />
+      <el-input
+        v-model="form.nickname"
+        placeholder="请填写昵称"
+        autocomplete="on"
+        :clearable="true"
+      />
     </el-form-item>
     <el-form-item
       label="密码"
@@ -248,8 +268,9 @@ onBeforeMount(async () => {
         type="password"
         v-model="form.loginPwd"
         :show-password="true"
-        placeholder="请输入密码"
+        placeholder="请填写密码"
         autocomplete="on"
+        :clearable="true"
       />
     </el-form-item>
     <el-form-item
@@ -260,7 +281,12 @@ onBeforeMount(async () => {
       class="alignCenter"
     >
       <el-col :span="6">
-        <el-input v-model="form.captcha" placeholder="请输入验证码" autocomplete="on" />
+        <el-input
+          v-model="form.captcha"
+          placeholder="请填写验证码"
+          autocomplete="on"
+          :clearable="true"
+        />
       </el-col>
       <el-col :span="1"></el-col>
       <el-col :span="6">
