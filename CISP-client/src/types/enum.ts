@@ -42,7 +42,7 @@ export enum ValidateRegistryEnum {
   LoginPwd = 'loginPwd',
   ConfirmPwd = 'confirmPwd',
   Avatar = 'avatar',
-  Email = 'email',
+  Mail = 'mail',
   QQ = 'qq',
   Wechat = 'wechat',
   Intro = 'intro',

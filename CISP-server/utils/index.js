@@ -25,10 +25,10 @@ const obj = {
   },
   validators: {
     qq() {
-      return /^(\d{5,11}|'')$/g;
+      return /^(\d{5,11}|\s)$/g;
     },
     wechat() {
-      return /^([a-zA-Z][\w\-]{5,19}|'')$/g;
+      return /^([a-zA-Z][\w\-]{5,19}|\s)$/g;
     },
     /**
      * 密码正则 数字字母下划线特殊字符 !#@*&.-
@@ -41,10 +41,10 @@ const obj = {
       );
     },
     addr() {
-      return /^([0-9]+-){1,2}[0-9]+$/g;
+      return /^(([0-9\/.]+-){1,3}[0-9\/.]+)|[0-9\/.]+$/g;
     },
     phone() {
-      return /^(1[3-9][0-9]{9}|'')$/g;
+      return /^(1[3-9][0-9]{9}|\s)$/g;
     },
     url() {
       return /(http|https):\/\/\w+((:\d{2,})|(.\w+)+)(\/[\w_]+)*(\/[\w_.]+\.(jpg|png|webp|bmp|gif|svg))/g;

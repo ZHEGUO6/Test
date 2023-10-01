@@ -55,7 +55,7 @@ const formRef = ref<FormInstance>()
 
 // 校验器
 const formValidators = {
-  password: /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*.-])[a-zA-Z\d!#@*&.-]{8,32}/g
+  password: /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*.-])[a-zA-Z\d!#@*&.-]{8,32}/
 }
 
 const rules = reactive<FormRules<typeof form>>({
@@ -240,11 +240,12 @@ onBeforeMount(async () => {
 <template>
   <el-form
     :model="form"
-    label-position="right"
+    label-position="left"
+    label-width="80"
     status-icon
     :rules="rules"
     ref="formRef"
-    class="loginForm"
+    class="loginFormOrRegistryForm"
     v-loading.fullscreen="screenLoading"
     element-loading-text="正在登录中，请稍后......"
     element-loading-background="rgb(39 82 92 / 54%)"
@@ -307,23 +308,27 @@ onBeforeMount(async () => {
     </el-form-item>
 
     <el-form-item :key="ValidateLoginEnum.SaveTime">
-      <el-col>
-        <el-switch
-          active-text="关闭免登录"
-          inactive-text="开启免登录"
-          v-model="useAutoLogin"
-          :inline-prompt="true"
-          >开启免登录</el-switch
-        >
-        <el-select v-if="useAutoLogin" v-model="form.saveTime" placeholder="请选择免登录时间">
-          <el-option
-            v-for="item in selectOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-col>
+      <el-row>
+        <el-col :span="8">
+          <el-switch
+            active-text="关闭免登录"
+            inactive-text="开启免登录"
+            v-model="useAutoLogin"
+            :inline-prompt="true"
+            >开启免登录</el-switch
+          >
+        </el-col>
+        <el-col :span="12">
+          <el-select v-if="useAutoLogin" v-model="form.saveTime" placeholder="请选择免登录时间">
+            <el-option
+              v-for="item in selectOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-col>
+      </el-row>
     </el-form-item>
     <el-form-item>
       <el-button class="btnCenter" @click="onSubmit" :loading-icon="Sunny" :loading="btnLoading"
@@ -337,33 +342,4 @@ onBeforeMount(async () => {
 </template>
 <style scoped lang="less">
 @import url('../../styles/minix');
-.loginForm {
-  width: 100%;
-  height: 100%;
-  --el-fill-color-blank: #c2ba7964;
-  --el-text-color-placeholder: #8c8c8c;
-  --el-text-color-secondary: #2ac962f0;
-  --el-border-color: #3d6ddc;
-  --el-border-color-hover: #0a0dbe;
-  --el-color-primary-light-9: #aba69582;
-  padding: 30px 50px 20px 20px;
-  overflow: hidden;
-  background: #94b8ef;
-}
-
-.changeFormBtn {
-  .changeFormType();
-}
-
-.alignCenter {
-  align-items: center;
-}
-.btnCenter {
-  flex-basis: 400px;
-  margin-left: calc(50% - 200px);
-}
-
-.captchaContainer {
-  background-color: #3e3535;
-}
 </style>

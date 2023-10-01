@@ -1,4 +1,6 @@
 import './styles/base.css'
+import './styles/scoped.module.css'
+import './styles/global.less'
 import App from './App.vue'
 import router from './router'
 import { createApp } from 'vue'

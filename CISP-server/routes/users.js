@@ -207,6 +207,7 @@ Router.post("/add", async function (req, res, next) {
     validateAdd,
     "create"
   );
+  console.log(userInstance);
   if (userInstance == null) {
     next("新增用户失败");
     return;

@@ -20,8 +20,6 @@ onMounted(() => {
 watch(props, () => {
   if (props.time > 0 && !timer.value) {
     startDown()
-  } else if (props.time <= 0) {
-    stopDown() //停止倒计时
   }
 })
 
@@ -29,8 +27,12 @@ watch(props, () => {
 const startDown = () => {
   if (!timer.value) {
     timer.value = setInterval(() => {
-      props.onChange(props.time - 1)
-    }, 1000)
+      const t = props.time - 1
+      props.onChange(t)
+      if (t <= 0) {
+        stopDown() //停止倒计时
+      }
+    }, 1000) as unknown as number
   }
 }
 

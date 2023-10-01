@@ -6,7 +6,7 @@ import { ref } from 'vue'
 /**
  * data定义
  */
-const type = ref<'login' | 'registry'>(localStorage.getItem('loginAndRegistryPageType')||'login') // 当前是登录还是注册
+const type = ref<'login' | 'registry'>(localStorage.getItem('loginAndRegistryPageType') || 'login') // 当前是登录还是注册
 
 /**
  * 方法定义
@@ -14,8 +14,8 @@ const type = ref<'login' | 'registry'>(localStorage.getItem('loginAndRegistryPag
 
 // 切换表单类型
 const changeType = () => {
-  type.value === 'login' ? (type.value = 'registry') : (type.value = 'login');
-  localStorage.setItem('loginAndRegistryPageType',type.value);
+  type.value === 'login' ? (type.value = 'registry') : (type.value = 'login')
+  localStorage.setItem('loginAndRegistryPageType', type.value)
 }
 </script>
 
@@ -100,8 +100,8 @@ const changeType = () => {
     }
   }
   & .loginFormContainer {
-    width: 40%;
-    height: 320px;
+    width: 52%;
+    height: 370px;
     overflow: hidden;
     position: relative;
     border-radius: 8px;
@@ -111,7 +111,7 @@ const changeType = () => {
       width: 98.3%;
       height: 97%;
       margin-top: 3px;
-      margin-left: 3px;
+      margin-left: 5px;
       position: relative;
       border-radius: 8px;
     }

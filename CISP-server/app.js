@@ -22,8 +22,8 @@ const staticMiddleware = require("./middleware/staticMiddleWare");
 const sequelize = require("./sequelize");
 // 对数据库进行测试
 // (async () => {
-//     await sequelize.sync({ force: true });
-// })()
+//   await sequelize.sync({ force: true });
+// })();
 const secret =
   Date.now().toString(36).slice(4) +
   Math.random().toString(36).slice(4) +

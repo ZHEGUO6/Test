@@ -21,24 +21,26 @@ const message = (opts?: MessageOptions) => {
       onClose && onClose()
     }, duration) as unknown as number
     const messageInstance = document.getElementById(`message_${ind}`)!
-    messageInstance.onmouseenter = () => {
-      if (timer) {
-        clearTimeout(timer)
-        timer = null
+    if (messageInstance) {
+      messageInstance.onmouseenter = () => {
+        if (timer) {
+          clearTimeout(timer)
+          timer = null
+        }
       }
-    }
-    messageInstance.onmouseleave = () => {
-      timer = setTimeout(() => {
+      messageInstance.onmouseleave = () => {
+        timer = setTimeout(() => {
+          close()
+          onClose && onClose()
+        }, duration) as unknown as number
+      }
+      messageInstance.onclick = () => {
         close()
-        onClose && onClose()
-      }, duration) as unknown as number
-    }
-    messageInstance.onclick = () => {
-      close()
-      onClose && onClose('click')
-      if (timer) {
-        clearTimeout(timer)
-        timer = null
+        onClose && onClose('click')
+        if (timer) {
+          clearTimeout(timer)
+          timer = null
+        }
       }
     }
   }

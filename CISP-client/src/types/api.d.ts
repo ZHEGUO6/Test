@@ -26,7 +26,7 @@ declare namespace API {
       /**
        * 生日
        */
-      birthDay: number
+      birthDay: number | Date
       /**
        * 禁用状态
        */
@@ -42,7 +42,7 @@ declare namespace API {
       /**
        * 帐号id
        */
-      loginId?: string
+      loginId: string
       /**
        * 密码
        */

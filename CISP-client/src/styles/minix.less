@@ -7,11 +7,10 @@
   position: absolute;
   clip-path: path('M 0 0 h 65 v 100 L 0 0 z');
   border-top-right-radius: 10px;
-  background-image: linear-gradient(135deg, tomato, tan);
+  background-image: linear-gradient(135deg, #1ae1e5e0, #3235b0a3);
   &:hover {
-    background-image: linear-gradient(135deg, #5794f3, #23cfde);
     & .txt {
-      color: #f40;
+      color: #07cfe1;
     }
   }
   & .txt {
@@ -19,6 +18,40 @@
     right: 7%;
     display: block;
     position: absolute;
-    color: #72df6b;
+    color: #063072;
+  }
+}
+
+.loginFormOrRegistryForm{
+  width: 100%;
+  height: 100%;
+  --el-fill-color-blank: #ffffff00;
+  --el-text-color-placeholder: #37393cf0;
+  --el-text-color-secondary: #4842bdf0;
+  --el-border-color: #0400ff;
+  --el-border-color-hover: #f88309;
+  --el-color-primary-light-9: #101c6e;
+  --el-input-text-color: #ccc;
+  padding: 30px 50px 20px 20px;
+  overflow: hidden;
+  background: #569ec5;
+  --el-text-color-regular: #002060;
+
+  & .changeFormBtn {
+    .changeFormType();
+  }
+
+  & .alignCenter {
+    align-items: center;
+  }
+
+  & .btnCenter {
+    flex-basis: 400px;
+    margin-left: calc(50% - 220px);
+  }
+
+  & .captchaContainer {
+    background-color:#001d55c7;
+    padding: 2px 0 1px 22px;
   }
 }

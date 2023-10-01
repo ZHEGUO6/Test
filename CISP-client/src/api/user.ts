@@ -26,4 +26,6 @@ export const modify = async (id: string, info: API.User.Modify) => {
   return await request(RequestType.PUT, RequestUrl.User_Modify + `/${id}`, info)
 }
 
-// export const
+export const registry = async (info: API.User.Add) => {
+  return await request(RequestType.POST, RequestUrl.User_AddOne, info)
+}
