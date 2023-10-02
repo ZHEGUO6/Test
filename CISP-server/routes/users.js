@@ -172,7 +172,7 @@ Router.post("/login", async function (req, res, next) {
     res.send(baseSend(200, "登录成功", { datas: userInstance }));
   }
   if (userInstance == null) {
-    res.send(baseSend(417, "帐号密码不正确，登录失败"));
+    next("帐号密码不正确，登录失败");
   }
 });
 
@@ -183,13 +183,13 @@ Router.get("/login/whoAmI", async function (req, res, next) {
       catchError(next, `登录信息有误，请重新登录`)
     );
     if (userInstance == null) {
-      res.send(baseSend(200, "登录信息已失效，请重新登录"));
+      next("登录信息已失效，请重新登录");
     }
     userInstance &&
       res.send(baseSend(200, "恢复登录成功", { datas: userInstance }));
     return;
   }
-  res.send(baseSend(200, "登录信息已失效，请重新登录"));
+  next("登录信息已失效，请重新登录");
 });
 
 // 用户退出登录
@@ -207,7 +207,6 @@ Router.post("/add", async function (req, res, next) {
     validateAdd,
     "create"
   );
-  console.log(userInstance);
   if (userInstance == null) {
     next("新增用户失败");
     return;

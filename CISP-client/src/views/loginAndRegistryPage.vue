@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import loginForm from '@/components/LoginForm/LoginFormIndex.vue'
 import registryForm from '@/components/RegistryForm/RegistryFormIndex.vue'
-import { ref } from 'vue'
+import { ref, onBeforeMount } from 'vue'
+import { LocalStorageItemName } from '@/types/enum'
+
+declare type LoginOrRegistry = 'login' | 'registry'
 
 /**
  * data定义
  */
-const type = ref<'login' | 'registry'>(localStorage.getItem('loginAndRegistryPageType') || 'login') // 当前是登录还是注册
+const type = ref<LoginOrRegistry>(
+  (localStorage.getItem(LocalStorageItemName.LoginAndRegistryPageType) as LoginOrRegistry) ||
+    'login'
+) // 当前是登录还是注册
 
 /**
  * 方法定义
@@ -15,8 +21,16 @@ const type = ref<'login' | 'registry'>(localStorage.getItem('loginAndRegistryPag
 // 切换表单类型
 const changeType = () => {
   type.value === 'login' ? (type.value = 'registry') : (type.value = 'login')
-  localStorage.setItem('loginAndRegistryPageType', type.value)
+  localStorage.setItem(LocalStorageItemName.LoginAndRegistryPageType, type.value)
 }
+
+onBeforeMount(() => {
+  const t = history.state.type
+  if (t) {
+    type.value = t
+    localStorage.setItem(LocalStorageItemName.LoginAndRegistryPageType, t)
+  }
+})
 </script>
 
 <template>

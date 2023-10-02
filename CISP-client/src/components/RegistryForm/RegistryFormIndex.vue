@@ -14,6 +14,7 @@ import { get as _get, last as _last } from 'lodash'
 import { getDistrict } from '@/api/three-party'
 import { GD_WEB_API_DISTRICT } from '@/types/thirty-party'
 import { v4 as uuid } from 'uuid'
+import { Star } from '@element-plus/icons-vue'
 
 const { changeType } = defineProps<{ changeType: () => void }>()
 
@@ -32,7 +33,7 @@ const form = reactive<API.User.Add & { captcha: string; saveTime: number; confir
   wechat: '',
   intro: '',
   type: 'student',
-  addr: '10000',
+  addr: '100000/116.3683244,39.915085',
   phone: '',
   birthDay: 0,
   lastLoginDate: 0,
@@ -116,6 +117,9 @@ const useAutoLogin = ref<boolean>(false) // 是否启用免登录
 const useMoreSettings = ref<boolean>(false) // 是否设置更多注册信息
 const useUploadAvatar = ref<boolean>(false) // 是否上传自己的头像
 
+const screenLoading = ref<boolean>(false) // 是否加载全屏过渡动画
+const btnLoading = ref<boolean>(false) // 是否按钮加载过渡动画
+
 const formRef = ref<FormInstance>()
 const drawFormRef = ref<FormInstance>() // 抽屉注册表单ref
 
@@ -154,7 +158,7 @@ const rules = ref<FormRules<typeof form>>({
     {
       validator: simpleValidatorFunc(
         (value) => formValidators.password.test(value),
-        '密码格式不对，请重新填写'
+        '密码要求数字、字母加特殊字符'
       ),
       trigger: ['blur']
     }
@@ -171,7 +175,7 @@ const rules = ref<FormRules<typeof form>>({
   ],
   captcha: [
     { required: true, message: '请填写验证码' },
-    { len: 6, message: '请正确输入验证码，正确输入后自动登录哦' },
+    { len: 6, message: '请正确输入验证码' },
     {
       validator: (_, value, callback) => {
         validateCaptcha({ captcha: value }).then(
@@ -276,7 +280,7 @@ const parseDistrictToArraySingle = (
   keys: string[],
   callBack: (item: GD_WEB_API_DISTRICT | undefined, districts: GD_WEB_API_DISTRICT[]) => void
 ) => {
-  if (!districts || !beginVal) {
+  if (!districts || !beginVal || !districts?.length) {
     return
   }
   let findItem = districts.find((i) => i.adcode === beginVal)
@@ -323,7 +327,7 @@ const parseDistrictToTotalArray = (
   key: string,
   callBack: (list: GD_WEB_API_DISTRICT[]) => void
 ) => {
-  if (!districts || !beginVal) {
+  if (!districts || !beginVal || !districts?.length) {
     return
   }
   let findItem = districts.find((i) => i.adcode === beginVal)
@@ -347,9 +351,11 @@ const remote = async () => {
     totalDistricts.value = JSON.parse(districtStr) as GD_WEB_API_DISTRICT
   } else {
     let res = await getDistrict()
-    res = res.districts
-    totalDistricts.value = res
-    sessionStorage.setItem(SessionStorageItemName.GdWebApiDistrict, JSON.stringify(res))
+    if (res.status === 1) {
+      const districts = res.districts
+      totalDistricts.value = districts
+      sessionStorage.setItem(SessionStorageItemName.GdWebApiDistrict, JSON.stringify(districts))
+    }
   }
 }
 
@@ -433,14 +439,26 @@ const disabledDate = (d: Date) => d.getFullYear() < 1960
 
 // 进行注册前的预处理动作
 const preRegistry = () => {
-  form.addr = [
+  if (!useAutoLogin.value) {
+    //   未开启免登录，将免登录时间改为0
+    form.saveTime = 0
+  }
+  let addresses = [
     `${canscaderGet.province}/${canscaderSet.province}`,
     `${canscaderGet.city}/${canscaderSet.city}`,
     `${canscaderGet.district}/${canscaderSet.district}`,
     `${canscaderGet.street}/${canscaderSet.street}`
-  ]
-    .filter((i) => i.length > 1)
-    .join('-')
+  ].filter((i) => i.length > 1)
+  if (addresses.length) {
+    form.addr = [
+      `${canscaderGet.province}/${canscaderSet.province}`,
+      `${canscaderGet.city}/${canscaderSet.city}`,
+      `${canscaderGet.district}/${canscaderSet.district}`,
+      `${canscaderGet.street}/${canscaderSet.street}`
+    ]
+      .filter((i) => i.length > 1)
+      .join('-')
+  }
   !form.qq && (form.qq = ' ')
   !form.wechat && (form.wechat = ' ')
   !form.mail && (form.mail = ' ')
@@ -452,8 +470,15 @@ const preRegistry = () => {
   form.lastLoginDate = new Date().getTime()
 }
 
+// 开启或关闭所有加载动画
+const startOrStopAllLoading = (bool: boolean) => {
+  screenLoading.value = bool
+  btnLoading.value = bool
+}
+
 // 抽屉关闭之前的回调
 const drawerClose = async (done: (cancel?: boolean) => void) => {
+  startOrStopAllLoading(true) // 开启loading动画
   const formValidate = await drawFormRef.value?.validate().catch((err: Error) => err)
   if (typeof formValidate === 'object') {
     //   表单校验未通过
@@ -463,6 +488,7 @@ const drawerClose = async (done: (cancel?: boolean) => void) => {
       duration: 3000
     })
     done(true) // 终止关闭
+    startOrStopAllLoading(false)
     return
   }
   // 表单验证通过，进行注册操作
@@ -470,21 +496,15 @@ const drawerClose = async (done: (cancel?: boolean) => void) => {
   if (typeof isValidate !== 'object') {
     //   表单验证成功
     preRegistry()
-    const res = await registry(form)
+    await registry(form)
     if (isLogin.value) {
       done(true)
       app?.$message({
         type: 'success',
-        message: `注册成功！即将跳转到首页...`,
+        message: `注册成功！正在跳转到首页...`,
         duration: 2000
       })
       await router.push('/')
-    } else {
-      app?.$message({
-        type: 'error',
-        message: `很遗憾，注册失败！${res.msg ?? ''}`,
-        duration: 3000
-      })
     }
   } else {
     app?.$message({
@@ -493,34 +513,34 @@ const drawerClose = async (done: (cancel?: boolean) => void) => {
       duration: 3000
     })
   }
+  startOrStopAllLoading(false)
 }
 
 const onSubmit = async () => {
   // 进行基本表单校验
+  startOrStopAllLoading(true)
   await validateFormFields(
     async () => {
-      const res = await registry(form)
+      preRegistry()
+      await registry(form)
       if (isLogin.value) {
         app?.$message({
           type: 'success',
-          message: `注册成功！即将跳转到首页...`,
+          message: `注册成功！正在跳转到首页...`,
           duration: 2000
         })
         await router.push('/')
-      } else {
-        app?.$message({
-          type: 'error',
-          message: `很遗憾，注册失败！${res.msg ?? ''}`,
-          duration: 3000
-        })
       }
+      startOrStopAllLoading(false)
     },
-    () =>
+    () => {
       app?.$message({
         type: 'error',
         message: `请完善必填项内容`,
         duration: 3000
       })
+      startOrStopAllLoading(false)
+    }
   )
 }
 
@@ -601,6 +621,9 @@ onBeforeMount(async () => {
       label-width="80"
       label-position="left"
       status-icon
+      v-loading.fullscreen="screenLoading"
+      element-loading-text="正在注册中，请稍后......"
+      element-loading-background="rgb(39 82 92 / 54%)"
     >
       <el-form-item :prop="ValidateRegistryEnum.Type" :required="true" label="角色">
         <el-select v-model="form.type" placeholder="请选择您的角色">
@@ -704,7 +727,9 @@ onBeforeMount(async () => {
       </el-form-item>
 
       <el-form-item>
-        <el-button class="btnCenter" @click="onSubmit">注册</el-button>
+        <el-button class="btnCenter" @click="onSubmit" :loading-icon="Star" :loading="btnLoading"
+          >注册</el-button
+        >
       </el-form-item>
 
       <el-link class="changeFormBtn" @click="changeType">

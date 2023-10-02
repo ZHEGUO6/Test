@@ -60,13 +60,13 @@ export enum ValidateRegistryEnum {
 
 // 本地存储空间 key
 export enum LocalStorageItemName {
-  User = 'user' //  当前的用户信息
+  User = 'user', //  当前的用户信息
+  LoginAndRegistryPageType = 'loginAndRegistryPageType' // 当前为登录表单还是注册表单 registry / login
 }
 
 // 会话存储空间 key
 export enum SessionStorageItemName {
   GdWebApiDistrict = 'GD-WEB-API-District', // 高德地图api行政区域查询
-  LoginAndRegistryPageType = 'loginAndRegistryPageType', // 当前为登录表单还是注册表单 registry / login
   RegistryCaptchaValidateTime = 'registryCaptchaValidateTime', // 登录表单验证码验证剩余时间
   LoginCaptchaValidateTime = 'loginCaptchaValidateTime', // 登录表单验证码验证剩余时间
   RegistryCaptcha = 'registryCaptcha', // 注册表单验证码

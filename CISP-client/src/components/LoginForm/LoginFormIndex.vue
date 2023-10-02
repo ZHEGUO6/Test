@@ -116,16 +116,9 @@ const _login = async () => {
   screenLoading.value = true
   btnLoading.value = true
   // 进行密码验证
-  const res = await validate({ nickname: form.nickname, loginPwd: form.loginPwd }).catch(
-    (err: Error) => {
-      app?.$message({
-        type: 'error',
-        message: `服务器响应出错，${err.message}`,
-        duration: 3000
-      } as MessageOptions)
-      return { code: 500 }
-    }
-  )
+  const res = await validate({ nickname: form.nickname, loginPwd: form.loginPwd }).catch(() => ({
+    code: 500
+  }))
   if (res.code !== 200 && res.code !== 500) {
     app?.$message({
       type: 'error',
@@ -150,17 +143,13 @@ const _login = async () => {
   if (isLogin.value) {
     app?.$message({
       type: 'success',
-      message: '恭喜您，登录成功'
+      message: '恭喜您，登录成功，正在跳转首页...',
+      duration: 1500
     } as MessageOptions)
     closeAllLoading()
     await router.push('/')
     return
   }
-  app?.$message({
-    type: 'error',
-    message: '登录失败',
-    duration: 3000
-  } as MessageOptions)
   closeAllLoading()
 }
 

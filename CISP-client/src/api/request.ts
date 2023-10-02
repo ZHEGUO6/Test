@@ -21,40 +21,22 @@ const requestWrapper: (
   url: RequestUrl,
   options?: object
 ) => Promise<API.ServerResponse> = async (method, url, options) => {
-  return await request[method](url, options).then(
-    (res) => {
-      ElMessage.success({
-        message: `操作成功 ${res.msg}`,
-        duration: 2000,
-        showClose: true
-      })
-      return res
-    },
-    (err) => {
-      if (err.response) {
-        ElMessage.error({
-          message: `操作失败 ${
-            (err.response.data?.message &&
-              (typeof err.response.data.message === 'object'
-                ? JSON.stringify(err.response.data.message)
-                : err.response.data.message)) ||
-            typeof err.response.data === 'object'
-              ? JSON.stringify(err.response.data)
-              : err.response.data
-          }`,
-          duration: 4000,
-          showClose: true
-        })
-        return err.response.data
-      }
+  return await request[method](url, options).catch((err) => {
+    if (err.response) {
       ElMessage.error({
-        message: `操作失败 ${err.message}`,
+        message: `操作失败 ${err.response.data?.msg ?? err.response.data?.info ?? ''}`,
         duration: 4000,
         showClose: true
       })
-      return { code: err.code, msg: err.message, data: null }
+      return err.response.data
     }
-  )
+    ElMessage.error({
+      message: `操作失败 ${err.message ?? ''}`,
+      duration: 4000,
+      showClose: true
+    })
+    return { code: err.code, msg: err.message, data: null }
+  })
 }
 
 export default requestWrapper

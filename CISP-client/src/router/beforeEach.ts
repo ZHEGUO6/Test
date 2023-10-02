@@ -3,7 +3,7 @@ import { whoAmI } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
-const vailDateLogin = async () => {
+const validateLogin = async () => {
   const userStore = useUserStore()
   return (
     userStore.isLogin ||
@@ -15,7 +15,7 @@ const vailDateLogin = async () => {
         }
         return false
       },
-      (err) => false
+      () => false
     ))
   )
 }
@@ -28,22 +28,20 @@ export default async (
   if (to.name === 'login') {
     // // 判断是否已经登录
     // // 如果已经登录，就直接跳转到首页
-    if (await vailDateLogin()) {
+    if (await validateLogin()) {
       next('/')
       ElMessage.success('您已登陆，请勿重复登录')
-      console.log(111)
       return
     }
     next()
     return
   }
   if (to.path !== '/' && to.meta.auth) {
-    if (await vailDateLogin()) {
+    if (await validateLogin()) {
       next()
       return
     }
     next({ name: 'login' })
-    ElMessage.warning('登录已过期，请您重新登录')
     return
   }
   next()
