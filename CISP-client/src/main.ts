@@ -1,5 +1,5 @@
 import './styles/base.css'
-import './styles/scoped.module.css'
+import './styles/minix.less'
 import './styles/global.less'
 import App from './App.vue'
 import router from './router'

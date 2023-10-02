@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { onBeforeMount, reactive, ref, getCurrentInstance } from 'vue'
+import { onBeforeMount, reactive, ref, getCurrentInstance, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getCaptcha, validateCaptcha } from '@/api/captcha'
 import { validate } from '@/api/user'
-import CountDown from '@/components/CounDown.vue'
-import { ValidateLoginEnum } from '@/types/enum'
+import { SessionStorageItemName, ValidateLoginEnum } from '@/types/enum'
 import { FormInstance, FormRules } from 'element-plus'
 import { MessageOptions } from 'element-plus/lib/components'
 import { Sunny } from '@element-plus/icons-vue'
+import { formValidators } from '@/utils/validate'
+import GetCaptchaIndex from '@/components/GetCaptcha/GetCaptchaIndex.vue'
 
-const { changeType } = defineProps<{ changeType: () => void }>()
+const props = defineProps<{ changeType: () => void }>()
+const { changeType } = toRefs(props)
 
 /**
  * data定义
@@ -29,7 +31,6 @@ const { isLogin } = storeToRefs(useUserStore())
 const screenLoading = ref<boolean>(false) // 是否整个页面设置loading
 const btnLoading = ref<boolean>(false) // 是否登录按钮loading
 const app = getCurrentInstance()?.appContext.config.globalProperties
-const countDownTime = ref<number>(0)
 const captcha = ref<HTMLElement>()
 const selectOptions = [
   {
@@ -52,11 +53,6 @@ const selectOptions = [
 
 const useAutoLogin = ref<boolean>(false) // 是否启用免登录
 const formRef = ref<FormInstance>()
-
-// 校验器
-const formValidators = {
-  password: /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*.-])[a-zA-Z\d!#@*&.-]{8,32}/
-}
 
 const rules = reactive<FormRules<typeof form>>({
   nickname: [
@@ -182,47 +178,22 @@ const onSubmit = async () => {
   }
 }
 
-// 计时器组件时间改变回调
-const onCountDownChange = (time: number) => {
-  countDownTime.value = time
-}
-
-// 重置验证码验证剩余时间
-const resetCountDownTime = () => {
-  const val = Date.now() + 1000 * 120
-  localStorage.setItem('loginCaptchaValidateTime', `${val}`)
-  countDownTime.value = Math.floor((val - Date.now()) / 1000)
-}
-
 // 获取验证码
 const getCaptchaAsync = async () => {
   const val = await getCaptcha()
   captcha.value = val as unknown as HTMLElement
-  localStorage.setItem('loginCaptcha', val as unknown as string)
+  sessionStorage.setItem('loginCaptcha', val as unknown as string)
 }
 
 // 按钮更换验证码
 const btnGetCaptcha = async () => {
-  resetCountDownTime()
   await getCaptchaAsync()
   form.captcha = ''
 }
 
 onBeforeMount(async () => {
-  const captchaData = localStorage.getItem('loginCaptcha')
+  const captchaData = sessionStorage.getItem(SessionStorageItemName.LoginCaptcha)
   captchaData ? (captcha.value = captchaData as unknown as HTMLElement) : await getCaptchaAsync()
-  if (localStorage.getItem('loginCaptchaValidateTime')) {
-    let val = +(localStorage.getItem('loginCaptchaValidateTime') as string) - Date.now()
-    if (val < 0) {
-      val = 0
-    } else {
-      val = Math.floor(val / 1000)
-    }
-    countDownTime.value = val
-  } else {
-    // 第一次加载
-    resetCountDownTime()
-  }
 })
 </script>
 
@@ -284,15 +255,11 @@ onBeforeMount(async () => {
       </el-col>
       <el-col :span="1"></el-col>
       <el-col :span="9">
-        <div>
-          <el-button type="info" v-if="countDownTime" :disabled="true">
-            <count-down :time="countDownTime" :on-change="onCountDownChange" />
-            <el-text>&nbsp;秒后重新获取验证码</el-text>
-          </el-button>
-          <el-button type="primary" @click="btnGetCaptcha" v-else>
-            <el-text>重新获取验证码</el-text>
-          </el-button>
-        </div>
+        <get-captcha-index
+          :on-change="btnGetCaptcha"
+          :storage="false"
+          :storage-item-name="SessionStorageItemName.LoginCaptchaValidateTime"
+        />
       </el-col>
     </el-form-item>
 
@@ -320,15 +287,30 @@ onBeforeMount(async () => {
       </el-row>
     </el-form-item>
     <el-form-item>
-      <el-button class="btnCenter" @click="onSubmit" :loading-icon="Sunny" :loading="btnLoading"
-        >登录</el-button
-      >
+      <el-col>
+        <el-button class="btnCenter" @click="onSubmit" :loading-icon="Sunny" :loading="btnLoading"
+          >登录</el-button
+        >
+      </el-col>
     </el-form-item>
+    <el-col>
+      <el-link
+        type="info"
+        class="forgetPwd"
+        :underline="false"
+        @click="() => router.push({ name: 'forgetPwd' })"
+        >忘记密码？点此查找密码</el-link
+      >
+    </el-col>
     <el-link class="changeFormBtn" @click="changeType">
       <el-text class="txt">注册</el-text>
     </el-link>
   </el-form>
 </template>
 <style scoped lang="less">
-@import url('../../styles/minix');
+.forgetPwd {
+  margin-left: calc(50% - 77px);
+  --el-color-info: #4a5467;
+  font-size: 12px;
+}
 </style>

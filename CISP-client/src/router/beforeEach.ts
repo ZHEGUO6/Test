@@ -30,7 +30,11 @@ export default async (
     // // 如果已经登录，就直接跳转到首页
     if (await validateLogin()) {
       next('/')
-      ElMessage.success('您已登陆，请勿重复登录')
+      ElMessage.success({
+        message: '您已登陆，请勿重复登录',
+        duration: 1500,
+        showClose: true
+      })
       return
     }
     next()

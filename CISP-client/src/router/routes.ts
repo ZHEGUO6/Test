@@ -80,6 +80,15 @@ const routes: readonly RouteRecord[] = [
       layout: false,
       hideInMenu: true
     }
+  },
+  {
+    path: '/forgetPwd',
+    name: 'forgetPwd',
+    component: () => import('@/views/forgetPwd.vue'),
+    meta: {
+      layout: false,
+      hideInMenu: true
+    }
   }
 ]
 

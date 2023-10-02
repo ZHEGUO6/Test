@@ -20,6 +20,7 @@ const type = ref<LoginOrRegistry>(
 
 // 切换表单类型
 const changeType = () => {
+  delete history.state.type // 如果不删除，刷新页面会存在问题
   type.value === 'login' ? (type.value = 'registry') : (type.value = 'login')
   localStorage.setItem(LocalStorageItemName.LoginAndRegistryPageType, type.value)
 }

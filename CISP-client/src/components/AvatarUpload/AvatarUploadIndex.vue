@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { getCurrentInstance } from 'vue'
-import { UploadProps, UploadUserFile } from 'element-plus'
+import { UploadProps, UploadRawFile, UploadUserFile } from 'element-plus'
 import { RequestUrl } from '@/types/enum'
 
 const props = defineProps<{
@@ -40,6 +40,12 @@ const uploadError = (error: Error) => {
 const uploadSuccess = (response: API.ServerResponse) => {
   props.onSuccess && props.onSuccess(response)
 }
+
+// 文件上传之前调用
+const beforeUpload = (rawFile: UploadRawFile) => {
+  const splitTypes = rawFile.type.split('/')
+  return !splitTypes.filter((i) => i !== 'image' && !/(jpg|png|webp|bmp|gif|svg)/.test(i)).length
+}
 </script>
 
 <template>
@@ -51,6 +57,8 @@ const uploadSuccess = (response: API.ServerResponse) => {
     :on-success="uploadSuccess"
     :on-error="uploadError"
     :show-file-list="false"
+    :before-upload="beforeUpload"
+    accept=".jpg,.png,.webp,.bmp,.gif,.svg"
   >
     <slot name="default">
       <el-avatar :src="props.src"></el-avatar>

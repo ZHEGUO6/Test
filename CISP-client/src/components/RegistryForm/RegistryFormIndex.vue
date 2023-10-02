@@ -1,22 +1,24 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
-import { getCurrentInstance, onBeforeMount, reactive, ref } from 'vue'
+import { getCurrentInstance, onBeforeMount, reactive, ref, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getCaptcha, validateCaptcha } from '@/api/captcha'
-import CountDown from '@/components/CounDown.vue'
 import { SessionStorageItemName, ValidateRegistryEnum } from '@/types/enum'
 import { FormInstance, FormItemRule, FormRules } from 'element-plus'
 import { MessageOptions } from 'element-plus/lib/components'
 import { getAllInitialAvatar } from '@/api/image'
 import AvatarUploadIndex from '@/components/AvatarUpload/AvatarUploadIndex.vue'
-import { get as _get, last as _last } from 'lodash'
-import { getDistrict } from '@/api/three-party'
-import { GD_WEB_API_DISTRICT } from '@/types/thirty-party'
+import { get as _get } from 'lodash'
 import { v4 as uuid } from 'uuid'
 import { Star } from '@element-plus/icons-vue'
+import { formValidators } from '@/utils/validate'
+import GetCaptchaIndex from '@/components/GetCaptcha/GetCaptchaIndex.vue'
+import DistrictCascadeIndex from '@/components/DistrictCascader/DistrictCascadeIndex.vue'
 
-const { changeType } = defineProps<{ changeType: () => void }>()
+const props = defineProps<{ changeType: () => void }>()
+
+const { changeType } = toRefs(props)
 
 /**
  * data定义
@@ -41,7 +43,7 @@ const form = reactive<API.User.Add & { captcha: string; saveTime: number; confir
 }) // 注册表单数据
 
 // 设置四级联动选择框内容
-const canscaderSet = reactive({
+const cascadeSet = reactive({
   province: '', // 选择的省份
   city: '', // 选择的城市
   district: '', // 选择的区县/街道
@@ -49,34 +51,17 @@ const canscaderSet = reactive({
 })
 
 // 获取四级联动选择框内容
-const canscaderGet = reactive({
+const cascadeGet = reactive({
   province: '', // 选择的省份
   city: '', // 选择的城市
   district: '', // 选择的区县/街道
   street: ''
 })
 
-// 地址级联选择器的选项
-const canscaderOptions = reactive({
-  province: [],
-  city: [],
-  district: [],
-  street: []
-})
-
-// 是否正在加载省市级区数据
-const fetchDistricts = reactive({
-  province: false,
-  city: false,
-  district: false,
-  street: false
-})
-
 const router = useRouter()
 const { registry } = useUserStore()
 const { isLogin } = storeToRefs(useUserStore())
 const app = getCurrentInstance()?.appContext.config.globalProperties
-const countDownTime = ref<number>(0) // 重新获取验证码的倒计时时间
 const captcha = ref<HTMLElement>() // 验证码
 
 // 选择免登录时间
@@ -124,7 +109,7 @@ const formRef = ref<FormInstance>()
 const drawFormRef = ref<FormInstance>() // 抽屉注册表单ref
 
 // 用于简单的校验器
-const simpleValidatorFunc = (result: (value: any) => boolean, message) => {
+const simpleValidatorFunc = (result: (value: any) => boolean, message: string) => {
   return (rule: FormItemRule, value: string, callback: (error?: string | Error) => void) => {
     if (result(value)) {
       callback()
@@ -132,17 +117,6 @@ const simpleValidatorFunc = (result: (value: any) => boolean, message) => {
       callback(message)
     }
   }
-}
-
-// 校验器
-const formValidators = {
-  qq: /^(\d{5,11}|'')$/,
-  wechat: /^([a-zA-Z][\w-]{5,19}|'')$/,
-  password: /^(?=.*?[a-zA-Z])(?=.*?[0-9])(?=.*?[~!@#$%^&*.-])[a-zA-Z\d!#@*&.-]{8,32}/,
-  addr: /^([0-9]+-){1,2}[0-9]+$/,
-  phone: /^(1[3-9][0-9]{9}|'')$/,
-  url: /(http|https):\/\/\w+((:\d{2,})|(.\w+)+)(\/[\w_]+)*(\/[\w_.]+\.(jpg|png|webp|bmp|gif|svg))/,
-  mail: /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)+$/
 }
 
 const rules = ref<FormRules<typeof form>>({
@@ -175,22 +149,22 @@ const rules = ref<FormRules<typeof form>>({
   ],
   captcha: [
     { required: true, message: '请填写验证码' },
-    { len: 6, message: '请正确输入验证码' },
-    {
-      validator: (_, value, callback) => {
-        validateCaptcha({ captcha: value }).then(
-          (res: API.ServerResponse) => {
-            if (res.code !== 200) {
-              callback(res.msg)
-            }
-            callback()
-          },
-          (err: Error) => {
-            callback(err.message)
-          }
-        )
-      }
-    }
+    { len: 6, message: '请正确输入验证码' }
+    // {
+    //   validator: (_, value, callback) => {
+    //     validateCaptcha({ captcha: value }).then(
+    //       (res: API.ServerResponse) => {
+    //         if (res.code !== 200) {
+    //           callback(res.msg)
+    //         }
+    //         callback()
+    //       },
+    //       (err: Error) => {
+    //         callback(err.message)
+    //       }
+    //     )
+    //   }
+    // }
   ],
   mail: [
     {
@@ -265,100 +239,6 @@ const initialAvatarClick = (e: any) => {
   src && (form.avatar = src)
 }
 
-const totalDistricts = ref<GD_WEB_API_DISTRICT>([]) // 全部的省市区县数据
-
-/**
- * 解析省市级列表，获取需要的值，生成多级联动
- * @param districts 省市级数据
- * @param beginVal 开始的值
- * @param keys 需要设置的key country city district street
- * @param callBack 完成解析后的回调
- */
-const parseDistrictToArraySingle = (
-  districts: GD_WEB_API_DISTRICT[] | undefined,
-  beginVal: string | undefined,
-  keys: string[],
-  callBack: (item: GD_WEB_API_DISTRICT | undefined, districts: GD_WEB_API_DISTRICT[]) => void
-) => {
-  if (!districts || !beginVal || !districts?.length) {
-    return
-  }
-  let findItem = districts.find((i) => i.adcode === beginVal)
-  if (findItem) {
-    const reduce = keys.reduce(
-      ({ districts, values }, cur, currentIndex) => {
-        const obj = {
-          districts: [...districts],
-          values: [...values]
-        }
-        if (cur !== 'street') {
-          // 计算下一个选择框的值
-          try {
-            obj.values.push(_last(districts)[0].districts[0])
-          } finally {
-            obj.districts.push(_last(districts)[0].districts)
-          }
-        }
-        if (currentIndex === 0) {
-          obj.districts.shift()
-        }
-        return obj
-      },
-      { districts: [[findItem]], values: [] }
-    )
-    reduce.values.forEach((i, ind) => callBack(i, reduce.districts[ind]))
-  } else {
-    //   该层没有需要的数据跳过
-    parseDistrictToArraySingle(
-      districts.find((i) => i.adcode.startsWith(beginVal.slice(0, 2)))?.districts,
-      beginVal,
-      keys,
-      callBack
-    )
-  }
-}
-
-/**
- * 解析省市级列表，获取需要的值
- */
-const parseDistrictToTotalArray = (
-  districts: GD_WEB_API_DISTRICT[] | undefined,
-  beginVal: string | undefined,
-  key: string,
-  callBack: (list: GD_WEB_API_DISTRICT[]) => void
-) => {
-  if (!districts || !beginVal || !districts?.length) {
-    return
-  }
-  let findItem = districts.find((i) => i.adcode === beginVal)
-  if (findItem) {
-    callBack(findItem.districts)
-  } else {
-    //   该层没有需要的数据跳过
-    parseDistrictToTotalArray(
-      districts.find((i) => i.adcode.startsWith(beginVal.slice(0, 2)))?.districts,
-      beginVal,
-      key,
-      callBack
-    )
-  }
-}
-
-// 远程获取选择器数据
-const remote = async () => {
-  const districtStr = sessionStorage.getItem(SessionStorageItemName.GdWebApiDistrict)
-  if (districtStr) {
-    totalDistricts.value = JSON.parse(districtStr) as GD_WEB_API_DISTRICT
-  } else {
-    let res = await getDistrict()
-    if (res.status === 1) {
-      const districts = res.districts
-      totalDistricts.value = districts
-      sessionStorage.setItem(SessionStorageItemName.GdWebApiDistrict, JSON.stringify(districts))
-    }
-  }
-}
-
 // 进行基础表单的验证
 const validateFormFields = async (
   onSuccess: () => void,
@@ -375,65 +255,6 @@ const validateFormFields = async (
   onSuccess()
 }
 
-// 行政区选择器文本输入事件
-const onDistrictInp = (prevValue: string, curLevel: string) => {
-  return async (val: string) => {
-    // 没有数据，获取全部数据
-    // 正在获取数据
-    fetchDistricts[curLevel] = true
-    if (!canscaderOptions[curLevel].length) {
-      parseDistrictToTotalArray(totalDistricts.value, prevValue, curLevel, (list) => {
-        canscaderOptions[curLevel] = list
-      })
-    }
-    if (val) {
-      // 当前的搜索有值，筛选已经存在的结果
-      canscaderOptions[curLevel] = canscaderOptions[curLevel].filter((i) => i.name.includes(val))
-    }
-    // 数据获取完毕
-    fetchDistricts[curLevel] = false
-  }
-}
-
-// 行政区选择器选中值改变事件
-const onDistrictSelectChange = async (value: string, curLevel: string, nextLevels: string[]) => {
-  // 先清空之前的数据
-  nextLevels.forEach((i) => {
-    canscaderSet[i] = canscaderGet[i] = ''
-    canscaderOptions[i] = []
-  })
-  const curAdcode = canscaderOptions[curLevel].find((i) => i.center === value)?.adcode
-  canscaderGet[curLevel] = curAdcode
-  parseDistrictToArraySingle(
-    canscaderOptions[curLevel],
-    curAdcode,
-    nextLevels,
-    (item, districts) => {
-      canscaderOptions[item.level] = districts
-      canscaderSet[item.level] = item.center
-      canscaderGet[item.level] = item.adcode
-    }
-  )
-}
-
-// 行政区选择器下拉框出现/隐藏时触发的事件
-const onDistrictSelectVisableChange = async (
-  preValue: string,
-  value: boolean,
-  curLevel: string
-) => {
-  if (value && !canscaderOptions[curLevel].length) {
-    // 下拉框显示，并且没有数据，获取数据
-    // 开始加载数据
-    fetchDistricts[curLevel] = true
-    parseDistrictToTotalArray(totalDistricts.value, preValue, curLevel, (list) => {
-      canscaderOptions[curLevel] = list
-      // 数据加载完毕
-      fetchDistricts[curLevel] = false
-    })
-  }
-}
-
 // 日期选择框判断该日期是否被禁用
 const disabledDate = (d: Date) => d.getFullYear() < 1960
 
@@ -444,25 +265,25 @@ const preRegistry = () => {
     form.saveTime = 0
   }
   let addresses = [
-    `${canscaderGet.province}/${canscaderSet.province}`,
-    `${canscaderGet.city}/${canscaderSet.city}`,
-    `${canscaderGet.district}/${canscaderSet.district}`,
-    `${canscaderGet.street}/${canscaderSet.street}`
+    `${cascadeGet.province}/${cascadeSet.province}`,
+    `${cascadeGet.city}/${cascadeSet.city}`,
+    `${cascadeGet.district}/${cascadeSet.district}`,
+    `${cascadeGet.street}/${cascadeSet.street}`
   ].filter((i) => i.length > 1)
   if (addresses.length) {
     form.addr = [
-      `${canscaderGet.province}/${canscaderSet.province}`,
-      `${canscaderGet.city}/${canscaderSet.city}`,
-      `${canscaderGet.district}/${canscaderSet.district}`,
-      `${canscaderGet.street}/${canscaderSet.street}`
+      `${cascadeGet.province}/${cascadeSet.province}`,
+      `${cascadeGet.city}/${cascadeSet.city}`,
+      `${cascadeGet.district}/${cascadeSet.district}`,
+      `${cascadeGet.street}/${cascadeSet.street}`
     ]
       .filter((i) => i.length > 1)
       .join('-')
   }
-  !form.qq && (form.qq = ' ')
-  !form.wechat && (form.wechat = ' ')
-  !form.mail && (form.mail = ' ')
-  !form.phone && (form.phone = ' ')
+  !form.qq && (form.qq = null)
+  !form.wechat && (form.wechat = null)
+  !form.mail && (form.mail = null)
+  !form.phone && (form.phone = null)
   if (typeof form.birthDay !== 'number') {
     // 当前为日期对象
     form.birthDay = form.birthDay.getTime()
@@ -544,18 +365,6 @@ const onSubmit = async () => {
   )
 }
 
-// 计时器组件时间改变回调
-const onCountDownChange = (time: number) => {
-  countDownTime.value = time
-}
-
-// 重置验证码验证剩余时间
-const resetCountDownTime = () => {
-  const val = Date.now() + 1000 * 120
-  sessionStorage.setItem(SessionStorageItemName.RegistryCaptchaValidateTime, `${val}`)
-  countDownTime.value = Math.floor((val - Date.now()) / 1000)
-}
-
 // 初始化系统自带头像
 const setInitialAvatars = async () => {
   const links = await getAllInitialAvatar().then((res: API.ServerResponse) => res.data?.datas)
@@ -579,13 +388,11 @@ const getCaptchaAsync = async () => {
 
 // 按钮更换验证码
 const btnGetCaptcha = async () => {
-  resetCountDownTime()
   await getCaptchaAsync()
   form.captcha = ''
 }
 
 onBeforeMount(async () => {
-  remote().then(() => console.log('获取省市级区列表数据成功'))
   const captchaData = sessionStorage.getItem(SessionStorageItemName.RegistryCaptcha)
   captchaData ? (captcha.value = captchaData as unknown as HTMLElement) : await getCaptchaAsync()
   if (sessionStorage.getItem(SessionStorageItemName.InitialAvatarLinks)) {
@@ -593,20 +400,6 @@ onBeforeMount(async () => {
   } else {
     // 首次加载注册表单
     await setInitialAvatars()
-  }
-  if (sessionStorage.getItem(SessionStorageItemName.RegistryCaptchaValidateTime)) {
-    let val =
-      +(sessionStorage.getItem(SessionStorageItemName.RegistryCaptchaValidateTime) as string) -
-      Date.now()
-    if (val < 0) {
-      val = 0
-    } else {
-      val = Math.floor(val / 1000)
-    }
-    countDownTime.value = val
-  } else {
-    // 第一次加载
-    resetCountDownTime()
   }
 })
 </script>
@@ -637,7 +430,13 @@ onBeforeMount(async () => {
       </el-form-item>
 
       <el-form-item :prop="ValidateRegistryEnum.NickName" :required="true" label="昵称">
-        <el-input v-model="form.nickname" :clearable="true" placeholder="请填写昵称" />
+        <el-input
+          v-model="form.nickname"
+          :clearable="true"
+          placeholder="请填写昵称"
+          autocomplete="on"
+          autofocus
+        />
       </el-form-item>
 
       <el-form-item :prop="ValidateRegistryEnum.LoginPwd" :required="true" label="密码">
@@ -680,13 +479,11 @@ onBeforeMount(async () => {
 
         <el-col :span="9">
           <div>
-            <el-button v-if="countDownTime" :disabled="true" type="info">
-              <count-down :on-change="onCountDownChange" :time="countDownTime" />
-              <el-text>&nbsp;秒后重新获取验证码</el-text>
-            </el-button>
-            <el-button v-else type="primary" @click="btnGetCaptcha">
-              <el-text>请重新获取验证码</el-text>
-            </el-button>
+            <get-captcha-index
+              :storage="false"
+              :storage-item-name="SessionStorageItemName.RegistryCaptchaValidateTime"
+              :on-change="btnGetCaptcha"
+            />
           </div>
         </el-col>
       </el-form-item>
@@ -727,9 +524,11 @@ onBeforeMount(async () => {
       </el-form-item>
 
       <el-form-item>
-        <el-button class="btnCenter" @click="onSubmit" :loading-icon="Star" :loading="btnLoading"
-          >注册</el-button
-        >
+        <el-col>
+          <el-button class="btnCenter" @click="onSubmit" :loading-icon="Star" :loading="btnLoading"
+            >注册</el-button
+          >
+        </el-col>
       </el-form-item>
 
       <el-link class="changeFormBtn" @click="changeType">
@@ -762,7 +561,12 @@ onBeforeMount(async () => {
 
             <el-col :span="20">
               <ul class="initialAvatarContainer" @click="initialAvatarClick">
-                <el-avatar v-for="item in initialAvatars" :src="item" class="hvr-shrink" />
+                <el-avatar
+                  v-for="item in initialAvatars"
+                  :src="item"
+                  class="hvr-shrink"
+                  :key="item"
+                />
               </ul>
             </el-col>
 
@@ -781,143 +585,53 @@ onBeforeMount(async () => {
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.Mail" label="邮箱">
-          <el-input v-model="form.mail" :clearable="true" placeholder="请填写邮箱" />
+          <el-input
+            v-model="form.mail"
+            :clearable="true"
+            placeholder="请填写邮箱"
+            autofocus
+            autocomplete="on"
+          />
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.QQ" label="QQ号">
-          <el-input v-model="form.qq" :clearable="true" placeholder="请填写QQ号" />
+          <el-input
+            v-model="form.qq"
+            :clearable="true"
+            placeholder="请填写QQ号"
+            autocomplete="on"
+          />
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.Wechat" label="微信号">
-          <el-input v-model="form.wechat" :clearable="true" placeholder="请填写微信号" />
+          <el-input
+            v-model="form.wechat"
+            :clearable="true"
+            placeholder="请填写微信号"
+            autocomplete="on"
+          />
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.Intro" label="个人介绍">
-          <el-input v-model="form.intro" :clearable="true" placeholder="请填写个人介绍" />
+          <el-input
+            v-model="form.intro"
+            :clearable="true"
+            placeholder="请填写个人介绍"
+            autocomplete="on"
+          />
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.Address" label="地址">
-          <el-row class="flexFullBasis">
-            <el-col>
-              <el-row justify="space-evenly">
-                <el-text>省份</el-text>
-                <el-select
-                  v-model="canscaderSet.province"
-                  :remote="true"
-                  :filterable="true"
-                  @visible-change="(value:boolean) =>onDistrictSelectVisableChange( '100000',value,'province')"
-                  :remote-method="onDistrictInp('100000', 'province')"
-                  @change="(value:string) => onDistrictSelectChange(value, 'province', ['city','district','street'])"
-                  :clearable="true"
-                  placeholder="请选择省份"
-                  :loading="fetchDistricts.province"
-                  loading-text="正在加载省份数据，请稍后······"
-                >
-                  <el-option
-                    v-for="item in canscaderOptions.province"
-                    :key="item.name"
-                    :label="item.name"
-                    :value="item.center"
-                  />
-                </el-select>
-              </el-row>
-            </el-col>
-
-            <el-divider class="mg-10"></el-divider>
-
-            <el-col>
-              <el-row justify="space-evenly">
-                <el-text>城市</el-text>
-                <el-select
-                  v-model="canscaderSet.city"
-                  :disabled="!canscaderSet.province"
-                  :remote="true"
-                  :filterable="true"
-                  @visible-change="(value:boolean) =>onDistrictSelectVisableChange(canscaderGet.province, value,'city')"
-                  :remote-method="onDistrictInp(canscaderGet.province, 'city')"
-                  @change="(value:string) => onDistrictSelectChange(value, 'city', ['district','street'])"
-                  :clearable="true"
-                  placeholder="请选择城市"
-                  :loading="fetchDistricts.city"
-                  loading-text="正在加载城市数据，请稍后······"
-                >
-                  <el-option
-                    v-for="item in canscaderOptions.city"
-                    :key="item.name"
-                    :label="item.name"
-                    :value="item.center"
-                  />
-                </el-select>
-              </el-row>
-            </el-col>
-
-            <el-divider class="mg-10"></el-divider>
-
-            <el-col>
-              <el-row justify="space-evenly">
-                <el-text>区县</el-text>
-                <el-select
-                  v-model="canscaderSet.district"
-                  :disabled="!canscaderOptions.district.length && !canscaderSet.district"
-                  :remote="true"
-                  :filterable="true"
-                  @visible-change="(value:boolean) =>onDistrictSelectVisableChange(canscaderGet.city,value,'district')"
-                  :remote-method="onDistrictInp(canscaderGet.city, 'district')"
-                  @change="(value:string) => onDistrictSelectChange(value, 'district', ['street'])"
-                  :clearable="true"
-                  :placeholder="
-                    !canscaderOptions.district.length && !canscaderSet.district
-                      ? '当前区域没有区县这一分类'
-                      : '请选择区县'
-                  "
-                  :loading="fetchDistricts.district"
-                  loading-text="正在加载区县数据，请稍后······"
-                >
-                  <el-option
-                    v-for="item in canscaderOptions.district"
-                    :key="item.name"
-                    :label="item.name"
-                    :value="item.center"
-                  />
-                </el-select>
-              </el-row>
-            </el-col>
-
-            <el-divider class="mg-10"></el-divider>
-
-            <el-col>
-              <el-row justify="space-evenly">
-                <el-text>街道</el-text>
-                <el-select
-                  v-model="canscaderSet.street"
-                  :disabled="!canscaderOptions.street.length && !canscaderSet.street"
-                  :remote="true"
-                  :filterable="true"
-                  @visible-change="(value:boolean) =>onDistrictSelectVisableChange(canscaderGet.district,value,'street')"
-                  :remote-method="onDistrictInp(canscaderGet.district, 'street')"
-                  :clearable="true"
-                  :placeholder="
-                    !canscaderOptions.street.length && !canscaderSet.street
-                      ? '当前区域没有街道这一分类'
-                      : '请选择街道'
-                  "
-                  :loading="fetchDistricts.street"
-                  loading-text="正在加载街道数据，请稍后······"
-                >
-                  <el-option
-                    v-for="item in canscaderOptions.street"
-                    :key="item.name"
-                    :label="item.name"
-                    :value="item.center"
-                  />
-                </el-select>
-              </el-row>
-            </el-col>
-          </el-row>
+          <district-cascade-index :cascade-set="cascadeSet" :cascade-get="cascadeGet" />
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.Phone" label="手机号">
-          <el-input v-model="form.phone" :clearable="true" placeholder="请填写手机号" />
+          <el-input
+            v-model="form.phone"
+            :clearable="true"
+            placeholder="请填写手机号"
+            autocomplete="on"
+          />
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.BirthDay" label="生日">
@@ -934,8 +648,6 @@ onBeforeMount(async () => {
 </template>
 
 <style lang="less" scoped>
-@import url(../../styles/minix);
-
 .initialAvatarContainer {
   padding: 0;
   display: flex;
