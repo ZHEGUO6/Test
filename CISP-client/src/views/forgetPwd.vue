@@ -105,7 +105,7 @@ const resetFormRules = {
           callback('密码要求数字、字母加特殊字符')
           isValidate = false
         }
-        if (resetFormValue.value.oldPwd !== value) {
+        if (resetFormValue.value.oldPwd === value) {
           callback('新密码不能与原密码相同')
           isValidate = false
         }
