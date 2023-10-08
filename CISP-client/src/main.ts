@@ -11,7 +11,6 @@ import 'ant-design-vue/dist/reset.css'
 import ElementPlus from 'element-plus'
 import { createPersistedStatePlugin } from 'pinia-plugin-persistedstate-2'
 import Message from '@/directives/Message'
-import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'hover.css/css/hover-min.css'
 
 const app = createApp(App)

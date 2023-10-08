@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { Meta } from '@/types/route'
-import { HomeFilled } from '@element-plus/icons-vue'
+import { Compass, Setting, Document, Bell, Search, Connection, User } from '@element-plus/icons-vue'
 
 export type RouteRecord = RouteRecordRaw & {
   meta: Meta
@@ -14,24 +14,28 @@ const routes: readonly RouteRecord[] = [
     meta: {
       layout: true,
       label: '首页',
-      icon: HomeFilled
+      icon: Compass,
+      exact: true
     }
   },
   {
     path: '/friend',
     name: 'friend',
     component: () => import('@/views/Friend/friendPage.vue'),
-    // children:[
-    //     {
-    //         path:'/',
-    //         name:'',
-    //         component:()=>import('@/views/Friend/'),
-    //     }
-    // ],
+    children: [
+      {
+        path: '/chat',
+        name: 'chat',
+        component: () => import('@/views/Friend/chatPage.vue'),
+        meta: {
+          label: '聊天'
+        }
+      }
+    ],
     meta: {
       layout: true,
       label: '通讯录',
-      icon: HomeFilled
+      icon: Connection
     }
   },
   {
@@ -40,7 +44,8 @@ const routes: readonly RouteRecord[] = [
     component: () => import('@/views/searchPage.vue'),
     meta: {
       layout: true,
-      label: '搜寻'
+      label: '搜寻',
+      icon: Search
     }
   },
   {
@@ -49,7 +54,8 @@ const routes: readonly RouteRecord[] = [
     component: () => import('@/views/bulletinBoard.vue'),
     meta: {
       layout: true,
-      label: '公告栏'
+      label: '公告栏',
+      icon: Bell
     }
   },
   {
@@ -59,7 +65,19 @@ const routes: readonly RouteRecord[] = [
     meta: {
       auth: true,
       layout: true,
-      label: '新闻'
+      label: '新闻',
+      icon: Document
+    }
+  },
+  {
+    path: '/personalCenter',
+    name: 'personalCenter',
+    component: () => import('@/views/personalCenter.vue'),
+    meta: {
+      auth: true,
+      layout: true,
+      label: '个人中心',
+      icon: User
     }
   },
   {
@@ -69,12 +87,13 @@ const routes: readonly RouteRecord[] = [
     meta: {
       auth: true,
       layout: true,
-      label: '设置'
+      label: '设置',
+      icon: Setting
     }
   },
   {
     path: '/loginOrRegistry',
-    name: 'login',
+    name: 'loginOrRegistry',
     component: () => import('@/views/loginAndRegistryPage.vue'),
     meta: {
       layout: false,
