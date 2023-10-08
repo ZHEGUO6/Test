@@ -27,11 +27,6 @@ PiNia.use((context) => {
 
 // 全局指令
 
-// 全局组件
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
-}
-
 // 全局使用
 app.use(ElementPlus).use(Antd).use(PiNia).use(router)
 

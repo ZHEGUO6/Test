@@ -11,3 +11,4 @@ module.exports.UnableRouter = require("./unabled");
 module.exports.UserRouter = require("./users");
 module.exports.CaptchaRouter = require("./captcha");
 module.exports.ImageRouter = require("./images");
+module.exports.ThirtyPartRouter = require("./thirty-part");

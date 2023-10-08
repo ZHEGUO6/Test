@@ -136,6 +136,70 @@ declare namespace API {
        */
       wechat?: string
     }
+
+    // 获取用户信息
+    export interface Find {
+      /**
+       * 地址
+       */
+      addr?: string
+      /**
+       * 头像
+       */
+      avatar?: string
+      /**
+       * 生日
+       */
+      birthDay?: number
+      /**
+       * 禁用状态
+       */
+      enabled?: number
+      /**
+       * 自我介绍
+       */
+      intro?: string
+      /**
+       * 上次登录时间
+       */
+      lastLoginDate?: number
+      /**
+       * 用户id
+       */
+      loginId?: string
+      /**
+       * 密码
+       */
+      loginPwd?: string
+      /**
+       * 邮箱
+       */
+      mail?: string
+      /**
+       * 昵称
+       */
+      nickname?: string
+      /**
+       * 在线状态
+       */
+      online?: string
+      /**
+       * 手机号
+       */
+      phone?: string
+      /**
+       * QQ号
+       */
+      qq?: string
+      /**
+       * 用户类型
+       */
+      type?: string
+      /**
+       * 微信号
+       */
+      wechat?: string
+    }
   }
 
   declare namespace Captcha {

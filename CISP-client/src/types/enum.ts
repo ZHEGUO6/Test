@@ -4,6 +4,7 @@ export enum RequestUrl {
   User_GetAll = '/user',
   User_GetOne = '/user',
   User_Delete = '/user',
+  User_FindAll = '/user/find/all', // 查找满足要求的用户信息
   User_AddOne = '/user/add',
   User_GetList = '/user/list',
   User_Login = '/user/login',
@@ -16,7 +17,9 @@ export enum RequestUrl {
   Image_UploadOne = '/api/static/upload/add', // 直接上传
 
   Captcha_Get = '/captcha',
-  Captcha_Validate = '/captcha/validate'
+  Captcha_Validate = '/captcha/validate',
+
+  ThirtyPart_ForgetPwd_Message = '/thirtyPart/sentMessage/forgetPwd'
 }
 
 //请求类型
@@ -71,5 +74,6 @@ export enum SessionStorageItemName {
   LoginCaptchaValidateTime = 'loginCaptchaValidateTime', // 登录表单验证码验证剩余时间
   RegistryCaptcha = 'registryCaptcha', // 注册表单验证码
   LoginCaptcha = 'loginCaptcha', // 登录表单验证码
-  InitialAvatarLinks = 'initialAvatars' // 系统初始头像links
+  InitialAvatarLinks = 'initialAvatars', // 系统初始头像links
+  ForgetPwdCaptchaValidateTime = 'forgetPwdCaptchaValidateTime' // 找回密码表单验证码剩余时间
 }

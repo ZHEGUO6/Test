@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import CountDown from '@/components/CounDown.vue'
-import { toRefs, onBeforeMount, ref } from 'vue'
+import { toRefs, onBeforeMount, ref, Component } from 'vue'
 
 const props = defineProps<{
   storage: boolean
   storageItemName: string
   onChange: () => void
+  finishContent?: string | Component
+  activeText?: string | Component
+  durationTime?: number
 }>()
-const { storage, storageItemName, onChange } = toRefs(props)
+const { storage, storageItemName, onChange, durationTime } = toRefs(props)
 
 const countDownTime = ref<number>(0) // 重新获取验证码的倒计时时间
 const Storage = storage.value ? localStorage : sessionStorage
@@ -19,7 +22,7 @@ const onCountDownChange = (time: number) => {
 
 // 重置验证码验证剩余时间
 const resetCountDownTime = () => {
-  const val = Date.now() + 1000 * 120
+  const val = Date.now() + (durationTime?.value || 1000 * 120)
   Storage.setItem(storageItemName.value, `${val}`)
   countDownTime.value = Math.floor((val - Date.now()) / 1000)
 }
@@ -39,22 +42,26 @@ onBeforeMount(() => {
       val = Math.floor(val / 1000)
     }
     countDownTime.value = val
-  } else {
-    // 第一次加载
-    resetCountDownTime()
   }
 })
 </script>
 
 <template>
   <div>
-    <el-button v-if="countDownTime" :disabled="true" type="info">
+    <el-button disabled type="info" v-show="countDownTime">
+      <el-text>请</el-text>
       <count-down :on-change="onCountDownChange" :time="countDownTime" />
-      <el-text>&nbsp;秒后重新获取验证码</el-text>
+      <slot name="activeText">
+        <el-text>&nbsp;秒后获取验证码</el-text>
+      </slot>
     </el-button>
-    <el-button v-else type="primary" @click="btnGetCaptcha">
-      <el-text>请重新获取验证码</el-text>
-    </el-button>
+    <div v-show="!countDownTime">
+      <slot name="finishContent" :click-func="btnGetCaptcha">
+        <el-button type="primary" @click="btnGetCaptcha">
+          <el-text>获取验证码</el-text>
+        </el-button>
+      </slot>
+    </div>
   </div>
 </template>
 

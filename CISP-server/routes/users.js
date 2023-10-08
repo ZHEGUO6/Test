@@ -57,7 +57,7 @@ async function validateAdd(userInfo) {
 }
 
 // 验证修改
-async function vaildateModify(userInfo) {
+async function validateModify(userInfo) {
   return await getMeetItemFromObj(
     userInfo,
     [],
@@ -133,6 +133,21 @@ Router.get("/:id", async function (req, res, next) {
     return;
   }
   query && res.send(baseSend(200, "", { datas: query }));
+});
+
+// 根据相关信息查找用户
+Router.get("/find/all", async (req, res, next) => {
+  const query = req.query;
+  const result = await Users.findAndCountAll({
+    where: query,
+  }).catch(catchError(next, "传递的数据类型有误"));
+  console.log(result);
+  if (result == null) {
+    next("查询相应用户数据失败");
+    return;
+  }
+  result &&
+    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
 });
 
 // 验证帐号密码是否正确
@@ -234,19 +249,17 @@ Router.post("/addList", async function (req, res, next) {
 });
 
 // 修改用户信息
-Router.put("/:id", async function (req, res, next) {
-  const { id } = req.params;
+Router.put("/", async function (req, res, next) {
+  const query = req.query;
   const result = await commonValidate(
     req,
     next,
     Users,
-    vaildateModify,
+    validateModify,
     "update",
     null,
     {
-      where: {
-        loginId: id,
-      },
+      where: query,
       returning: true,
     }
   );
@@ -254,7 +267,8 @@ Router.put("/:id", async function (req, res, next) {
     next("传递的id有误，请检查");
     return;
   }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
+  result &&
+    res.send(baseSend(200, "", { datas: result[0], count: result[1] || 0 }));
 });
 
 // 删除一个用户

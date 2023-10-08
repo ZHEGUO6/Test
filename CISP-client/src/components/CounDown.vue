@@ -13,13 +13,9 @@ const props = defineProps<{
 }>()
 const timer = ref<number | null>(null) // 计时器id
 
-onMounted(() => {
-  startDown() // 开始倒计时
-})
-
 watch(props, () => {
-  if (props.time > 0 && !timer.value) {
-    startDown()
+  if (props.time > 0) {
+    startDown() // 开始倒计时
   }
 })
 
@@ -42,6 +38,13 @@ const stopDown = () => {
   timer.value = null
   props.onFinish && props.onFinish() // 倒计时完成
 }
+
+onMounted(() => {
+  // 预防刷新后检测不到time变化
+  if (props.time) {
+    startDown()
+  }
+})
 </script>
 
 <style scoped></style>

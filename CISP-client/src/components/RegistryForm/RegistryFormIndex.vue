@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getCaptcha, validateCaptcha } from '@/api/captcha'
 import { SessionStorageItemName, ValidateRegistryEnum } from '@/types/enum'
-import { FormInstance, FormItemRule, FormRules } from 'element-plus'
+import { FormInstance, FormRules } from 'element-plus'
 import { MessageOptions } from 'element-plus/lib/components'
 import { getAllInitialAvatar } from '@/api/image'
 import AvatarUploadIndex from '@/components/AvatarUpload/AvatarUploadIndex.vue'
@@ -15,6 +15,7 @@ import { Star } from '@element-plus/icons-vue'
 import { formValidators } from '@/utils/validate'
 import GetCaptchaIndex from '@/components/GetCaptcha/GetCaptchaIndex.vue'
 import DistrictCascadeIndex from '@/components/DistrictCascader/DistrictCascadeIndex.vue'
+import { simpleValidatorFunc } from '@/utils/validate'
 
 const props = defineProps<{ changeType: () => void }>()
 
@@ -108,17 +109,6 @@ const btnLoading = ref<boolean>(false) // 是否按钮加载过渡动画
 const formRef = ref<FormInstance>()
 const drawFormRef = ref<FormInstance>() // 抽屉注册表单ref
 
-// 用于简单的校验器
-const simpleValidatorFunc = (result: (value: any) => boolean, message: string) => {
-  return (rule: FormItemRule, value: string, callback: (error?: string | Error) => void) => {
-    if (result(value)) {
-      callback()
-    } else {
-      callback(message)
-    }
-  }
-}
-
 const rules = ref<FormRules<typeof form>>({
   type: [{ required: true, message: '请选择您的角色' }],
   nickname: [
@@ -138,7 +128,7 @@ const rules = ref<FormRules<typeof form>>({
     }
   ],
   confirmPwd: [
-    { required: true, message: '请输入密码' },
+    { required: true, message: '请再次输入密码' },
     {
       validator: simpleValidatorFunc(
         (value) => value === form.loginPwd,
@@ -149,22 +139,22 @@ const rules = ref<FormRules<typeof form>>({
   ],
   captcha: [
     { required: true, message: '请填写验证码' },
-    { len: 6, message: '请正确输入验证码' }
-    // {
-    //   validator: (_, value, callback) => {
-    //     validateCaptcha({ captcha: value }).then(
-    //       (res: API.ServerResponse) => {
-    //         if (res.code !== 200) {
-    //           callback(res.msg)
-    //         }
-    //         callback()
-    //       },
-    //       (err: Error) => {
-    //         callback(err.message)
-    //       }
-    //     )
-    //   }
-    // }
+    { len: 6, message: '请正确输入验证码' },
+    {
+      validator: (_, value, callback) => {
+        validateCaptcha({ captcha: value }).then(
+          (res: API.ServerResponse) => {
+            if (res.code !== 200) {
+              callback(res.msg)
+            }
+            callback()
+          },
+          (err: Error) => {
+            callback(err.message)
+          }
+        )
+      }
+    }
   ],
   mail: [
     {

@@ -144,11 +144,11 @@ Users.init(
     freezeTableName: true, //表名与模型名相同
     indexes: [
       {
-        fields: ["online", "phone", "qq", "wechat", "loginPwd", "nickname"],
+        fields: ["online", "qq", "wechat", "loginPwd", "nickname"],
       },
       {
         unique: true,
-        fields: ["loginId"],
+        fields: ["loginId", "phone"],
       },
     ],
     createdAt: true,

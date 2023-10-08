@@ -16,7 +16,9 @@ const {
   UserRouter,
   CaptchaRouter,
   ImageRouter,
+  ThirtyPartRouter,
 } = require("./routes");
+
 const errorMiddleware = require("./middleware/errorMiddleWare");
 const staticMiddleware = require("./middleware/staticMiddleWare");
 const sequelize = require("./sequelize");
@@ -53,5 +55,6 @@ app.use("/api/unable", UnableRouter);
 app.use("/api/user", UserRouter);
 app.use("/api/captcha", CaptchaRouter);
 app.use("/api/static", ImageRouter);
+app.use("/api/thirtyPart", ThirtyPartRouter);
 app.use(errorMiddleware);
 module.exports = app;
