@@ -182,9 +182,15 @@ Router.post("/login", async function (req, res, next) {
     where: { nickname, loginPwd: encrypt(meetEncrypt(loginPwd)) },
   }).catch(catchError(next, "传递的数据类型有误，登录失败"));
   if (userInstance) {
-    req.session.userId = userInstance.getDataValue("loginId");
-    req.session.cookie.maxAge = saveTime;
-    res.send(baseSend(200, "登录成功", { datas: userInstance }));
+    if (userInstance.getDataValue("enabled")) {
+      //   允许登录
+      req.session.userId = userInstance.getDataValue("loginId");
+      req.session.cookie.maxAge = saveTime;
+      res.send(baseSend(200, "登录成功", { datas: userInstance }));
+    } else {
+      //   禁止登录
+      next("当前用户已被禁用，请联系平台管理员");
+    }
   }
   if (userInstance == null) {
     next("帐号密码不正确，登录失败");

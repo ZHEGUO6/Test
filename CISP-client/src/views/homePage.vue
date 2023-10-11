@@ -1,6 +1,6 @@
 <template>
   <main>
-    <div>欢迎你，{{ nickname }}</div>
+    <div>欢迎你，{{ userInfo.nickname }}</div>
     <div>
       <el-button @click="handleOut">退出登录</el-button>
     </div>
@@ -12,12 +12,7 @@ import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 const userStore = useUserStore()
-const {
-  isLogin: { value: userLogin },
-  userInfo: {
-    value: { nickname }
-  }
-} = storeToRefs(userStore)
+const { isLogin, userInfo } = storeToRefs(userStore)
 const router = useRouter()
 
 const handleOut = async () => {

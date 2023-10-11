@@ -63,7 +63,6 @@ export enum ValidateRegistryEnum {
 
 // 本地存储空间 key
 export enum LocalStorageItemName {
-  User = 'user', //  当前的用户信息
   LoginAndRegistryPageType = 'loginAndRegistryPageType' // 当前为登录表单还是注册表单 registry / login
 }
 
@@ -75,5 +74,6 @@ export enum SessionStorageItemName {
   RegistryCaptcha = 'registryCaptcha', // 注册表单验证码
   LoginCaptcha = 'loginCaptcha', // 登录表单验证码
   InitialAvatarLinks = 'initialAvatars', // 系统初始头像links
-  ForgetPwdCaptchaValidateTime = 'forgetPwdCaptchaValidateTime' // 找回密码表单验证码剩余时间
+  ForgetPwdCaptchaValidateTime = 'forgetPwdCaptchaValidateTime', // 找回密码表单验证码剩余时间
+  User = 'user' //  当前的用户信息
 }

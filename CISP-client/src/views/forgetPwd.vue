@@ -100,16 +100,15 @@ const resetFormRules = {
         value: string,
         callback: (error?: string | Error) => void
       ) => {
-        let isValidate = true //判断是否验证通过
         if (!formValidators.password.test(value)) {
           callback('密码要求数字、字母加特殊字符')
-          isValidate = false
+          return
         }
-        if (resetFormValue.value.oldPwd === value) {
+        if (resetFormValue.value.oldPwd !== value) {
           callback('新密码不能与原密码相同')
-          isValidate = false
+          return
         }
-        isValidate && callback()
+        callback()
       },
       trigger: ['blur']
     }
@@ -118,7 +117,7 @@ const resetFormRules = {
     { required: true, message: '请再次输入密码' },
     {
       validator: simpleValidatorFunc(
-        (value: string) => value === resetFormValue.value.newPwd,
+        (value) => value === resetFormValue.value.newPwd,
         '两次输入的密码不一致，请检查'
       ),
       trigger: ['blur']

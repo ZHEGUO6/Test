@@ -29,12 +29,15 @@ const expand = () => (collapse.value = false)
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
+@import '../../styles/var.less';
+
 .elMenu {
-  --el-menu-bg-color: #b0d6ffb5;
+  --el-menu-bg-color: @baseThemeColor;
   --el-menu-hover-bg-color: #0d478cde;
   height: 100vh;
   position: relative;
+  border-width: 0;
   &:not(.el-menu--collapse) {
     width: 200px;
   }

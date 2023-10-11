@@ -20,7 +20,7 @@ const PiNia = createPinia()
 // 使用持久化中间件，刷新后维护仓库数据
 PiNia.use((context) => {
   if (context.store.$id === 'user') {
-    return createPersistedStatePlugin()(context)
+    return createPersistedStatePlugin({ storage: sessionStorage })(context)
   }
 })
 

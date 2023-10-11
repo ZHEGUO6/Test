@@ -24,6 +24,7 @@ const form = reactive<API.User.Login & { captcha: string }>({
   captcha: '',
   saveTime: 0
 })
+
 const captchaValidated = ref(false) // 验证码是否验证通过
 const router = useRouter()
 const { login } = useUserStore()
@@ -75,7 +76,7 @@ const rules = reactive<FormRules<typeof form>>({
   ],
   captcha: [
     { required: true, message: '请填写验证码' },
-    { len: 6, message: '请正确填写验证码，正确填写后自动登录哦' },
+    { len: 6, message: '请正确填写验证码' },
     {
       validator: (_, value, callback) => {
         validateCaptcha({ captcha: value }).then(
@@ -85,8 +86,6 @@ const rules = reactive<FormRules<typeof form>>({
               return
             }
             callback()
-            captchaValidated.value = true
-            onSubmit() // 验证码验证通过，提交表单
           },
           (err: Error) => {
             callback(err.message)

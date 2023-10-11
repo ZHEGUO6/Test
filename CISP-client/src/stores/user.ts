@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { login, loginOut, registry } from '@/api/user'
+import { login, loginOut, registry, whoAmI } from '@/api/user'
 
 export const useUserStore = defineStore('user', {
   state: () => {
@@ -44,6 +44,14 @@ export const useUserStore = defineStore('user', {
     async loginOut() {
       const res = await loginOut()
       this.$reset()
+      return res
+    },
+    async whoAmI() {
+      const res = await whoAmI()
+      if (res.data?.datas) {
+        // 恢复登录成功
+        this.$patch((state) => (state.userInfo = res.data?.datas as UserInfo))
+      }
       return res
     }
   }

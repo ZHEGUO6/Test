@@ -184,6 +184,7 @@ const rules = ref<FormRules<typeof form>>({
     }
   ],
   phone: [
+    { required: true, message: '请填写手机号' },
     {
       validator: simpleValidatorFunc(
         (value) => (value ? formValidators.phone.test(value) : true),
@@ -429,6 +430,15 @@ onBeforeMount(async () => {
         />
       </el-form-item>
 
+      <el-form-item required :prop="ValidateRegistryEnum.Phone" label="手机号">
+        <el-input
+          v-model="form.phone"
+          :clearable="true"
+          placeholder="请填写手机号"
+          autocomplete="on"
+        />
+      </el-form-item>
+
       <el-form-item :prop="ValidateRegistryEnum.LoginPwd" :required="true" label="密码">
         <el-input
           v-model="form.loginPwd"
@@ -613,15 +623,6 @@ onBeforeMount(async () => {
 
         <el-form-item :prop="ValidateRegistryEnum.Address" label="地址">
           <district-cascade-index :cascade-set="cascadeSet" :cascade-get="cascadeGet" />
-        </el-form-item>
-
-        <el-form-item :prop="ValidateRegistryEnum.Phone" label="手机号">
-          <el-input
-            v-model="form.phone"
-            :clearable="true"
-            placeholder="请填写手机号"
-            autocomplete="on"
-          />
         </el-form-item>
 
         <el-form-item :prop="ValidateRegistryEnum.BirthDay" label="生日">

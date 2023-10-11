@@ -3,9 +3,20 @@ import { RouterView, useRoute } from 'vue-router'
 import SideBar from '@/components/SideBar/SideBar.vue'
 import FooterIndex from '@/components/Footer/FooterIndex.vue'
 import HeaderIndex from '@/components/Header/HeaderIndex.vue'
-import { computed } from 'vue'
+import { useUserStore } from '@/stores/user'
+import { SessionStorageItemName } from '@/types/enum'
+import { computed, onBeforeMount } from 'vue'
 import type { Meta } from '@/types/route'
+
 const routeConfig = computed(() => useRoute().meta as unknown as Meta)
+
+const { whoAmI } = useUserStore()
+
+onBeforeMount(async () => {
+  if (!sessionStorage.getItem(SessionStorageItemName.User)) {
+    await whoAmI()
+  }
+})
 </script>
 
 <template>
@@ -13,8 +24,8 @@ const routeConfig = computed(() => useRoute().meta as unknown as Meta)
     <el-aside class="elAside">
       <side-bar />
     </el-aside>
-    <el-main>
-      <el-header>
+    <el-main class="mainContainer">
+      <el-header class="elHeader">
         <header-index />
       </el-header>
       <el-main class="mainContent">
@@ -28,13 +39,26 @@ const routeConfig = computed(() => useRoute().meta as unknown as Meta)
   <RouterView v-else />
 </template>
 
-<style scoped>
+<style scoped lang="less">
+@import 'styles/var.less';
+
 .elAside {
   height: 100vh;
   width: fit-content;
 }
 
+.mainContainer {
+  --el-main-padding: 0;
+}
+
 .mainContent {
   min-height: calc(100vh - 160px);
+  --el-main-padding: 10px;
+}
+
+.elHeader {
+  --el-header-padding: 10px 15px;
+  background-color: @headerBgColor;
+  height: 56px;
 }
 </style>

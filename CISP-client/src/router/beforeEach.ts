@@ -45,7 +45,7 @@ export default async (
       next()
       return
     }
-    next({ name: 'login' })
+    next({ name: 'loginOrRegistry', state: { type: 'login' } })
     return
   }
   next()
