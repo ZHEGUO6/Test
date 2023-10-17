@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { onBeforeMount, reactive, ref, getCurrentInstance, toRefs } from 'vue'
+import { onBeforeMount, reactive, ref, getCurrentInstance, toRefs, Ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getCaptcha, validateCaptcha } from '@/api/captcha'
@@ -24,6 +24,8 @@ const form = reactive<API.User.Login & { captcha: string }>({
   captcha: '',
   saveTime: 0
 })
+
+const getTimeRef = ref<{ [key: string]: any }>()
 
 const captchaValidated = ref(false) // 验证码是否验证通过
 const router = useRouter()
@@ -125,6 +127,7 @@ const _login = async () => {
         }
         formRef.value?.resetFields(['captcha'])
         getCaptchaAsync()
+        getTimeRef.value.resetCountDownTime() // 重置验证码时间
       }
     } as MessageOptions)
     closeAllLoading()
@@ -255,6 +258,7 @@ onBeforeMount(async () => {
       <el-col :span="1"></el-col>
       <el-col :span="9">
         <get-captcha-index
+          ref="getTimeRef"
           :on-change="btnGetCaptcha"
           :storage="false"
           :storage-item-name="SessionStorageItemName.LoginCaptchaValidateTime"
