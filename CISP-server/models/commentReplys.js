@@ -1,5 +1,7 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
+const { boolOpt } = require("../utils");
+
 class CommentReplys extends Model {}
 CommentReplys.init(
   {
@@ -16,17 +18,18 @@ CommentReplys.init(
         len: [1, 100],
       },
     },
+    status: boolOpt(),
   },
   {
     sequelize,
     freezeTableName: true, //表名与模型名相同
     indexes: [
       {
-        fields: ["cId", "uId"],
-      },
-      {
         unique: true,
         fields: ["CommentReplyId"],
+      },
+      {
+        fields: ["cId", "uId", "status"],
       },
     ],
     createdAt: true,

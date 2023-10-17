@@ -4,6 +4,7 @@ module.exports.CommentRouter = require("./comments");
 module.exports.FriendRouter = require("./friends");
 module.exports.GroupRouter = require("./groups");
 module.exports.MessageRouter = require("./messages");
+module.exports.NoticeRouter = require("./notices");
 module.exports.NewsRouter = require("./news");
 module.exports.SearchRouter = require("./searches");
 module.exports.SearchImgRouter = require("./searchImgs");

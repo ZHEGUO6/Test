@@ -1,5 +1,7 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
+const { boolOpt } = require("../utils");
+
 class Comments extends Model {}
 Comments.init(
   {
@@ -16,6 +18,7 @@ Comments.init(
         len: [1, 255],
       },
     },
+    status: boolOpt(),
   },
   {
     sequelize,
@@ -26,7 +29,7 @@ Comments.init(
       },
       {
         unique: true,
-        fields: ["commentId"],
+        fields: ["commentId", "status"],
       },
     ],
     createdAt: true,

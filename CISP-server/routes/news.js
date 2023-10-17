@@ -1,7 +1,13 @@
 const express = require("express");
 const News = require("../models/news");
-const { baseSend, commonValidate, catchError } = require("../utils/server");
+const {
+  baseSend,
+  commonValidate,
+  catchError,
+  handleDataEmpty,
+} = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
+const { data } = require("express-session/session/cookie");
 const Router = express.Router({ caseSensitive: true });
 
 // 验证添加新闻
@@ -20,8 +26,12 @@ async function validateModify(info) {
 
 // 获取所有新闻
 Router.get("/", async function (req, res) {
-  const { count, rows } = await News.findAndCountAll();
-  res.send(baseSend(200, "", { datas: rows, count }));
+  const { important } = req.query;
+  const options = {};
+  important ?? (options.where = { important });
+  handleDataEmpty(await News.findAndCountAll(options), (data) =>
+    res.send(baseSend(200, "", { datas: data.rows, count: data.count }))
+  );
 });
 
 // 分页获取新闻
@@ -36,25 +46,48 @@ Router.get("/list", async function (req, res, next) {
     limit,
     offset: (+page - 1) * limit,
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (result == null) {
-    next("查询新闻数据失败");
-    return;
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("查询新闻数据失败")
+  );
+});
+
+// 分页获取重要新闻
+Router.get("/list/important", async function (req, res, next) {
+  let { page, limit } = req.query;
+  limit = +limit;
+  if (page < 0 || (!limit && limit < 0)) {
+    // 请求未满足期望值
+    return catchError(next, "请求的参数数据类型或值不满足要求")();
   }
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  const result = await News.findAndCountAll({
+    limit,
+    offset: (+page - 1) * limit,
+    where: {
+      important: true,
+    },
+  }).catch(catchError(next, "传递的数据类型有误，请检查"));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("查询新闻数据失败")
+  );
 });
 
 // 获取单个新闻
-Router.get("/:id", async function (req, res, next) {
+Router.get("/getOne/:id", async function (req, res, next) {
   const { id } = req.params;
   const query = await News.findByPk(+id).catch(
     catchError(next, "传递的数据类型有误，请检查")
   );
-  if (query == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  query && res.send(baseSend(200, "", { datas: query }));
+  handleDataEmpty(
+    query,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 新增一个新闻
@@ -66,11 +99,11 @@ Router.post("/add", async function (req, res, next) {
     validateAdd,
     "create"
   );
-  if (NewsInstance == null) {
-    next("新增新闻失败");
-    return;
-  }
-  NewsInstance && res.send(baseSend(200, "", { datas: NewsInstance }));
+  handleDataEmpty(
+    NewsInstance,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("新增新闻失败")
+  );
 });
 
 // 新增多个新闻
@@ -82,14 +115,11 @@ Router.post("/addList", async function (req, res, next) {
     validateAdd,
     "bulkCreate"
   );
-  if (NewsInstances == null) {
-    next("新增新闻失败");
-    return;
-  }
-  NewsInstances &&
-    res.send(
-      baseSend(200, "", { datas: NewsInstances, count: NewsInstances.length })
-    );
+  handleDataEmpty(
+    NewsInstances,
+    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
+    () => next("新增新闻失败")
+  );
 });
 
 // 修改单个新闻信息
@@ -109,11 +139,11 @@ Router.put("/:id", async function (req, res, next) {
       returning: true,
     }
   );
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
+  handleDataEmpty(
+    result,
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 删除一个新闻
@@ -124,12 +154,11 @@ Router.delete("/:id", async function (req, res, next) {
       newId: +id,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (deleteRows == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  typeof deleteRows === "number" &&
-    res.send(baseSend(200, "", { datas: null, count: deleteRows }));
+  handleDataEmpty(
+    deleteRows,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 module.exports = Router;

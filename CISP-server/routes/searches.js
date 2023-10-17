@@ -1,6 +1,11 @@
 const express = require("express");
 const Searches = require("../models/searches");
-const { baseSend, commonValidate, catchError } = require("../utils/server");
+const {
+  baseSend,
+  commonValidate,
+  catchError,
+  handleDataEmpty,
+} = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
 const Router = express.Router({ caseSensitive: true });
 
@@ -24,8 +29,10 @@ async function validateModify(info) {
 
 // 获取所有寻人寻物
 Router.get("/", async function (req, res) {
-  const { count, rows } = await Searches.findAndCountAll();
-  res.send(baseSend(200, "", { datas: rows, count }));
+  const result = await Searches.findAndCountAll();
+  handleDataEmpty(result, ({ count, rows }) =>
+    res.send(baseSend(200, "", { datas: rows, count }))
+  );
 });
 
 // 分页获取寻人寻物
@@ -40,12 +47,12 @@ Router.get("/list", async function (req, res, next) {
     limit,
     offset: (+page - 1) * limit,
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (result == null) {
-    next("查询搜寻数据失败");
-    return;
-  }
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("查询搜寻数据失败")
+  );
 });
 
 // 根据类型获取所有寻人寻物
@@ -56,12 +63,12 @@ Router.get("/type/:typeId", async function (req, res, next) {
       typeId,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 根据类型分页获取寻人寻物
@@ -80,12 +87,12 @@ Router.get("/list/type/:typeId", async function (req, res, next) {
       typeId,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 获取单个寻人寻物
@@ -94,11 +101,11 @@ Router.get("/:id", async function (req, res, next) {
   const query = await Searches.findByPk(+id).catch(
     catchError(next, "传递的数据类型有误，请检查")
   );
-  if (query == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  query && res.send(baseSend(200, "", { datas: query }));
+  handleDataEmpty(
+    query,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 新增一个寻人寻物
@@ -110,11 +117,11 @@ Router.post("/add", async function (req, res, next) {
     validateAdd,
     "create"
   );
-  if (SearchesInstance == null) {
-    next("新增搜寻失败");
-    return;
-  }
-  SearchesInstance && res.send(baseSend(200, "", { datas: SearchesInstance }));
+  handleDataEmpty(
+    SearchesInstance,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("新增搜寻失败")
+  );
 });
 
 // 新增多个寻人寻物 (暂时不添加该功能)
@@ -126,17 +133,17 @@ Router.post("/addList", async function (req, res, next) {
     validateAdd,
     "bulkCreate"
   );
-  if (SearchesInstances == null) {
-    next("新增搜寻失败");
-    return;
-  }
-  SearchesInstances &&
-    res.send(
-      baseSend(200, "", {
-        datas: SearchesInstances,
-        count: SearchesInstances.length,
-      })
-    );
+  handleDataEmpty(
+    SearchesInstances,
+    (data) =>
+      res.send(
+        baseSend(200, "", {
+          datas: data,
+          count: data.length,
+        })
+      ),
+    () => next("新增搜寻失败")
+  );
 });
 
 // 修改单个寻人寻物信息
@@ -156,11 +163,11 @@ Router.put("/:id", async function (req, res, next) {
       returning: true,
     }
   );
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
+  handleDataEmpty(
+    result,
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 删除一个寻人寻物
@@ -171,12 +178,11 @@ Router.delete("/:id", async function (req, res, next) {
       searchId: id,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (deleteRows == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  typeof deleteRows === "number" &&
-    res.send(baseSend(200, "", { datas: null, count: deleteRows }));
+  handleDataEmpty(
+    deleteRows,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 module.exports = Router;

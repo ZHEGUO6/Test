@@ -1,6 +1,11 @@
 const express = require("express");
 const UnAbled = require("../models/unabled");
-const { baseSend, commonValidate, catchError } = require("../utils/server");
+const {
+  baseSend,
+  commonValidate,
+  catchError,
+  handleDataEmpty,
+} = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
 const Router = express.Router({ caseSensitive: true });
 
@@ -16,8 +21,9 @@ async function validateModify(info) {
 
 // 获取所有禁用记录
 Router.get("/", async function (req, res) {
-  const { count, rows } = await UnAbled.findAndCountAll();
-  res.send(baseSend(200, "", { datas: rows, count }));
+  handleDataEmpty(await UnAbled.findAndCountAll(), ({ count, rows }) =>
+    res.send(baseSend(200, "", { datas: rows, count }))
+  );
 });
 
 // 分页获取禁用记录
@@ -32,12 +38,12 @@ Router.get("/list", async function (req, res, next) {
     limit,
     offset: (+page - 1) * limit,
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (result == null) {
-    next("查询禁用记录数据失败");
-    return;
-  }
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("查询禁用记录数据失败")
+  );
 });
 
 // 获取单个禁用记录
@@ -46,11 +52,11 @@ Router.get("/:id", async function (req, res, next) {
   const query = await UnAbled.findByPk(id).catch(
     catchError(next, "传递的数据类型有误，请检查")
   );
-  if (query == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  query && res.send(baseSend(200, "", { datas: query }));
+  handleDataEmpty(
+    query,
+    (data) => res.send(baseSend(200, "", { datas: query })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 新增一个禁用记录
@@ -73,11 +79,11 @@ Router.post("/add", async function (req, res, next) {
       return true;
     }
   );
-  if (unableInstance == null) {
-    next("新增禁用记录失败");
-    return;
-  }
-  unableInstance && res.send(baseSend(200, "", { datas: unableInstance }));
+  handleDataEmpty(
+    unableInstance,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("新增禁用记录失败")
+  );
 });
 
 // 新增多个禁用记录
@@ -105,17 +111,17 @@ Router.post("/addList", async function (req, res, next) {
       return true;
     }
   );
-  if (unabledInstances == null) {
-    next("新增禁用记录失败");
-    return;
-  }
-  unabledInstances &&
-    res.send(
-      baseSend(200, "", {
-        datas: unabledInstances,
-        count: unabledInstances.length,
-      })
-    );
+  handleDataEmpty(
+    unabledInstances,
+    (data) =>
+      res.send(
+        baseSend(200, "", {
+          datas: data,
+          count: data.length,
+        })
+      ),
+    () => next("新增禁用记录失败")
+  );
 });
 
 // 修改禁用记录信息
@@ -135,11 +141,11 @@ Router.put("/:id", async function (req, res, next) {
       returning: true,
     }
   );
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
+  handleDataEmpty(
+    result,
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 删除一个禁用记录
@@ -150,12 +156,11 @@ Router.delete("/:id", async function (req, res, next) {
       unabledId: id,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (deleteRows == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  typeof deleteRows === "number" &&
-    res.send(baseSend(200, "", { datas: null, count: deleteRows }));
+  handleDataEmpty(
+    deleteRows,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 module.exports = Router;

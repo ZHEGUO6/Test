@@ -35,71 +35,88 @@ const catchError = (next, error) => {
   };
 };
 
-module.exports = {
-  baseSend,
-  readReqData,
-  readImageReqData,
-  /**
-   * 通用的响应需要验证的方法
-   * @param {*} req 请求对象
-   * @param {*} next 移交给下个中间件函数
-   * @param {*} instance 模型实例
-   * @param {*} validateFunc 参数验证方法
-   * @param {*} action 针对模型的动作，如：create、update
-   * @param {*} filterCallback 过滤的回调，可能会有二次过滤
-   * @param {*} modelOption 调用模型方法传递的第二个参数
-   * @returns
-   */
-  async commonValidate(
-    req,
-    next,
-    instance,
-    validateFunc,
-    action,
-    filterCallback = undefined,
-    modelOption = {}
-  ) {
-    async function _validate(item) {
-      let yetOver = true;
-      filterCallback && (yetOver = await filterCallback(item));
-      return yetOver;
-    }
+/**
+ * 通用的响应需要验证的方法
+ * @param {*} req 请求对象
+ * @param {*} next 移交给下个中间件函数
+ * @param {*} instance 模型实例
+ * @param {*} validateFunc 参数验证方法
+ * @param {*} action 针对模型的动作，如：create、update
+ * @param {*} filterCallback 过滤的回调，可能会有二次过滤
+ * @param {*} modelOption 调用模型方法传递的第二个参数
+ * @returns
+ */
+const commonValidate = async (
+  req,
+  next,
+  instance,
+  validateFunc,
+  action,
+  filterCallback = undefined,
+  modelOption = {}
+) => {
+  async function _validate(item) {
+    let yetOver = true;
+    filterCallback && (yetOver = await filterCallback(item));
+    return yetOver;
+  }
+  // 剔除不需要的键值对
+  let params = await readReqData(req).catch((err) => catchError(next, err)());
+  if (Array.isArray(params)) {
+    let filter = [];
     // 剔除不需要的键值对
-    let params = await readReqData(req).catch((err) => catchError(next, err)());
-    if (Array.isArray(params)) {
-      let filter = [];
-      // 剔除不需要的键值对
-      for (let index = 0; index < params.length; index++) {
-        const item = await validateFunc(params[index]);
-        if (!item) {
-          // 检测不通过
-          return catchError(next, `传递的信息数量与预期的不一致`)();
-        }
-        filter.push(item);
-        const result = await _validate(item);
-        if (!result) {
-          return false;
-        }
-      }
-      params = filter;
-    } else {
-      params = await validateFunc(params);
-      if (!params) {
+    for (let index = 0; index < params.length; index++) {
+      const item = await validateFunc(params[index]);
+      if (!item) {
         // 检测不通过
         return catchError(next, `传递的信息数量与预期的不一致`)();
       }
-      const result = await _validate(params);
+      filter.push(item);
+      const result = await _validate(item);
       if (!result) {
         return false;
       }
     }
-    return await instance[action](params, modelOption).catch((err) => {
-      console.log(err);
-      return catchError(
-        next,
-        `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`
-      )();
-    });
-  },
+    params = filter;
+  } else {
+    params = await validateFunc(params);
+    if (!params) {
+      // 检测不通过
+      return catchError(next, `传递的信息数量与预期的不一致`)();
+    }
+    const result = await _validate(params);
+    if (!result) {
+      return false;
+    }
+  }
+  return await instance[action](params, modelOption).catch((err) => {
+    console.log(err);
+    return catchError(
+      next,
+      `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`
+    )();
+  });
+};
+
+/**
+ * 处理获取数据库出错问题，处理值为null或undefined情况
+ * @param data 获取到的数据
+ * @param successCB 数据响应成功的回调
+ * @param errorCB 数据响应有误的回调
+ */
+const handleDataEmpty = (data, successCB, errorCB) => {
+  if (data === null || data === undefined) {
+    errorCB && errorCB();
+    return;
+  }
+  data && successCB(data);
+};
+
+module.exports = {
+  baseSend,
+  readReqData,
+  readImageReqData,
+  commonValidate,
   catchError,
+  handleDataEmpty,
 };

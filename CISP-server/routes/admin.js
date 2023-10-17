@@ -5,6 +5,7 @@ const {
   commonValidate,
   catchError,
   readReqData,
+  handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
 const Router = express.Router({ caseSensitive: true });
@@ -78,9 +79,10 @@ async function validateModifyAdmin(adminInfo) {
 }
 
 // 获取所有管理员
-Router.get("/", async function (req, res) {
-  const { count, rows } = await Admins.findAndCountAll();
-  res.send(baseSend(200, "", { datas: rows, count }));
+Router.get("/", async function (req, res, next) {
+  handleDataEmpty(await Admins.findAndCountAll(), ({ rows, count }) =>
+    res.send(baseSend(200, "", { datas: rows, count }))
+  );
 });
 
 // 分页获取管理员
@@ -91,21 +93,24 @@ Router.get("/list", async function (req, res, next) {
     // 请求未满足期望值
     return catchError(next, `请求参数数据类型或值不对`)();
   }
-  const result = await Admins.findAndCountAll({
-    limit,
-    offset: (+page - 1) * limit,
-  }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  handleDataEmpty(
+    await Admins.findAndCountAll({
+      limit,
+      offset: (+page - 1) * limit,
+    }).catch(catchError(next, "传递的数据类型有误，请检查")),
+    (result) =>
+      res.send(baseSend(200, "", { datas: result.rows, count: result.count }))
+  );
 });
 
 // 获取单个管理员
 Router.get("/:id", async function (req, res, next) {
   const { id } = req.params;
-  const query = await Admins.findByPk(id).catch(
-    catchError(next, "传递的数据类型有误")
+  handleDataEmpty(
+    await Admins.findByPk(id).catch(catchError(next, "传递的数据类型有误")),
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("传递的id有误，获取管理员信息失败")
   );
-  query && res.send(baseSend(200, "", { datas: query }));
 });
 
 // 验证帐号密码是否正确
@@ -113,17 +118,16 @@ Router.post("/validate", async function (req, res, next) {
   const body = await readReqData(req).catch((err) => catchError(next, err)());
   if (!body) return;
   const { nickname, loginPwd } = body;
-  const result = await Admins.findOne({
-    where: {
-      nickname,
-      loginPwd: encrypt(meetEncrypt(loginPwd)),
-    },
-  }).catch(catchError(next, "传递的数据类型有误"));
-  if (result == null) {
-    next("帐号或密码不正确");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result }));
+  handleDataEmpty(
+    await Admins.findOne({
+      where: {
+        nickname,
+        loginPwd: encrypt(meetEncrypt(loginPwd)),
+      },
+    }).catch(catchError(next, "传递的数据类型有误")),
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("帐号或密码不正确")
+  );
 });
 
 // 管理员登录
@@ -132,33 +136,31 @@ Router.post("/login", async function (req, res, next) {
   const body = await readReqData(req).catch((err) =>
     catchError(next, `传递的请求体有误，${err}`)()
   );
-  const { nickname, loginPwd, saveTime = 1000 * 60 } = body;
   if (!body) return;
-  const adminInstance = await Admins.findOne({
-    where: { nickname, loginPwd: encrypt(meetEncrypt(loginPwd)) },
-  }).catch(catchError(next, "传递的数据类型有误，登录失败"));
-  if (adminInstance) {
-    req.session.adminId = adminInstance.getDataValue("loginId");
-    req.session.cookie.maxAge = saveTime;
-    res.send(baseSend(200, "登录成功", { datas: adminInstance }));
-    return;
-  }
-  if (adminInstance == null) {
-    next(`登录失败，帐号或密码有误`);
-  }
+  const { nickname, loginPwd, saveTime = 1000 * 60 } = body;
+  handleDataEmpty(
+    await Admins.findOne({
+      where: { nickname, loginPwd: encrypt(meetEncrypt(loginPwd)) },
+    }).catch(catchError(next, "传递的数据类型有误，登录失败")),
+    (data) => {
+      req.session.adminId = data.getDataValue("loginId");
+      req.session.cookie.maxAge = saveTime;
+      res.send(baseSend(200, "登录成功", { datas: data }));
+    },
+    () => next("登录失败，帐号或密码有误")
+  );
 });
 
 // 管理员恢复登录状态
 Router.get("/login/whoAmI", async function (req, res, next) {
   if (req.session.adminId) {
-    const adminInstance = await Admins.findByPk(req.session.adminId).catch(
-      catchError(next, `登录信息有误，请重新登录`)
+    handleDataEmpty(
+      await Admins.findByPk(req.session.adminId).catch(
+        catchError(next, `登录信息有误，请重新登录`)
+      ),
+      (data) => res.send(baseSend(200, "恢复登录成功", { datas: data })),
+      () => next("登录信息已失效，请重新登录")
     );
-    if (adminInstance == null) {
-      next("登录信息已失效，请重新登录");
-    }
-    adminInstance &&
-      res.send(baseSend(200, "恢复登录成功", { datas: adminInstance }));
     return;
   }
   next("登录信息已失效，请重新登录");
@@ -172,77 +174,57 @@ Router.post("/logout", async function (req, res, next) {
 
 // 新增一个管理员
 Router.post("/add", async function (req, res, next) {
-  const adminInstance = await commonValidate(
-    req,
-    next,
-    Admins,
-    validateAddAdmin,
-    "create"
+  handleDataEmpty(
+    await commonValidate(req, next, Admins, validateAddAdmin, "create"),
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("新增管理员失败")
   );
-  if (adminInstance == null) {
-    next("新增管理员失败");
-    return;
-  }
-  adminInstance && res.send(baseSend(200, "", { datas: adminInstance }));
 });
 
 // 新增多个管理员
 Router.post("/addList", async function (req, res, next) {
-  const adminInstances = await commonValidate(
-    req,
-    next,
-    Admins,
-    validateAddAdmin,
-    "bulkCreate"
+  handleDataEmpty(
+    await commonValidate(req, next, Admins, validateAddAdmin, "bulkCreate"),
+    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
+    () => next("新增管理员失败")
   );
-  if (adminInstances == null) {
-    next("新增管理员失败");
-    return;
-  }
-  adminInstances &&
-    res.send(
-      baseSend(200, "", { datas: adminInstances, count: adminInstances.length })
-    );
 });
 
 // 修改管理员信息
 Router.put("/:id", async function (req, res, next) {
   const { id } = req.params;
-  const result = await commonValidate(
-    req,
-    next,
-    Admins,
-    validateModifyAdmin,
-    "update",
-    null,
-    {
-      where: {
-        loginId: id,
-      },
-      returning: true,
-    }
+  handleDataEmpty(
+    await commonValidate(
+      req,
+      next,
+      Admins,
+      validateModifyAdmin,
+      "update",
+      null,
+      {
+        where: {
+          loginId: id,
+        },
+        returning: true,
+      }
+    ),
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("修改管理员信息失败")
   );
-  if (result == null) {
-    next("修改管理员信息失败");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
 });
 
 // 删除一个管理员
 Router.delete("/:id", async function (req, res, next) {
   const id = req.params.id;
-  const deleteRows = await Admins.destroy({
-    where: {
-      loginId: id,
-    },
-  }).catch(catchError(next, `传递的数据格式不对，请更正后再操作`));
-  if (deleteRows == null) {
-    next("删除管理员失败");
-    return;
-  }
-  typeof deleteRows === "number" &&
-    res.send(baseSend(200, "", { datas: null, count: deleteRows }));
+  handleDataEmpty(
+    await Admins.destroy({
+      where: {
+        loginId: id,
+      },
+    }).catch(catchError(next, `传递的数据格式不对，请更正后再操作`)),
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("删除管理员失败")
+  );
 });
 
 module.exports = Router;

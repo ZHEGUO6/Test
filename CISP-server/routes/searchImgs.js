@@ -1,6 +1,11 @@
 const express = require("express");
 const SearchImgs = require("../models/searchImgs");
-const { baseSend, commonValidate, catchError } = require("../utils/server");
+const {
+  baseSend,
+  commonValidate,
+  catchError,
+  handleDataEmpty,
+} = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
 const Router = express.Router({ caseSensitive: true });
 
@@ -16,8 +21,9 @@ async function validateModify(info) {
 
 // 获取所有寻人寻物图片
 Router.get("/", async function (req, res) {
-  const { count, rows } = await SearchImgs.findAndCountAll();
-  res.send(baseSend(200, "", { datas: rows, count }));
+  handleDataEmpty(await SearchImgs.findAndCountAll(), ({ count, rows }) =>
+    res.send(baseSend(200, "", { datas: rows, count }))
+  );
 });
 
 // 根据寻人寻物id获取所有图片
@@ -28,12 +34,12 @@ Router.get("/search/:id", async function (req, res, next) {
       sId: +id,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 新增一个寻人寻物图片
@@ -45,12 +51,11 @@ Router.post("/add", async function (req, res, next) {
     validateAdd,
     "create"
   );
-  if (SearchImgsInstance == null) {
-    next("新增搜寻图片失败");
-    return;
-  }
-  SearchImgsInstance &&
-    res.send(baseSend(200, "", { datas: SearchImgsInstance }));
+  handleDataEmpty(
+    SearchImgsInstance,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("新增搜寻图片失败")
+  );
 });
 
 // 新增多个寻人寻物图片
@@ -62,17 +67,17 @@ Router.post("/addList", async function (req, res, next) {
     validateAdd,
     "bulkCreate"
   );
-  if (SearchImgsInstances == null) {
-    next("新增搜寻图片失败");
-    return;
-  }
-  SearchImgsInstances &&
-    res.send(
-      baseSend(200, "", {
-        datas: SearchImgsInstances,
-        count: SearchImgsInstances.length,
-      })
-    );
+  handleDataEmpty(
+    SearchImgsInstances,
+    (data) =>
+      res.send(
+        baseSend(200, "", {
+          datas: data,
+          count: data.length,
+        })
+      ),
+    () => next("新增搜寻图片失败")
+  );
 });
 
 // 修改单个寻人寻物图片信息
@@ -92,11 +97,11 @@ Router.put("/:id", async function (req, res, next) {
       returning: true,
     }
   );
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
+  handleDataEmpty(
+    result,
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 删除一个寻人寻物图片
@@ -107,12 +112,11 @@ Router.delete("/:id", async function (req, res, next) {
       searchImgId: +id,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (deleteRows == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  typeof deleteRows === "number" &&
-    res.send(baseSend(200, "", { datas: null, count: deleteRows }));
+  handleDataEmpty(
+    deleteRows,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 module.exports = Router;

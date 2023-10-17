@@ -3,6 +3,7 @@ const Admins = require("./admins");
 const Comments = require("./comments");
 const Friends = require("./friends");
 const Groups = require("./groups");
+const Notices = require("./notices");
 const Messages = require("./messages");
 const News = require("./news");
 const Searches = require("./searches");
@@ -12,7 +13,12 @@ const SearchImgs = require("./searchImgs");
 const CommentReplys = require("./commentReplys");
 const { DataTypes } = require("sequelize");
 
-// 一个管理员可以上传多个消息和新闻
+// 一个管理员可以发送多条公告、消息、新闻
+Admins.hasMany(Notices, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
+  as: "admin_Notice",
+});
 Admins.hasMany(Messages, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
@@ -24,8 +30,13 @@ Admins.hasMany(News, {
   as: "admin_News",
 });
 
-// 一条新闻和消息对应一个管理员
-Messages.belongsTo(Admins, {
+// 一条新闻、消息、公告对应一个管理员
+Notices.belongsTo(Admins, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
+  as: "admin_Notice",
+});
+Notices.belongsTo(Admins, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
   as: "admin_Message",
@@ -192,7 +203,7 @@ Admins.addHook(
       // 禁止删除
       return new Error("数据库内部HOOKS错误，请检查传递的数据格式是否有误");
     }
-    await Promise.all([Messages.destroy(opt), News.destroy(opt)]);
+    await Promise.all([Notices.destroy(opt), News.destroy(opt)]);
   }
 );
 
@@ -275,6 +286,7 @@ module.exports = {
   Comments,
   Friends,
   Groups,
+  Notices,
   Messages,
   News,
   Searches,

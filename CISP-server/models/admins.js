@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
-const { permissionOpt, enabledOpt } = require("../utils/index");
+const { permissionOpt, boolOpt } = require("../utils/index");
 const uuidv4 = require("uuidv4");
 
 class Admins extends Model {}
@@ -41,7 +41,7 @@ Admins.init(
         len: [2, 10],
       },
     },
-    enabled: enabledOpt(),
+    enabled: boolOpt(),
     permission: permissionOpt(),
   },
   {

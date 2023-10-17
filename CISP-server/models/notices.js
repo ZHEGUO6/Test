@@ -2,11 +2,11 @@ const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
 const { boolOpt } = require("../utils");
 
-class News extends Model {}
+class Notices extends Model {}
 
-News.init(
+Notices.init(
   {
-    newId: {
+    messageId: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       allowNull: false,
@@ -29,6 +29,7 @@ News.init(
     scanNumber: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+      allowNull: false,
       validate: {
         min: 0,
       },
@@ -41,7 +42,7 @@ News.init(
     indexes: [
       {
         unique: true,
-        fields: ["newId"],
+        fields: ["messageId"],
       },
       {
         fields: ["title", "content", "aId", "important"],
@@ -53,4 +54,4 @@ News.init(
   }
 );
 
-module.exports = News;
+module.exports = Notices;

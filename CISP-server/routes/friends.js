@@ -1,6 +1,11 @@
 const express = require("express");
 const Friends = require("../models/friends");
-const { baseSend, commonValidate, catchError } = require("../utils/server");
+const {
+  baseSend,
+  commonValidate,
+  catchError,
+  handleDataEmpty,
+} = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
 const sequelize = require("../sequelize");
 const { QueryTypes } = require("sequelize");
@@ -18,45 +23,37 @@ async function validateModify(info) {
 // 获取某一用户的所有朋友
 Router.get("/:uId", async function (req, res, next) {
   const { uId } = req.params;
-  const userInstances = await sequelize
-    .query(
-      "SELECT USERS.* FROM FRIENDS INNER JOIN USERS ON Friends.fid = USERS.loginid WHERE UID = $1 AND FRIENDS.deletedAt IS NULL AND USERS.deletedAt IS NULL",
-      {
-        bind: [uId],
-        type: QueryTypes.SELECT,
-      }
-    )
-    .catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (userInstances == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  userInstances &&
-    res.send(
-      baseSend(200, "", { datas: userInstances, count: userInstances.length })
-    );
+  handleDataEmpty(
+    await sequelize
+      .query(
+        "SELECT USERS.* FROM FRIENDS INNER JOIN USERS ON Friends.fid = USERS.loginid WHERE UID = $1 AND FRIENDS.deletedAt IS NULL AND USERS.deletedAt IS NULL",
+        {
+          bind: [uId],
+          type: QueryTypes.SELECT,
+        }
+      )
+      .catch(catchError(next, "传递的数据类型有误，请检查")),
+    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 获取某一用户某一分组的所有朋友
 Router.get("/:uId/:gId", async function (req, res, next) {
   const { uId, gId } = req.params;
-  const fdInstances = await sequelize
-    .query(
-      "SELECT USERS.* FROM FRIENDS INNER JOIN USERS ON Friends.fid = USERS.loginid WHERE UID = $1 AND GID = $2 AND FRIENDS.deletedAt IS NULL AND USERS.deletedAt IS NULL",
-      {
-        bind: [uId, gId],
-        type: QueryTypes.SELECT,
-      }
-    )
-    .catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (fdInstances == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  fdInstances &&
-    res.send(
-      baseSend(200, "", { datas: fdInstances, count: fdInstances.length })
-    );
+  handleDataEmpty(
+    await sequelize
+      .query(
+        "SELECT USERS.* FROM FRIENDS INNER JOIN USERS ON Friends.fid = USERS.loginid WHERE UID = $1 AND GID = $2 AND FRIENDS.deletedAt IS NULL AND USERS.deletedAt IS NULL",
+        {
+          bind: [uId, gId],
+          type: QueryTypes.SELECT,
+        }
+      )
+      .catch(catchError(next, "传递的数据类型有误，请检查")),
+    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 新增一个朋友
@@ -80,11 +77,11 @@ Router.post("/add", async function (req, res, next) {
       return true;
     }
   );
-  if (FriendsInstance == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  FriendsInstance && res.send(baseSend(200, "", { datas: FriendsInstance }));
+  handleDataEmpty(
+    FriendsInstance,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 新增多个朋友
@@ -113,17 +110,17 @@ Router.post("/addList", async function (req, res, next) {
       return true;
     }
   );
-  if (FriendsInstances == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  FriendsInstances &&
-    res.send(
-      baseSend(200, "", {
-        datas: FriendsInstances,
-        count: FriendsInstances.length,
-      })
-    );
+  handleDataEmpty(
+    FriendsInstances,
+    (data) =>
+      res.send(
+        baseSend(200, "", {
+          datas: data,
+          count: data.length,
+        })
+      ),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 修改朋友信息
@@ -143,11 +140,11 @@ Router.put("/:fId", async function (req, res, next) {
       returning: true,
     }
   );
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
+  handleDataEmpty(
+    result,
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 删除一个朋友
@@ -158,12 +155,11 @@ Router.delete("/:fId", async function (req, res, next) {
       friendId: fId,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (deleteRows == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  typeof deleteRows === "number" &&
-    res.send(baseSend(200, "", { datas: null, count: deleteRows }));
+  handleDataEmpty(
+    deleteRows,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 module.exports = Router;

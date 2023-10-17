@@ -58,7 +58,7 @@ const obj = {
       max: 1,
     },
   }),
-  enabledOpt: () => ({
+  boolOpt: () => ({
     type: DataTypes.BOOLEAN,
     defaultValue: true,
     validate: {

@@ -3,7 +3,7 @@ const sequelize = require("../sequelize");
 const {
   getAgeByBirthDay,
   validators: { qq, wechat, addr, phone, url },
-  enabledOpt,
+  boolOpt,
 } = require("../utils");
 const uuidv4 = require("uuidv4");
 
@@ -81,7 +81,7 @@ Users.init(
         isDate: true,
       },
     },
-    enabled: enabledOpt(),
+    enabled: boolOpt(),
     type: {
       type: DataTypes.STRING(7),
       allowNull: false,

@@ -1,6 +1,7 @@
 import './styles/base.css'
 import './styles/minix.less'
 import './styles/global.less'
+import '../public/font-common/iconfont.css'
 import App from './App.vue'
 import router from './router'
 import { createApp } from 'vue'
@@ -12,6 +13,7 @@ import ElementPlus from 'element-plus'
 import { createPersistedStatePlugin } from 'pinia-plugin-persistedstate-2'
 import Message from '@/directives/Message'
 import 'hover.css/css/hover-min.css'
+import LoadingOptions from '@/directives/Loading'
 
 const app = createApp(App)
 
@@ -25,6 +27,7 @@ PiNia.use((context) => {
 })
 
 // 全局指令
+app.directive('screenLoading', LoadingOptions)
 
 // 全局使用
 app.use(ElementPlus).use(Antd).use(PiNia).use(router)

@@ -1,6 +1,11 @@
 const express = require("express");
 const Groups = require("../models/groups");
-const { baseSend, commonValidate, catchError } = require("../utils/server");
+const {
+  baseSend,
+  commonValidate,
+  catchError,
+  handleDataEmpty,
+} = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
 const Router = express.Router({ caseSensitive: true });
 
@@ -16,8 +21,9 @@ async function validateModify(groupInfo) {
 
 // 获取所有分组
 Router.get("/", async function (req, res) {
-  const { count, rows } = await Groups.findAndCountAll();
-  res.send(baseSend(200, "", { datas: rows, count }));
+  handleDataEmpty(await Groups.findAndCountAll(), (data) =>
+    res.send(baseSend(200, "", { datas: data.rows, count: data.count }))
+  );
 });
 
 // 获取指定用户的所有分组
@@ -28,12 +34,12 @@ Router.get("/list/:uId", async function (req, res, next) {
       uId,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result &&
-    res.send(baseSend(200, "", { datas: result.rows, count: result.count }));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 获取单个分组
@@ -42,11 +48,11 @@ Router.get("/:id", async function (req, res, next) {
   const query = await Groups.findByPk(+id).catch(
     catchError(next, "传递的数据类型有误，请检查")
   );
-  if (query == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  query && res.send(baseSend(200, "", { datas: query }));
+  handleDataEmpty(
+    query,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 新增一个分组
@@ -58,11 +64,11 @@ Router.post("/add", async function (req, res, next) {
     validateAdd,
     "create"
   );
-  if (groupInstance == null) {
-    next("新增分组失败");
-    return;
-  }
-  groupInstance && res.send(baseSend(200, "", { datas: groupInstance }));
+  handleDataEmpty(
+    groupInstance,
+    (data) => res.send(baseSend(200, "", { datas: data })),
+    () => next("新增分组失败")
+  );
 });
 
 // 新增多个分组
@@ -74,14 +80,11 @@ Router.post("/addList", async function (req, res, next) {
     validateAdd,
     "bulkCreate"
   );
-  if (groupInstances == null) {
-    next("新增分组失败");
-    return;
-  }
-  groupInstances &&
-    res.send(
-      baseSend(200, "", { datas: groupInstances, count: groupInstances.length })
-    );
+  handleDataEmpty(
+    groupInstances,
+    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
+    () => next("新增分组失败")
+  );
 });
 
 // 修改分组信息
@@ -101,11 +104,11 @@ Router.put("/:id", async function (req, res, next) {
       returning: true,
     }
   );
-  if (result == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  result && res.send(baseSend(200, "", { datas: result[1], count: result[0] }));
+  handleDataEmpty(
+    result,
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 // 删除一个分组
@@ -116,12 +119,11 @@ Router.delete("/:id", async function (req, res, next) {
       groupId: +id,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
-  if (deleteRows == null) {
-    next("传递的id有误，请检查");
-    return;
-  }
-  typeof deleteRows === "number" &&
-    res.send(baseSend(200, "", { datas: null, count: deleteRows }));
+  handleDataEmpty(
+    deleteRows,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("传递的id有误，请检查")
+  );
 });
 
 module.exports = Router;
