@@ -1,5 +1,5 @@
 const express = require("express");
-const Messages = require("../models/notices");
+const Messages = require("../models/messages");
 const {
   baseSend,
   commonValidate,

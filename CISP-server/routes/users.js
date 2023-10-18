@@ -254,8 +254,8 @@ Router.post("/addList", async function (req, res, next) {
 });
 
 // 修改用户信息
-Router.put("/", async function (req, res, next) {
-  const query = req.query;
+Router.put("/:id", async function (req, res, next) {
+  const { id } = req.params;
   const result = await commonValidate(
     req,
     next,
@@ -264,7 +264,9 @@ Router.put("/", async function (req, res, next) {
     "update",
     null,
     {
-      where: query,
+      where: {
+        loginId: id,
+      },
       returning: true,
     }
   );
