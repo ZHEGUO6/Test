@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CountDown from '@/components/CounDown.vue'
-import { toRefs, onBeforeMount, ref, Component } from 'vue'
+import { toRefs, onBeforeMount, Component, ref } from 'vue'
 
 const props = defineProps<{
   storage: boolean
@@ -10,6 +10,7 @@ const props = defineProps<{
   activeText?: string | Component
   durationTime?: number
 }>()
+
 const { storage, storageItemName, onChange, durationTime } = toRefs(props)
 
 const countDownTime = ref<number>(0) // 重新获取验证码的倒计时时间
@@ -43,6 +44,10 @@ onBeforeMount(() => {
     }
     countDownTime.value = val
   }
+})
+
+defineExpose({
+  resetCountDownTime
 })
 </script>
 
