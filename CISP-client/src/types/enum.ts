@@ -1,10 +1,16 @@
 //请求路径，axios实例中配置了/api的基路径
 export enum RequestUrl {
+  Message_GetAll = '/message',
+  Message_GetList = '/message/list',
+  Message_AddOne = '/message/add',
+  Message_AddList = '/message/addList',
+  Message_Modify = '/message',
+  Message_Delete = '/message',
+
   User_Modify = '/user',
   User_GetAll = '/user',
   User_GetOne = '/user',
   User_Delete = '/user',
-  User_FindAll = '/user/find/all', // 查找满足要求的用户信息
   User_AddOne = '/user/add',
   User_GetList = '/user/list',
   User_Login = '/user/login',

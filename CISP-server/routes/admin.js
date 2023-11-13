@@ -1,5 +1,5 @@
 const express = require("express");
-const Admins = require("../models/admins");
+const Admins = require("../models/admin");
 const {
   baseSend,
   commonValidate,

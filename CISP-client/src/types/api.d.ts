@@ -1,4 +1,77 @@
 declare namespace API {
+  // 消息
+  declare namespace Message {
+    /**
+     * 获取消息
+     */
+    interface Get {
+      /**
+       * 管理员id
+       */
+      aId: string
+      /**
+       * 内容
+       */
+      content: string
+      /**
+       * 创建时间
+       */
+      createdAt: string
+      /**
+       * 删除时间
+       */
+      deletedAt: null | string
+      /**
+       * 消息id
+       */
+      messageId: number
+      /**
+       * 浏览数
+       */
+      scanNumber: number
+      /**
+       * 标题
+       */
+      title: string
+      /**
+       * 更新时间
+       */
+      updatedAt: string
+    }
+
+    /**
+     * 新增消息
+     */
+    interface Add {
+      /**
+       * 管理员id
+       */
+      aId: string
+      /**
+       * 内容
+       */
+      content: string
+      /**
+       * 标题
+       */
+      title: string
+    }
+
+    /**
+     * 修改消息
+     */
+    interface Modify {
+      /**
+       * 内容
+       */
+      content?: string
+      /**
+       * 标题
+       */
+      title?: string
+    }
+  }
+
   declare namespace User {
     // 验证昵称密码
     interface ValidateLogin {
@@ -11,6 +84,19 @@ declare namespace API {
       nickname: string
       loginPwd: string
       saveTime?: number
+    }
+
+    // 分页获取
+    interface SearchPage {
+      /**
+       * 查询几条数据
+       */
+      limit?: string
+      /**
+       * 查询第几页数据
+       */
+      page?: string
+      [property: string]: any
     }
 
     // 添加用户
@@ -138,7 +224,7 @@ declare namespace API {
     }
 
     // 获取用户信息
-    export interface Find {
+    interface Find {
       /**
        * 地址
        */

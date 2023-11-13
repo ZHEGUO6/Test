@@ -31,7 +31,7 @@ const readReqData = (req) =>
 const catchError = (next, error) => {
   return () => {
     next(error);
-    return false;
+    return true;
   };
 };
 
@@ -90,7 +90,6 @@ const commonValidate = async (
     }
   }
   return await instance[action](params, modelOption).catch((err) => {
-    console.log(err);
     return catchError(
       next,
       `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`
@@ -105,11 +104,13 @@ const commonValidate = async (
  * @param errorCB 数据响应有误的回调
  */
 const handleDataEmpty = (data, successCB, errorCB) => {
-  if (data === null || data === undefined) {
+  if (data === null || data === undefined || data === false) {
     errorCB && errorCB();
     return;
   }
-  data && successCB(data);
+  if (typeof data !== "boolean") {
+    successCB(data);
+  }
 };
 
 module.exports = {

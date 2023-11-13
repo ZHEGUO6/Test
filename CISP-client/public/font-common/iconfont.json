@@ -1,0 +1,37 @@
+{
+  "id": "4200315",
+  "name": "CISP",
+  "font_family": "iconfont",
+  "css_prefix_text": "i-",
+  "description": "校园共享平台",
+  "glyphs": [
+    {
+      "icon_id": "8652825",
+      "name": "通知",
+      "font_class": "tongzhi",
+      "unicode": "e64a",
+      "unicode_decimal": 58954
+    },
+    {
+      "icon_id": "10610490",
+      "name": "开庭公告",
+      "font_class": "kaitinggonggao",
+      "unicode": "e64f",
+      "unicode_decimal": 58959
+    },
+    {
+      "icon_id": "20901458",
+      "name": "news",
+      "font_class": "zu200",
+      "unicode": "e610",
+      "unicode_decimal": 58896
+    },
+    {
+      "icon_id": "36196882",
+      "name": "互联网搜索",
+      "font_class": "fensizengchang",
+      "unicode": "e61f",
+      "unicode_decimal": 58911
+    }
+  ]
+}

@@ -12,6 +12,21 @@ export const login = async (info: API.User.Login) => {
   return await request(RequestType.POST, RequestUrl.User_Login, info)
 }
 
+// 获取全部用户
+export const getAll = async (id: string) => {
+  return await request(RequestType.GET, RequestUrl.User_GetAll)
+}
+
+// 分页获取用户
+export const getListByPage = async (query: API.User.Find) => {
+  return await request(RequestType.GET, `${RequestUrl.User_GetList}?${qs.stringify(info)}`)
+}
+
+// 获取指定用户
+export const getSingle = async (id: string) => {
+  return await request(RequestType.GET, `${RequestUrl.User_GetOne}/${id}`)
+}
+
 // 用户恢复登录
 export const whoAmI = async () => {
   return await request(RequestType.GET, RequestUrl.User_WhoAmI)
@@ -23,9 +38,8 @@ export const loginOut = async () => {
 }
 
 // 修改用户信息
-export const modify = async (query: any, info: API.User.Modify) => {
-  console.log(info)
-  return await request(RequestType.PUT, `${RequestUrl.User_Modify}?${qs.stringify(query)}`, info)
+export const modify = async (id: string, info: API.User.Modify) => {
+  return await request(RequestType.PUT, `${RequestUrl.User_Modify}/${id}`, info)
 }
 
 // 用户注册
@@ -33,7 +47,7 @@ export const registry = async (info: API.User.Add) => {
   return await request(RequestType.POST, RequestUrl.User_AddOne, info)
 }
 
-// 查找满足要求的用户
-export const findAll = async (info: API.User.Find) => {
-  return await request(RequestType.GET, `${RequestUrl.User_FindAll}?${qs.stringify(info)}`)
+// 用户注销
+export const off = async (id: string) => {
+  return await request(RequestType.DELETE, `${RequestUrl.User_Delete}/${id}`)
 }

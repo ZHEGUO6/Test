@@ -20,7 +20,7 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <el-container v-if="routeConfig.layout">
+  <el-container v-if="routeConfig.layout" v-screen-loading="false">
     <el-aside class="elAside">
       <side-bar />
     </el-aside>
@@ -49,6 +49,7 @@ onBeforeMount(async () => {
 
 .mainContainer {
   --el-main-padding: 0;
+  background-color: aliceblue;
 }
 
 .mainContent {
@@ -57,7 +58,7 @@ onBeforeMount(async () => {
 }
 
 .elHeader {
-  --el-header-padding: 10px 15px;
+  --el-header-padding: 7px 15px;
   background-color: @headerBgColor;
   height: 56px;
 }

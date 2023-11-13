@@ -1,132 +1,147 @@
 // 建立模型之间的关系
-const Admins = require("./admins");
-const Comments = require("./comments");
-const Friends = require("./friends");
-const Groups = require("./groups");
-const Notices = require("./notices");
-const Messages = require("./messages");
-const News = require("./news");
-const Searches = require("./searches");
-const UnAbled = require("./unabled");
-const Users = require("./users");
-const SearchImgs = require("./searchImgs");
-const CommentReplys = require("./commentReplys");
+const Admin = require("./admin");
+const Comment = require("./comment");
+const Friend = require("./friend");
+const Group = require("./group");
+const Notice = require("./notice");
+const Message = require("./message");
+const New = require("./new");
+const NewImg = require("./newImg");
+const Search = require("./search");
+const UnAble = require("./unable");
+const User = require("./user");
+const SearchImg = require("./searchImg");
+const CommentReply = require("./commentReply");
 const { DataTypes } = require("sequelize");
 
-// 一个管理员可以发送多条公告、消息、新闻
-Admins.hasMany(Notices, {
+// 一个管理员可以发送多条公告、新闻
+Admin.hasMany(Notice, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
   as: "admin_Notice",
 });
-Admins.hasMany(Messages, {
+Admin.hasMany(New, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
-  as: "admin_Message",
-});
-Admins.hasMany(News, {
-  foreignKeyConstraint: true,
-  foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
-  as: "admin_News",
+  as: "admin_New",
 });
 
 // 一条新闻、消息、公告对应一个管理员
-Notices.belongsTo(Admins, {
+Notice.belongsTo(Admin, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
   as: "admin_Notice",
 });
-Notices.belongsTo(Admins, {
+
+New.hasMany(NewImg, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "nId", type: DataTypes.INTEGER },
+  as: "new_NewImg",
+});
+New.belongsTo(Admin, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
-  as: "admin_Message",
+  as: "admin_New",
 });
-News.belongsTo(Admins, {
+
+NewImg.belongsTo(New, {
   foreignKeyConstraint: true,
-  foreignKey: { allowNull: false, name: "aId", type: DataTypes.STRING(128) },
-  as: "admin_News",
+  foreignKey: { allowNull: false, name: "nId", type: DataTypes.INTEGER },
+  as: "new_NewImg",
 });
-// 一个用户可以有多个朋友，多条搜索信息，多个分组，多个禁用记录，多个回复
-Users.hasMany(Friends, {
-  foreignKeyConstraint: true,
-  foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Friends",
-});
-Users.hasMany(Groups, {
+
+// 一个用户可以有多个朋友，多条搜索信息，多个分组，多个禁用记录，多个回复，多个消息
+User.hasMany(Friend, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Groups",
+  as: "user_Friend",
 });
-Users.hasMany(Searches, {
+User.hasMany(Group, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Searches",
+  as: "user_Group",
 });
-Users.hasMany(UnAbled, {
+User.hasMany(Search, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_UnAbled",
+  as: "user_Search",
 });
-Users.hasMany(CommentReplys, {
+User.hasMany(UnAble, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
+  as: "user_UnAble",
+});
+User.hasMany(CommentReply, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
   as: "user_CommentReply",
 });
-
-// 一条搜索对应一个用户，对应多图片，有多条评论
-Searches.belongsTo(Users, {
+User.hasMany(Message, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Searches",
+  as: "user_Message",
 });
-Searches.hasMany(SearchImgs, {
+
+Message.belongsTo(User, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
+  as: "user_Message",
+});
+
+// 一条搜索对应一个用户，对应多图片，有多条评论
+Search.belongsTo(User, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
+  as: "user_Search",
+});
+Search.hasMany(SearchImg, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "sId", type: DataTypes.INTEGER },
-  as: "search_Images",
+  as: "search_SearchImg",
 });
-Searches.hasMany(Comments, {
+Search.hasMany(Comment, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "sId", type: DataTypes.INTEGER },
-  as: "search_Comments",
+  as: "search_Comment",
 });
 
 // 一条评论对应一条搜索，对应一个用户，拥有多条回复
-Comments.belongsTo(Searches, {
+Comment.belongsTo(Search, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "sId", type: DataTypes.STRING(128) },
-  as: "search_Comments",
+  as: "search_Comment",
 });
-Comments.belongsTo(Users, {
+Comment.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Comments",
+  as: "user_Comment",
 });
 
 // 一条回复对应一条评论，对应一个用户
-CommentReplys.belongsTo(Comments, {
+CommentReply.belongsTo(Comment, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "cId", type: DataTypes.INTEGER },
   as: "comment_Reply",
 });
-CommentReplys.belongsTo(Users, {
+CommentReply.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
   as: "user_CommentReply",
 });
 
 // 一个朋友可以对应两个用户
-Friends.belongsTo(Users, {
+Friend.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Friends",
+  as: "user_Friend",
 });
-Friends.belongsTo(Users, {
+Friend.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "fId", type: DataTypes.STRING(128) },
-  as: "user_To_Friends",
+  as: "user_To_Friend",
 });
 // 一个朋友对应一个分组
-Friends.belongsTo(Groups, {
+Friend.belongsTo(Group, {
   foreignKeyConstraint: true,
   foreignKey: {
     allowNull: false,
@@ -134,17 +149,17 @@ Friends.belongsTo(Groups, {
     type: DataTypes.INTEGER,
     defaultValue: 1,
   },
-  as: "friend_Groups",
+  as: "friend_Group",
 });
 
 // 一个分组对应一个用户
-Groups.belongsTo(Users, {
+Group.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Groups",
+  as: "user_Group",
 });
 // 一个分组对应多个朋友
-Groups.hasMany(Friends, {
+Group.hasMany(Friend, {
   foreignKeyConstraint: true,
   foreignKey: {
     allowNull: false,
@@ -152,21 +167,21 @@ Groups.hasMany(Friends, {
     type: DataTypes.INTEGER,
     defaultValue: 1,
   },
-  as: "friend_Groups",
+  as: "friend_Group",
 });
 
 // 一个禁用记录对应一个用户
-UnAbled.belongsTo(Users, {
+UnAble.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_UnAbled",
+  as: "user_UnAble",
 });
 
 // 一个搜索图片对应一个搜索
-SearchImgs.belongsTo(Searches, {
+SearchImg.belongsTo(Search, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "sId", type: DataTypes.INTEGER },
-  as: "search_Images",
+  as: "search_SearchImg",
 });
 
 // 统一设置模型的hooks
@@ -177,11 +192,11 @@ async function resetGroupId(instance) {
   const uId = instance.getDataValue("uId");
   if (gId === 1) {
     // 判断是否仅存在一个分组
-    const onlyOne = await Groups.count();
+    const onlyOne = await Group.count();
     if (onlyOne !== 1) {
       // 需要定义到默认分组
       // 找到groupId最小的分组，即为我的好友分组
-      const myFriendGroupInstance = await Groups.findOne({
+      const myFriendGroupInstance = await Group.findOne({
         where: {
           uId,
         },
@@ -191,20 +206,97 @@ async function resetGroupId(instance) {
   }
 }
 
-Admins.addHook(
-  "afterDestroy",
-  async (instance, { where: { loginId, ...obj } }) => {
-    const opt = {
-      where: obj,
-    };
-    if (loginId && loginId.length === 36) {
-      opt.where.aId = loginId;
-    } else {
-      // 禁止删除
-      return new Error("数据库内部HOOKS错误，请检查传递的数据格式是否有误");
-    }
-    await Promise.all([Notices.destroy(opt), News.destroy(opt)]);
-  }
+// 统一设置模型的hooks
+
+User.addHook("afterCreate", async (user, options) => {
+  // 创建一个好友分组
+  await Group.create({
+    uId: user.getDataValue("loginId"),
+    name: "我的好友",
+  });
+});
+
+User.addHook("beforeDestroy", async (instance, { where }) => {
+  const opt = {
+    where,
+  }; // 通用属性
+  // 需要调用模型的before/after destroy方法
+  const needIndividualOpt = {
+    ...opt,
+    individualHooks: true,
+  };
+  // 1. 搜寻表删除对应的信息
+  // 2. 删除之前的禁用信息
+  // 3. 删除分组表中的对应信息
+  // 3. 删除消息表中的对应信息
+  await Promise.all([
+    Search.destroy(needIndividualOpt),
+    UnAble.destroy(opt),
+    Group.destroy(needIndividualOpt),
+    Message.destroy(opt),
+  ]);
+});
+
+Search.addHook("beforeDestroy", async (search, { where: { uId } }) => {
+  // 1. 搜寻图片表删除对应的信息
+  // 2. 搜寻评论表删除之前的禁用信息
+  const sId = search.getDataValue("searchId");
+  await SearchImg.destroy({
+    where: { sId },
+  });
+  await Comment.destroy({
+    where: {
+      uId,
+      sId,
+    },
+    individualHooks: true,
+  });
+});
+
+Group.addHook("beforeDestroy", async (instance, { where: { uId } }) => {
+  //   朋友表删除对应的信息
+  await Friend.destroy({
+    where: {
+      uId,
+      gId: instance.getDataValue("groupId"),
+    },
+  });
+});
+
+Comment.addHook("beforeDestroy", async (instance, { where: { uId } }) => {
+  const opt = {
+    where: {
+      uId,
+      cId: instance.getDataValue("commentId"),
+    },
+  };
+  // 1. 评论回复表删除对应的信息
+  await CommentReply.destroy(opt);
+});
+
+Admin.addHook("afterDestroy", async (instance, { where: { loginId } }) => {
+  const opt = {
+    where: {
+      aId: loginId,
+    },
+  };
+  await Promise.all([
+    Notice.destroy(opt),
+    New.destroy({
+      ...opt,
+      individualHooks: true,
+    }),
+  ]);
+});
+
+New.addHook(
+  "beforeDestroy",
+  async (instance) =>
+    await NewImg.destroy({
+      where: {
+        nId: instance.getDataValue("newId"),
+      },
+    })
 );
 
 const createFriend = async (instance) => {
@@ -213,8 +305,8 @@ const createFriend = async (instance) => {
   await resetGroupId(instance);
   const uId = instance.getDataValue("uId");
   const fId = instance.getDataValue("fId");
-  const uInstance = await Users.findByPk(fId);
-  const fdInstance = await Friends.create({
+  const uInstance = await User.findByPk(fId);
+  const fdInstance = await Friend.create({
     uId: fId,
     fId: uId,
     gId: 1,
@@ -226,71 +318,25 @@ const createFriend = async (instance) => {
   fdInstance && (await resetGroupId(fdInstance));
 };
 
-Friends.addHook(
+Friend.addHook(
   "afterCreate",
   async (instance, opt) => await createFriend(instance)
 );
-Friends.addHook("afterBulkCreate", async (instances) => {
+Friend.addHook("afterBulkCreate", async (instances) => {
   await Promise.all(instances.map(async (i) => await createFriend(i)));
 });
 
-Searches.addHook("beforeBulkDestroy", async ({ where: { loginId } }) => {
-  const searches = await Searches.findAll({ where: { uId: loginId } }).catch(
-    (err) => false
-  );
-  if (searches) {
-    await Promise.all(
-      searches.map(
-        async (i) =>
-          await SearchImgs.destroy({
-            where: { sId: i.getDataValue("searchId") },
-          })
-      )
-    );
-  }
-});
-
-Users.addHook("afterCreate", async (users, options) => {
-  // 创建一个好友分组
-  await Groups.create({
-    uId: users.getDataValue("loginId"),
-    name: "我的好友",
-  });
-});
-Users.addHook("beforeBulkDestroy", async ({ where: { loginId, ...obj } }) => {
-  const opt = {
-    where: obj,
-  };
-  if (loginId && loginId.length === 36) {
-    opt.where.uId = loginId;
-  } else {
-    // 禁止删除
-    return Promise.reject(new Error("you must provide loginId to destory"));
-  }
-  // 1. 寻人交友表删除对应的信息
-  // 2. 删除之前的禁用信息
-  // 3. 删除分组表中的对应信息
-  // 4. 朋友表中删除对应的信息
-  // 5. 评论表中删除对应的信息
-  await Promise.all([
-    Searches.destroy(opt),
-    UnAbled.destroy(opt),
-    Groups.destroy(opt),
-    Friends.destroy(opt),
-    Comments.destroy(opt),
-  ]);
-});
-
 module.exports = {
-  Admins,
-  Comments,
-  Friends,
-  Groups,
-  Notices,
-  Messages,
-  News,
-  Searches,
-  UnAbled,
-  Users,
-  SearchImgs,
+  Admin,
+  Comment,
+  Friend,
+  Group,
+  Notice,
+  Message,
+  New,
+  Search,
+  UnAble,
+  User,
+  SearchImg,
+  CommentReply,
 };
