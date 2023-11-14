@@ -221,6 +221,7 @@ Router.delete("/:id", async function (req, res, next) {
       where: {
         loginId: id,
       },
+      individualHooks: true,
     }).catch(catchError(next, `传递的数据格式不对，请更正后再操作`)),
     (data) => res.send(baseSend(200, "", { datas: null, count: data })),
     () => next("删除管理员失败")

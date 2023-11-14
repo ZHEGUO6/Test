@@ -177,6 +177,7 @@ Router.delete("/:id", async function (req, res, next) {
     where: {
       searchId: id,
     },
+    individualHooks: true,
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     deleteRows,

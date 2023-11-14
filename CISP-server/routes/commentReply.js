@@ -20,21 +20,6 @@ async function validateModify(info) {
   return await getMeetItemFromObj(info, [], ["content"]);
 }
 
-// 获取某一评论的所有评论回复
-Router.get("/comment/:cId", async function (req, res, next) {
-  const { cId } = req.params;
-  handleDataEmpty(
-    await CommentReply.findAndCountAll({
-      where: {
-        cId,
-      },
-    }).catch(catchError(next, "传递的id有误，请检查")),
-    (data) =>
-      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
-    () => next("传递的id有误，请检查")
-  );
-});
-
 // 分页获取某一评论下的评论回复
 Router.get("/list/:cId", async function (req, res, next) {
   let { page, limit } = req.query;

@@ -273,7 +273,7 @@ Router.delete("/:id", async function (req, res, next) {
       loginId: id,
     },
     individualHooks: true,
-  }).catch((err) => catchError(next, "传递的数据类型有误，请检查"));
+  }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     deleteRows,
     (data) => res.send(baseSend(200, "", { datas: null, count: data })),

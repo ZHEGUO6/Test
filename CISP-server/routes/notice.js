@@ -63,6 +63,29 @@ Router.get("/list", async function (req, res, next) {
   );
 });
 
+// 分页获取重要新闻
+Router.get("/list/important", async function (req, res, next) {
+  let { page, limit } = req.query;
+  limit = +limit;
+  if (page < 0 || (!limit && limit < 0)) {
+    // 请求未满足期望值
+    return catchError(next, "请求的参数数据类型或值不满足要求")();
+  }
+  const result = await Notice.findAndCountAll({
+    limit,
+    offset: (+page - 1) * limit,
+    where: {
+      important: true,
+    },
+  }).catch(catchError(next, "传递的数据类型有误，请检查"));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("查询新闻数据失败")
+  );
+});
+
 // 获取单个公告
 Router.get("/getOne/:id", async function (req, res, next) {
   const { id } = req.params;

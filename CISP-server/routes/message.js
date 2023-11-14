@@ -13,8 +13,8 @@ const Router = express.Router({ caseSensitive: true });
 async function validateAdd(info) {
   return await getMeetItemFromObj(
     info,
-    ["title", "content", "aId"],
-    ["scanNumber"]
+    ["title", "uId"],
+    ["scanNumber", "content"]
   );
 }
 
@@ -23,16 +23,10 @@ async function validateModify(info) {
   return await getMeetItemFromObj(info, [], ["title", "content", "scanNumber"]);
 }
 
-// 获取所有消息
-Router.get("/", async function (req, res) {
-  handleDataEmpty(await Message.findAndCountAll(), (data) =>
-    res.send(baseSend(200, "", { datas: data.rows, count: data.count }))
-  );
-});
-
-// 分页获取消息
-Router.get("/list", async function (req, res, next) {
+// 分页获取是否移入回收站的消息
+const sendRemoveOrUnRemoveMessage = async (req, res, next, bool) => {
   let { page, limit } = req.query;
+  const { id } = req.params;
   limit = +limit;
   if (page < 0 || (!limit && limit < 0)) {
     // 请求未满足期望值
@@ -41,6 +35,10 @@ Router.get("/list", async function (req, res, next) {
   const result = await Message.findAndCountAll({
     limit,
     offset: (+page - 1) * limit,
+    where: {
+      uId: id,
+      remove: bool,
+    },
   }).catch(catchError(next, "请求的参数数据类型或值不满足要求"));
   handleDataEmpty(
     result,
@@ -48,6 +46,16 @@ Router.get("/list", async function (req, res, next) {
       res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
     () => next("查询消息数据失败")
   );
+};
+
+// 分页获取某一用户的全部未移入回收站的消息
+Router.get("/list/unremove/:id", async function (req, res, next) {
+  return await sendRemoveOrUnRemoveMessage(req, res, next, false);
+});
+
+// 分页获取某一用户的全部已移入回收站的消息
+Router.get("/list/remove/:id", async function (req, res, next) {
+  return await sendRemoveOrUnRemoveMessage(req, res, next, true);
 });
 
 // 获取单个消息
@@ -98,30 +106,6 @@ Router.post("/addList", async function (req, res, next) {
         })
       ),
     () => next("新增消息失败")
-  );
-});
-
-// 修改单个消息信息
-Router.put("/:id", async function (req, res, next) {
-  const { id } = req.params;
-  const result = await commonValidate(
-    req,
-    next,
-    Message,
-    validateModify,
-    "update",
-    null,
-    {
-      where: {
-        messageId: +id,
-      },
-      returning: true,
-    }
-  );
-  handleDataEmpty(
-    result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
-    () => next("传递的id有误，请检查")
   );
 });
 

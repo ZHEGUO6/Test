@@ -213,6 +213,7 @@ User.addHook("afterCreate", async (user, options) => {
   await Group.create({
     uId: user.getDataValue("loginId"),
     name: "我的好友",
+    initial: true,
   });
 });
 
@@ -246,27 +247,56 @@ Search.addHook("beforeDestroy", async (search, { where: { uId } }) => {
   });
   await Comment.destroy({
     where: {
-      uId,
+      uId: uId ?? search.getDataValue("uId"),
       sId,
     },
     individualHooks: true,
   });
 });
 
-Group.addHook("beforeDestroy", async (instance, { where: { uId } }) => {
-  //   朋友表删除对应的信息
-  await Friend.destroy({
-    where: {
-      uId,
-      gId: instance.getDataValue("groupId"),
-    },
-  });
-});
+Group.addHook(
+  "beforeDestroy",
+  async (instance, { where: { uId, groupId } }) => {
+    if (!groupId) {
+      // 删除用户信息
+      //   朋友表删除对应的信息
+      await Friend.destroy({
+        where: {
+          uId,
+          gId: instance.getDataValue("groupId"),
+        },
+      });
+      return;
+    }
+    // 删除当前分组信息
+    if (instance.getDataValue("initial")) {
+      //   当前是初始分组，禁止删除
+      throw new Error("无法删除初始分组信息");
+    }
+    const initialGroup = await Group.findOne({
+      where: {
+        uId,
+        initial: true,
+      },
+    });
+    // 将当前的朋友分组信息更改到初始分组中
+    await Friend.update(
+      {
+        gId: initialGroup.getDataValue("groupId"),
+      },
+      {
+        where: {
+          gId: groupId,
+          uId,
+        },
+      }
+    );
+  }
+);
 
-Comment.addHook("beforeDestroy", async (instance, { where: { uId } }) => {
+Comment.addHook("beforeDestroy", async (instance) => {
   const opt = {
     where: {
-      uId,
       cId: instance.getDataValue("commentId"),
     },
   };

@@ -45,21 +45,6 @@ Router.get("/list", async function (req, res, next) {
   );
 });
 
-// 获取某一寻人寻物下的所有评论
-Router.get("/search/:sId", async function (req, res, next) {
-  const { sId } = req.params;
-  handleDataEmpty(
-    await Comment.findAndCountAll({
-      where: {
-        sId,
-      },
-    }).catch(catchError(next, "传递的数据类型有误")),
-    (data) =>
-      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
-    () => next("传递的id有误，请检查")
-  );
-});
-
 // 分页获取某一寻人寻物下的评论
 Router.get("/search/list/:sId", async function (req, res, next) {
   let { page, limit } = req.query;

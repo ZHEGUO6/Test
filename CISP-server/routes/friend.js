@@ -1,5 +1,5 @@
 const express = require("express");
-const Friend = require("../models/friend");
+const { Group, Friend, User } = require("../models");
 const {
   baseSend,
   commonValidate,
@@ -7,8 +7,7 @@ const {
   handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
-const sequelize = require("../sequelize");
-const { QueryTypes } = require("sequelize");
+const { Op } = require("sequelize");
 const Router = express.Router({ caseSensitive: true });
 
 // 验证添加朋友
@@ -20,19 +19,19 @@ async function validateModify(info) {
   return await getMeetItemFromObj(info, [], ["note"]);
 }
 
-// 获取某一用户的所有朋友
+// 获取某一用户的所有朋友数量
 Router.get("/:uId", async function (req, res, next) {
   const { uId } = req.params;
   handleDataEmpty(
-    await sequelize
-      .query(
-        "SELECT USERS.* FROM FRIENDS INNER JOIN USERS ON Friend.fid = USERS.loginid WHERE UID = $1 AND FRIENDS.deletedAt IS NULL AND USERS.deletedAt IS NULL",
-        {
-          bind: [uId],
-          type: QueryTypes.SELECT,
-        }
-      )
-      .catch(catchError(next, "传递的数据类型有误，请检查")),
+    await Friend.count({
+      include: [{ model: User, as: "user_Friend" }],
+      where: {
+        uId,
+        fId: {
+          [Op.col]: "user_Friend.loginId",
+        },
+      },
+    }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
     () => next("传递的id有误，请检查")
   );
@@ -42,15 +41,43 @@ Router.get("/:uId", async function (req, res, next) {
 Router.get("/:uId/:gId", async function (req, res, next) {
   const { uId, gId } = req.params;
   handleDataEmpty(
-    await sequelize
-      .query(
-        "SELECT USERS.* FROM FRIENDS INNER JOIN USERS ON Friend.fid = USERS.loginid WHERE UID = $1 AND GID = $2 AND FRIENDS.deletedAt IS NULL AND USERS.deletedAt IS NULL",
-        {
-          bind: [uId, gId],
-          type: QueryTypes.SELECT,
-        }
-      )
-      .catch(catchError(next, "传递的数据类型有误，请检查")),
+    await Friend.findAll({
+      include: [{ model: User, as: "user_Friend" }, { model: Group }],
+      where: {
+        uId,
+        gId,
+        fId: {
+          [Op.col]: "user_Friend.loginId",
+        },
+      },
+    }).catch(catchError(next, "传递的数据类型有误，请检查")),
+    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
+    () => next("传递的id有误，请检查")
+  );
+});
+
+// 分页获取某一用户某一分组的所有朋友
+Router.get("/list/:uId/:gId", async function (req, res, next) {
+  const { uId, gId } = req.params;
+  let { page, limit } = req.query;
+  limit = +limit;
+  if (page < 0 || (!limit && limit < 0)) {
+    // 请求未满足期望值
+    return catchError(next, "传递的数据类型有误，请检查")();
+  }
+  handleDataEmpty(
+    await Friend.findAndCountAll({
+      include: [{ model: User, as: "user_Friend" }, { model: Group }],
+      where: {
+        uId,
+        gId,
+        fId: {
+          [Op.col]: "user_Friend.loginId",
+        },
+      },
+      limit,
+      offset: (+page - 1) * limit,
+    }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
     () => next("传递的id有误，请检查")
   );
