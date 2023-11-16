@@ -19,15 +19,8 @@ async function validateModify(info) {
   return await getMeetItemFromObj(info, [], ["imgUrl"]);
 }
 
-// 获取所有寻人寻物图片
-Router.get("/", async function (req, res) {
-  handleDataEmpty(await SearchImg.findAndCountAll(), ({ count, rows }) =>
-    res.send(baseSend(200, "", { datas: rows, count }))
-  );
-});
-
 // 根据寻人寻物id获取所有图片
-Router.get("/search/:id", async function (req, res, next) {
+Router.get("/:id", async function (req, res, next) {
   const { id } = req.params;
   const result = await SearchImg.findAndCountAll({
     where: {
@@ -99,7 +92,8 @@ Router.put("/:id", async function (req, res, next) {
   );
   handleDataEmpty(
     result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("传递的id有误，请检查")
   );
 });

@@ -14,56 +14,53 @@ async function validateAdd(info) {
   return await getMeetItemFromObj(
     info,
     ["title", "content", "aId"],
-    ["scanNumber"]
+    ["scanNumber", "important"]
   );
 }
 
-// 验证修改公告
-async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["title", "content", "scanNumber"]);
-}
-
-// 获取所有公告
-Router.get("/", async function (req, res, next) {
-  const { important } = req.query;
-  const options = {};
-  important ?? (options.where = { important });
+// 获取所有公告数量
+Router.get("/count", async function (req, res, next) {
   handleDataEmpty(
-    await Notice.findAndCountAll(options).catch(
+    await Notice.count().catch(
       catchError(next, "请求的参数数据类型或值不满足要求")
     ),
-    (result) =>
-      res.send(baseSend(200, "", { datas: result.rows, count: result.count })),
+    (result) => res.send(baseSend(200, "", { datas: null, count: result })),
+    () => next("查询公告数据失败")
+  );
+});
+
+// 获取所有重要公告的数量
+Router.get("/count/important", async function (req, res, next) {
+  handleDataEmpty(
+    await Notice.count({ where: { important: true } }).catch(
+      catchError(next, "请求的参数数据类型或值不满足要求")
+    ),
+    (result) => res.send(baseSend(200, "", { datas: null, count: result })),
     () => next("查询公告数据失败")
   );
 });
 
 // 分页获取公告
 Router.get("/list", async function (req, res, next) {
-  let { page, limit, important } = req.query;
+  let { page, limit } = req.query;
   limit = +limit;
   if ((!page && page < 0) || (!limit && limit < 0)) {
     // 请求未满足期望值
     return catchError(next, "请求的参数数据类型或值不满足要求")();
   }
-  const options = {
-    where: {
+  handleDataEmpty(
+    await Notice.findAndCountAll({
       limit,
       offset: (+page - 1) * limit,
-    },
-  };
-  important ?? (options.where.important = important);
-  handleDataEmpty(
-    await Notice.findAndCountAll(options).catch(
-      catchError(next, "请求的参数数据类型或值不满足要求")
-    ),
+      order: [["createdAt", "DESC"]],
+    }).catch(catchError(next, "请求的参数数据类型或值不满足要求")),
     (result) =>
       res.send(baseSend(200, "", { datas: result.rows, count: result.count })),
     () => next("查询公告数据失败")
   );
 });
 
-// 分页获取重要新闻
+// 分页获取重要公告
 Router.get("/list/important", async function (req, res, next) {
   let { page, limit } = req.query;
   limit = +limit;
@@ -77,6 +74,7 @@ Router.get("/list/important", async function (req, res, next) {
     where: {
       important: true,
     },
+    order: [["createdAt", "DESC"]],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -122,28 +120,13 @@ Router.post("/addList", async function (req, res, next) {
   );
 });
 
-// 修改单个公告信息
-Router.put("/:id", async function (req, res, next) {
-  const { id } = req.params;
-  handleDataEmpty(
-    commonValidate(req, next, Messages, validateModify, "update", null, {
-      where: {
-        messageId: +id,
-      },
-      returning: true,
-    }),
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
-    () => next("传递的id有误，请检查")
-  );
-});
-
 // 删除一个公告
 Router.delete("/:id", async function (req, res, next) {
   const id = req.params.id;
   handleDataEmpty(
-    await Messages.destroy({
+    await Notice.destroy({
       where: {
-        messageId: +id,
+        noticeId: +id,
       },
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) => res.send(baseSend(200, "", { datas: null, count: data })),

@@ -1,5 +1,5 @@
 const express = require("express");
-const User = require("../models/user");
+const { User, Friend } = require("../models");
 const {
   baseSend,
   commonValidate,
@@ -13,6 +13,7 @@ const { encrypt, meetEncrypt } = require("../utils/encryptOrDecrypt");
 const { getRandom } = require("../utils/math");
 const { promises } = require("fs");
 const { resolve } = require("path");
+const { Op } = require("sequelize");
 
 // 验证添加用户
 async function validateAdd(userInfo) {
@@ -97,16 +98,43 @@ async function validateModify(userInfo) {
   );
 }
 
-// 获取所有用户
-Router.get("/", async function (req, res) {
-  handleDataEmpty(await User.findAndCountAll(), ({ count, rows }) =>
-    res.send(baseSend(200, "", { datas: rows, count }))
+// 获取所有用户数量
+Router.get("/count", async function (req, res) {
+  handleDataEmpty(await User.count(), (count) =>
+    res.send(baseSend(200, "", { datas: null, count }))
   );
 });
 
 // 分页获取用户
 Router.get("/list", async function (req, res, next) {
+  let { page, limit } = req.query;
+  limit = +limit;
+  if (page < 0 || (!limit && limit < 0)) {
+    // 请求未满足期望值
+    return catchError(next, "请求的参数数据类型或值不满足要求")();
+  }
+  const result = await User.findAndCountAll({
+    limit,
+    offset: (+page - 1) * limit,
+    order: [["createdAt", "DESC"]],
+  }).catch(catchError(next, "传递的数据类型有误，请检查"));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("查询用户数据失败")
+  );
+});
+
+// 分页查找满足要求的用户
+Router.get("/find/list", async function (req, res, next) {
   let { page, limit, ...info } = req.query;
+  for (const key in info) {
+    const item = info[key];
+    info[key] = {
+      [Op.substring]: String(item),
+    };
+  }
   limit = +limit;
   if (page < 0 || (!limit && limit < 0)) {
     // 请求未满足期望值
@@ -121,18 +149,54 @@ Router.get("/list", async function (req, res, next) {
     result,
     (data) =>
       res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
-    () => next("查询用户数据失败")
+    () => next("传递的id有误，请检查")
+  );
+});
+
+// 根据当前用户分页查找满足要求的朋友
+Router.get("/find/friendList/:uId", async function (req, res, next) {
+  let { page, limit, ...info } = req.query;
+  const { uId } = req.params;
+  limit = +limit;
+  for (const key in info) {
+    const item = info[key];
+    info[key] = {
+      [Op.substring]: String(item),
+    };
+  }
+  if (page < 0 || (!limit && limit < 0)) {
+    // 请求未满足期望值
+    return catchError(next, "请求的参数数据类型或值不满足要求")();
+  }
+  const result = await User.findAndCountAll({
+    limit,
+    offset: (+page - 1) * limit,
+    where: {
+      ...info,
+      loginId: uId,
+    },
+    include: [
+      {
+        model: Friend,
+        as: "user_Friend",
+      },
+    ],
+  }).catch(catchError(next, "传递的数据类型有误，请检查"));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count ?? 0 })),
+    () => next("传递的id有误，请检查")
   );
 });
 
 // 获取单个用户
 Router.get("/:id", async function (req, res, next) {
   const { id } = req.params;
-  const query = await User.findByPk(id).catch(
-    catchError(next, "传递的数据类型有误，请检查")
-  );
   handleDataEmpty(
-    query,
+    await User.findByPk(id).catch(
+      catchError(next, "传递的数据类型有误，请检查")
+    ),
     (data) => res.send(baseSend(200, "", { datas: data })),
     () => next("传递的id有误，请检查")
   );
@@ -203,7 +267,7 @@ Router.get("/login/whoAmI", async function (req, res, next) {
 });
 
 // 用户退出登录
-Router.post("/logout", async function (req, res, next) {
+Router.get("/out/logout", async function (req, res, next) {
   req.session.userId = null;
   res.send(baseSend(200, "退出登录成功"));
 });
@@ -260,7 +324,7 @@ Router.put("/:id", async function (req, res, next) {
   handleDataEmpty(
     result,
     (data) =>
-      res.send(baseSend(200, "", { datas: data[0], count: data[1] || 0 })),
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("传递的id有误，请检查")
   );
 });

@@ -14,9 +14,6 @@ NewImg.init(
     imgUrl: {
       type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        isUrl: true,
-      },
     },
   },
   {

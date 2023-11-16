@@ -11,6 +11,7 @@ const {
   NoticeRouter,
   MessageRouter,
   NewsRouter,
+  NewsImgRouter,
   SearchRouter,
   SearchImgRouter,
   UnableRouter,
@@ -51,6 +52,7 @@ app.use("/api/group", GroupRouter);
 app.use("/api/message", MessageRouter);
 app.use("/api/notice", NoticeRouter);
 app.use("/api/news", NewsRouter);
+app.use("/api/newsImg", NewsImgRouter);
 app.use("/api/search", SearchRouter);
 app.use("/api/searchImg", SearchImgRouter);
 app.use("/api/unable", UnableRouter);

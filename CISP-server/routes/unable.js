@@ -14,15 +14,10 @@ async function validateAdd(info) {
   return await getMeetItemFromObj(info, ["unAccessMsg", "uId"]);
 }
 
-// 验证修改
-async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["unAccessMsg"]);
-}
-
-// 获取所有禁用记录
-Router.get("/", async function (req, res) {
-  handleDataEmpty(await Unable.findAndCountAll(), ({ count, rows }) =>
-    res.send(baseSend(200, "", { datas: rows, count }))
+// 获取所有禁用记录数量
+Router.get("/count", async function (req, res) {
+  handleDataEmpty(await Unable.count(), (count) =>
+    res.send(baseSend(200, "", { datas: null, count }))
   );
 });
 
@@ -37,6 +32,34 @@ Router.get("/list", async function (req, res, next) {
   const result = await Unable.findAndCountAll({
     limit,
     offset: (+page - 1) * limit,
+    order: [["createdAt", "DESC"]],
+    paranoid: false,
+  }).catch(catchError(next, "传递的数据类型有误，请检查"));
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    () => next("查询禁用记录数据失败")
+  );
+});
+
+// 分页获取某一用户的禁用记录
+Router.get("/list/:uId", async function (req, res, next) {
+  let { page, limit } = req.query;
+  const { uId } = req.params;
+  limit = +limit;
+  if (page < 0 || (!limit && limit < 0)) {
+    // 请求未满足期望值
+    return catchError(next, "请求的参数数据类型或值不满足要求")();
+  }
+  const result = await Unable.findAndCountAll({
+    limit,
+    offset: (+page - 1) * limit,
+    order: [["createdAt", "DESC"]],
+    paranoid: false,
+    where: {
+      uId,
+    },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -66,85 +89,12 @@ Router.post("/add", async function (req, res, next) {
     next,
     Unable,
     validateAdd,
-    "create",
-    async (item) => {
-      const has = await Unable.findOne({
-        where: {
-          uId: item.uId,
-        },
-      });
-      if (has) {
-        return catchError(next, "该用户已经被禁用了，无法多次禁用")();
-      }
-      return true;
-    }
+    "create"
   );
   handleDataEmpty(
     unableInstance,
     (data) => res.send(baseSend(200, "", { datas: data })),
     () => next("新增禁用记录失败")
-  );
-});
-
-// 新增多个禁用记录
-Router.post("/addList", async function (req, res, next) {
-  const set = new Set();
-  const unabledInstances = await commonValidate(
-    req,
-    next,
-    Unable,
-    validateAdd,
-    "bulkCreate",
-    async (item) => {
-      if (set.has(item.uId)) {
-        return catchError(next, `传递了相同的用户id`)();
-      }
-      const has = await Unable.findOne({
-        where: {
-          uId: item.uId,
-        },
-      });
-      if (has) {
-        return catchError(next, "该用户已经被禁用了，无法多次禁用")();
-      }
-      set.add(item.uId);
-      return true;
-    }
-  );
-  handleDataEmpty(
-    unabledInstances,
-    (data) =>
-      res.send(
-        baseSend(200, "", {
-          datas: data,
-          count: data.length,
-        })
-      ),
-    () => next("新增禁用记录失败")
-  );
-});
-
-// 修改禁用记录信息
-Router.put("/:id", async function (req, res, next) {
-  const { id } = req.params;
-  const result = await commonValidate(
-    req,
-    next,
-    Unable,
-    validateModify,
-    "update",
-    null,
-    {
-      where: {
-        unabledId: id,
-      },
-      returning: true,
-    }
-  );
-  handleDataEmpty(
-    result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
-    () => next("传递的id有误，请检查")
   );
 });
 
@@ -155,6 +105,7 @@ Router.delete("/:id", async function (req, res, next) {
     where: {
       unabledId: id,
     },
+    individualHooks: true,
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     deleteRows,

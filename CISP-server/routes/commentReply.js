@@ -7,17 +7,16 @@ const {
   handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
-const Comments = require("../models/comment");
 const Router = express.Router({ caseSensitive: true });
 
 // 验证添加评论回复
 async function validateAdd(info) {
-  return await getMeetItemFromObj(info, ["content", "uId", "cId"]);
+  return await getMeetItemFromObj(info, ["content", "uId", "cId"], ["status"]);
 }
 
 // 验证修改
 async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["content"]);
+  return await getMeetItemFromObj(info, [], ["content", "status"]);
 }
 
 // 分页获取某一评论下的评论回复
@@ -36,6 +35,7 @@ Router.get("/list/:cId", async function (req, res, next) {
       },
       limit,
       offset: (+page - 1) * limit,
+      order: [["createdAt", "DESC"]],
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) =>
       res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
@@ -59,21 +59,7 @@ Router.get("/:id", async function (req, res, next) {
 Router.post("/add", async function (req, res, next) {
   // 剔除不需要的键值对
   handleDataEmpty(
-    await commonValidate(
-      req,
-      next,
-      CommentReply,
-      validateAdd,
-      "create",
-      async (item) => {
-        const cInstance = await Comments.findByPk(item.cId);
-        if (cInstance.getDataValue("uId") === item.uId) {
-          // 不能自己给自己回复
-          return catchError(next, "仅允许他人给自己回复，请勿自回")();
-        }
-        return true;
-      }
-    ),
+    await commonValidate(req, next, CommentReply, validateAdd, "create"),
     (data) => res.send(baseSend(200, "", { datas: data })),
     () => next("新增评论回复失败")
   );
@@ -97,7 +83,8 @@ Router.put("/:id", async function (req, res, next) {
         returning: true,
       }
     ),
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("传递的id有误，请检查")
   );
 });

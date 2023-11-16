@@ -14,22 +14,26 @@ async function validateAdd(info) {
   return await getMeetItemFromObj(
     info,
     ["title", "content", "aId"],
-    ["scanNumber"]
+    ["scanNumber", "important"]
   );
 }
 
-// 验证修改
-async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["title", "content", "scanNumber"]);
-}
+// 获取新闻数量
+Router.get("/count", async function (req, res) {
+  handleDataEmpty(await New.count(), (data) =>
+    res.send(baseSend(200, "", { datas: null, count: data }))
+  );
+});
 
-// 获取所有新闻
-Router.get("/", async function (req, res) {
-  const { important } = req.query;
-  const options = {};
-  important ?? (options.where = { important });
-  handleDataEmpty(await New.findAndCountAll(options), (data) =>
-    res.send(baseSend(200, "", { datas: data.rows, count: data.count }))
+// 获取重要新闻的数量
+Router.get("/count/important", async function (req, res) {
+  handleDataEmpty(
+    await New.count({
+      where: {
+        important: true,
+      },
+    }),
+    (data) => res.send(baseSend(200, "", { datas: null, count: data }))
   );
 });
 
@@ -44,6 +48,7 @@ Router.get("/list", async function (req, res, next) {
   const result = await New.findAndCountAll({
     limit,
     offset: (+page - 1) * limit,
+    order: [["createdAt", "DESC"]],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -67,6 +72,7 @@ Router.get("/list/important", async function (req, res, next) {
     where: {
       important: true,
     },
+    order: [["createdAt", "DESC"]],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -102,46 +108,6 @@ Router.post("/add", async function (req, res, next) {
     NewsInstance,
     (data) => res.send(baseSend(200, "", { datas: data })),
     () => next("新增新闻失败")
-  );
-});
-
-// 新增多个新闻
-Router.post("/addList", async function (req, res, next) {
-  const NewsInstances = await commonValidate(
-    req,
-    next,
-    New,
-    validateAdd,
-    "bulkCreate"
-  );
-  handleDataEmpty(
-    NewsInstances,
-    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
-    () => next("新增新闻失败")
-  );
-});
-
-// 修改单个新闻信息
-Router.put("/:id", async function (req, res, next) {
-  const { id } = req.params;
-  const result = await commonValidate(
-    req,
-    next,
-    New,
-    validateModify,
-    "update",
-    null,
-    {
-      where: {
-        newId: +id,
-      },
-      returning: true,
-    }
-  );
-  handleDataEmpty(
-    result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
-    () => next("传递的id有误，请检查")
   );
 });
 

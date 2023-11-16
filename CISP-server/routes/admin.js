@@ -78,10 +78,10 @@ async function validateModifyAdmin(adminInfo) {
   );
 }
 
-// 获取所有管理员
-Router.get("/", async function (req, res, next) {
-  handleDataEmpty(await Admins.findAndCountAll(), ({ rows, count }) =>
-    res.send(baseSend(200, "", { datas: rows, count }))
+// 获取管理员数量
+Router.get("/count", async function (req, res, next) {
+  handleDataEmpty(await Admins.count(), (rows) =>
+    res.send(baseSend(200, "", { datas: null, count: rows }))
   );
 });
 
@@ -97,6 +97,7 @@ Router.get("/list", async function (req, res, next) {
     await Admins.findAndCountAll({
       limit,
       offset: (+page - 1) * limit,
+      order: [["createdAt", "DESC"]],
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (result) =>
       res.send(baseSend(200, "", { datas: result.rows, count: result.count }))
@@ -167,7 +168,7 @@ Router.get("/login/whoAmI", async function (req, res, next) {
 });
 
 // 管理员退出登录
-Router.post("/logout", async function (req, res, next) {
+Router.get("/out/logout", async function (req, res, next) {
   req.session.adminId = null;
   res.send(baseSend(200, "退出登录成功"));
 });
@@ -208,7 +209,8 @@ Router.put("/:id", async function (req, res, next) {
         returning: true,
       }
     ),
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("修改管理员信息失败")
   );
 });

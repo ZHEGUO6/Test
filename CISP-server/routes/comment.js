@@ -11,20 +11,13 @@ const Router = express.Router({ caseSensitive: true });
 
 // 验证添加评论
 async function validateAdd(info) {
-  return await getMeetItemFromObj(info, ["content", "uId", "sId"]);
+  return await getMeetItemFromObj(info, ["content", "uId", "sId"], ["status"]);
 }
 
 // 验证修改
 async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["content"]);
+  return await getMeetItemFromObj(info, [], ["content", "status"]);
 }
-
-// 获取所有评论
-Router.get("/", async function (req, res, next) {
-  handleDataEmpty(await Comment.findAndCountAll(), ({ rows, count }) =>
-    res.send(baseSend(200, "", { datas: rows, count }))
-  );
-});
 
 // 分页获取评论
 Router.get("/list", async function (req, res, next) {
@@ -32,16 +25,18 @@ Router.get("/list", async function (req, res, next) {
   limit = +limit;
   if (page < 0 || (!limit && limit < 0)) {
     // 请求未满足期望值
-    return catchError(next, "传递的数据类型有误，请检查")();
+    catchError(next, "请求参数数据类型或值不匹配")();
+    return;
   }
   handleDataEmpty(
     await Comment.findAndCountAll({
       limit,
       offset: (+page - 1) * limit,
+      order: [["createdAt", "DESC"]],
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) =>
       res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
-    () => next("查询评论数据失败")
+    () => next("传递的id有误，请检查")
   );
 });
 
@@ -62,6 +57,7 @@ Router.get("/search/list/:sId", async function (req, res, next) {
       },
       limit,
       offset: (+page - 1) * limit,
+      order: [["createdAt", "DESC"]],
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) =>
       res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
@@ -100,7 +96,8 @@ Router.put("/:id", async function (req, res, next) {
       },
       returning: true,
     }),
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("传递的id有误，请检查")
   );
 });

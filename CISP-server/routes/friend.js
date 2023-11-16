@@ -20,38 +20,16 @@ async function validateModify(info) {
 }
 
 // 获取某一用户的所有朋友数量
-Router.get("/:uId", async function (req, res, next) {
+Router.get("/count/:uId", async function (req, res, next) {
   const { uId } = req.params;
   handleDataEmpty(
     await Friend.count({
       include: [{ model: User, as: "user_Friend" }],
       where: {
         uId,
-        fId: {
-          [Op.col]: "user_Friend.loginId",
-        },
       },
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
-    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
-    () => next("传递的id有误，请检查")
-  );
-});
-
-// 获取某一用户某一分组的所有朋友
-Router.get("/:uId/:gId", async function (req, res, next) {
-  const { uId, gId } = req.params;
-  handleDataEmpty(
-    await Friend.findAll({
-      include: [{ model: User, as: "user_Friend" }, { model: Group }],
-      where: {
-        uId,
-        gId,
-        fId: {
-          [Op.col]: "user_Friend.loginId",
-        },
-      },
-    }).catch(catchError(next, "传递的数据类型有误，请检查")),
-    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
     () => next("传递的id有误，请检查")
   );
 });
@@ -67,13 +45,10 @@ Router.get("/list/:uId/:gId", async function (req, res, next) {
   }
   handleDataEmpty(
     await Friend.findAndCountAll({
-      include: [{ model: User, as: "user_Friend" }, { model: Group }],
+      include: [{ model: User, as: "user_Friend" }],
       where: {
         uId,
         gId,
-        fId: {
-          [Op.col]: "user_Friend.loginId",
-        },
       },
       limit,
       offset: (+page - 1) * limit,
@@ -90,62 +65,11 @@ Router.post("/add", async function (req, res, next) {
     next,
     Friend,
     validateAdd,
-    "create",
-    async ({ uId, fId }) => {
-      const has = await Friend.findOne({
-        where: {
-          uId,
-          fId,
-        },
-      });
-      if (has) {
-        return catchError(next, `该朋友已经存在，请勿多次添加`)();
-      }
-      return true;
-    }
+    "create"
   );
   handleDataEmpty(
     FriendsInstance,
     (data) => res.send(baseSend(200, "", { datas: data })),
-    () => next("传递的id有误，请检查")
-  );
-});
-
-// 新增多个朋友
-Router.post("/addList", async function (req, res, next) {
-  const set = new Set();
-  const FriendsInstances = await commonValidate(
-    req,
-    next,
-    Friend,
-    validateAdd,
-    "bulkCreate",
-    async ({ uId, fId }) => {
-      if (set.has(fId)) {
-        return catchError(next, `传递了相同的用户id`)();
-      }
-      set.add(fId);
-      const has = await Friend.findOne({
-        where: {
-          uId,
-          fId,
-        },
-      });
-      if (has) {
-        return catchError(next, `该朋友已经存在，请勿多次添加`)();
-      }
-      return true;
-    }
-  );
-  handleDataEmpty(
-    FriendsInstances,
-    (data) =>
-      res.send(
-        baseSend(200, "", {
-          datas: data,
-          count: data.length,
-        })
-      ),
     () => next("传递的id有误，请检查")
   );
 });
@@ -169,7 +93,8 @@ Router.put("/:fId", async function (req, res, next) {
   );
   handleDataEmpty(
     result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("传递的id有误，请检查")
   );
 });

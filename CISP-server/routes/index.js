@@ -6,6 +6,7 @@ module.exports.GroupRouter = require("./group");
 module.exports.MessageRouter = require("./message");
 module.exports.NoticeRouter = require("./notice");
 module.exports.NewsRouter = require("./new");
+module.exports.NewsImgRouter = require("./newImg");
 module.exports.SearchRouter = require("./search");
 module.exports.SearchImgRouter = require("./searchImg");
 module.exports.UnableRouter = require("./unable");

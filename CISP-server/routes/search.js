@@ -13,25 +13,15 @@ const Router = express.Router({ caseSensitive: true });
 async function validateAdd(info) {
   return await getMeetItemFromObj(
     info,
-    ["title", "intro", "uId"],
+    ["title", "intro", "uId", "typeId"],
     ["commentNumber", "scanNumber"]
   );
 }
 
-// 验证修改
-async function validateModify(info) {
-  return await getMeetItemFromObj(
-    info,
-    [],
-    ["title", "intro", "commentNumber", "scanNumber"]
-  );
-}
-
-// 获取所有寻人寻物
-Router.get("/", async function (req, res) {
-  const result = await Search.findAndCountAll();
-  handleDataEmpty(result, ({ count, rows }) =>
-    res.send(baseSend(200, "", { datas: rows, count }))
+// 获取所有寻人寻物数量
+Router.get("/count", async function (req, res) {
+  handleDataEmpty(await Search.count(), (count) =>
+    res.send(baseSend(200, "", { datas: null, count }))
   );
 });
 
@@ -46,6 +36,7 @@ Router.get("/list", async function (req, res, next) {
   const result = await Search.findAndCountAll({
     limit,
     offset: (+page - 1) * limit,
+    order: [["createdAt", "DESC"]],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -55,18 +46,17 @@ Router.get("/list", async function (req, res, next) {
   );
 });
 
-// 根据类型获取所有寻人寻物
-Router.get("/type/:typeId", async function (req, res, next) {
+// 根据类型获取对应数量
+Router.get("/type/count/:typeId", async function (req, res, next) {
   const { typeId } = req.params;
-  const result = await Search.findAndCountAll({
+  const result = await Search.count({
     where: {
       typeId,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
-    (data) =>
-      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
     () => next("传递的id有误，请检查")
   );
 });
@@ -124,51 +114,27 @@ Router.post("/add", async function (req, res, next) {
   );
 });
 
-// 新增多个寻人寻物 (暂时不添加该功能)
-Router.post("/addList", async function (req, res, next) {
-  const SearchesInstances = await commonValidate(
-    req,
-    next,
-    Search,
-    validateAdd,
-    "bulkCreate"
-  );
-  handleDataEmpty(
-    SearchesInstances,
-    (data) =>
-      res.send(
-        baseSend(200, "", {
-          datas: data,
-          count: data.length,
-        })
-      ),
-    () => next("新增搜寻失败")
-  );
-});
-
-// 修改单个寻人寻物信息
-Router.put("/:id", async function (req, res, next) {
-  const { id } = req.params;
-  const result = await commonValidate(
-    req,
-    next,
-    Search,
-    validateModify,
-    "update",
-    null,
-    {
-      where: {
-        searchId: +id,
-      },
-      returning: true,
-    }
-  );
-  handleDataEmpty(
-    result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
-    () => next("传递的id有误，请检查")
-  );
-});
+// // 新增多个寻人寻物 (暂时不添加该功能)
+// Router.post("/addList", async function (req, res, next) {
+//   const SearchesInstances = await commonValidate(
+//     req,
+//     next,
+//     Search,
+//     validateAdd,
+//     "bulkCreate"
+//   );
+//   handleDataEmpty(
+//     SearchesInstances,
+//     (data) =>
+//       res.send(
+//         baseSend(200, "", {
+//           datas: data,
+//           count: data.length,
+//         })
+//       ),
+//     () => next("新增搜寻失败")
+//   );
+// });
 
 // 删除一个寻人寻物
 Router.delete("/:id", async function (req, res, next) {

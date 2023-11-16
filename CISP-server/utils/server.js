@@ -92,7 +92,7 @@ const commonValidate = async (
   return await instance[action](params, modelOption).catch((err) => {
     return catchError(
       next,
-      `传递的数据格式不对或者对象已存在导致数据库报错，${err.name}`
+      `传递的数据格式不对或者对象已存在导致数据库报错 ${err.name} ${err.message}`
     )();
   });
 };

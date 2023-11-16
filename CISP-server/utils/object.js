@@ -12,10 +12,10 @@ module.exports = {
     }
     async function _validate(meetKey, must = false) {
       if (typeof meetKey === "string") {
-        !objOfKeys.includes(meetKey) &&
-          delete obj[meetKey] &&
-          must &&
-          meetKeyCont--;
+        if (!objOfKeys.includes(meetKey)) {
+          delete obj[meetKey];
+          must && meetKeyCont--;
+        }
       } else {
         // 需要对满足的数据进行过滤
         if (!objOfKeys.includes(meetKey[0])) {

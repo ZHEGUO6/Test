@@ -31,7 +31,10 @@ Notice.init(
         min: 0,
       },
     },
-    important: boolOpt(),
+    important: {
+      ...boolOpt(),
+      defaultValue: false,
+    },
   },
   {
     sequelize,

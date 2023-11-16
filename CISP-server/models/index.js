@@ -13,6 +13,10 @@ const User = require("./user");
 const SearchImg = require("./searchImg");
 const CommentReply = require("./commentReply");
 const { DataTypes } = require("sequelize");
+const Unable = require("./unable");
+const { catchError } = require("../utils/server");
+const inspector = require("inspector");
+const Comments = require("./comment");
 
 // 一个管理员可以发送多条公告、新闻
 Admin.hasMany(Notice, {
@@ -217,10 +221,13 @@ User.addHook("afterCreate", async (user, options) => {
   });
 });
 
-User.addHook("beforeDestroy", async (instance, { where }) => {
+User.addHook("beforeDestroy", async (instance, { where: { loginId } }) => {
   const opt = {
-    where,
+    where: {
+      uId: loginId,
+    },
   }; // 通用属性
+
   // 需要调用模型的before/after destroy方法
   const needIndividualOpt = {
     ...opt,
@@ -238,7 +245,7 @@ User.addHook("beforeDestroy", async (instance, { where }) => {
   ]);
 });
 
-Search.addHook("beforeDestroy", async (search, { where: { uId } }) => {
+Search.addHook("beforeDestroy", async (search) => {
   // 1. 搜寻图片表删除对应的信息
   // 2. 搜寻评论表删除之前的禁用信息
   const sId = search.getDataValue("searchId");
@@ -247,7 +254,6 @@ Search.addHook("beforeDestroy", async (search, { where: { uId } }) => {
   });
   await Comment.destroy({
     where: {
-      uId: uId ?? search.getDataValue("uId"),
       sId,
     },
     individualHooks: true,
@@ -267,8 +273,7 @@ Group.addHook(
         },
       });
       return;
-    }
-    // 删除当前分组信息
+    } // 删除当前分组信息
     if (instance.getDataValue("initial")) {
       //   当前是初始分组，禁止删除
       throw new Error("无法删除初始分组信息");
@@ -302,6 +307,14 @@ Comment.addHook("beforeDestroy", async (instance) => {
   };
   // 1. 评论回复表删除对应的信息
   await CommentReply.destroy(opt);
+});
+
+CommentReply.addHook("beforeCreate", async (instance) => {
+  const cInstance = await Comments.findByPk(instance.getDataValue("cId"));
+  if (cInstance?.getDataValue("uId") === instance.getDataValue("uId")) {
+    // 不能自己给自己回复
+    throw new Error("仅允许他人给自己回复，请勿自回");
+  }
 });
 
 Admin.addHook("afterDestroy", async (instance, { where: { loginId } }) => {
@@ -348,12 +361,52 @@ const createFriend = async (instance) => {
   fdInstance && (await resetGroupId(fdInstance));
 };
 
-Friend.addHook(
-  "afterCreate",
-  async (instance, opt) => await createFriend(instance)
-);
-Friend.addHook("afterBulkCreate", async (instances) => {
-  await Promise.all(instances.map(async (i) => await createFriend(i)));
+Friend.addHook("beforeCreate", async (instance, opt) => {
+  const has = await Friend.findOne({
+    where: {
+      uId: instance.getDataValue("uId"),
+      fId: instance.getDataValue("fId"),
+    },
+  });
+  if (has) {
+    throw new Error("该朋友已经存在，请勿多次添加");
+  }
+  await createFriend(instance);
+});
+
+UnAble.addHook("beforeCreate", async (instance) => {
+  // 判断是否已经有禁用记录了
+  const has = await Unable.findOne({
+    where: {
+      uId: item.uId,
+    },
+  });
+  if (has) {
+    throw new Error("该用户已经被禁用了，无法多次禁用");
+  }
+  // 禁用添加记录的用户
+  await User.update(
+    {
+      enabled: false,
+    },
+    {
+      where: {
+        loginId: instance.getDataValue("uId"),
+      },
+    }
+  );
+});
+
+UnAble.addHook("beforeDestroy", async (instance) => {
+  // 更新用户禁用信息
+  await User.update(
+    { enabled: true },
+    {
+      where: {
+        loginId: instance.getDataValue("uId"),
+      },
+    }
+  );
 });
 
 module.exports = {

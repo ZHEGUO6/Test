@@ -19,13 +19,6 @@ async function validateModify(groupInfo) {
   return await getMeetItemFromObj(groupInfo, [], ["name"]);
 }
 
-// 获取所有分组
-Router.get("/", async function (req, res) {
-  handleDataEmpty(await Group.findAndCountAll(), (data) =>
-    res.send(baseSend(200, "", { datas: data.rows, count: data.count }))
-  );
-});
-
 // 获取指定用户的所有分组
 Router.get("/list/:uId", async function (req, res, next) {
   const { uId } = req.params;
@@ -106,17 +99,19 @@ Router.put("/:id", async function (req, res, next) {
   );
   handleDataEmpty(
     result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("传递的id有误，请检查")
   );
 });
 
 // 删除一个分组
-Router.delete("/:id", async function (req, res, next) {
-  const id = req.params.id;
+Router.delete("/:id/:uId", async function (req, res, next) {
+  const { id, uId } = req.params;
   const deleteRows = await Group.destroy({
     where: {
       groupId: +id,
+      uId,
     },
     individualHooks: true,
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
