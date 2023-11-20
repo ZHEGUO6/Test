@@ -153,6 +153,30 @@ Router.put("/:id", async function (req, res, next) {
   );
 });
 
+// 修改消息信息
+Router.put("/:id", async function (req, res, next) {
+  const { id } = req.params;
+  const result = await commonValidate(
+    req,
+    next,
+    Message,
+    validateModify,
+    "update",
+    null,
+    {
+      where: {
+        messageId: id,
+      },
+      returning: true,
+    }
+  );
+  handleDataEmpty(
+    result,
+    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
+    () => next("传递的id有误，请检查")
+  );
+});
+
 // 删除一个消息
 Router.delete("/:id", async function (req, res, next) {
   const id = req.params.id;

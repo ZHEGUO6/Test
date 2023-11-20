@@ -1,3 +1,4 @@
+const { log } = require("debug");
 module.exports = {
   /**
    * 剔除不需要的键

@@ -14,8 +14,6 @@ const SearchImg = require("./searchImg");
 const CommentReply = require("./commentReply");
 const { DataTypes } = require("sequelize");
 const Unable = require("./unable");
-const { catchError } = require("../utils/server");
-const inspector = require("inspector");
 const Comments = require("./comment");
 
 // 一个管理员可以发送多条公告、新闻
@@ -190,28 +188,6 @@ SearchImg.belongsTo(Search, {
 
 // 统一设置模型的hooks
 
-// 重置分组id（仅在默认添加到我的好友分组调用，请勿再其他时候调用）
-async function resetGroupId(instance) {
-  const gId = instance.getDataValue("gId");
-  const uId = instance.getDataValue("uId");
-  if (gId === 1) {
-    // 判断是否仅存在一个分组
-    const onlyOne = await Group.count();
-    if (onlyOne !== 1) {
-      // 需要定义到默认分组
-      // 找到groupId最小的分组，即为我的好友分组
-      const myFriendGroupInstance = await Group.findOne({
-        where: {
-          uId,
-        },
-      });
-      instance.setDataValue("gId", myFriendGroupInstance.getDataValue("gId"));
-    }
-  }
-}
-
-// 统一设置模型的hooks
-
 User.addHook("afterCreate", async (user, options) => {
   // 创建一个好友分组
   await Group.create({
@@ -219,6 +195,19 @@ User.addHook("afterCreate", async (user, options) => {
     name: "我的好友",
     initial: true,
   });
+});
+
+User.addHook("afterBulkCreate", async (users, options) => {
+  await Promise.all(
+    users.map(
+      async (i) =>
+        await Group.create({
+          uId: i.getDataValue("loginId"),
+          name: "我的好友",
+          initial: true,
+        })
+    )
+  );
 });
 
 User.addHook("beforeDestroy", async (instance, { where: { loginId } }) => {
@@ -237,11 +226,17 @@ User.addHook("beforeDestroy", async (instance, { where: { loginId } }) => {
   // 2. 删除之前的禁用信息
   // 3. 删除分组表中的对应信息
   // 3. 删除消息表中的对应信息
+  // 4. 删除我的朋友对应的朋友表
   await Promise.all([
     Search.destroy(needIndividualOpt),
     UnAble.destroy(opt),
     Group.destroy(needIndividualOpt),
     Message.destroy(opt),
+    Friend.destroy({
+      where: {
+        fId: loginId,
+      },
+    }),
   ]);
 });
 
@@ -343,25 +338,34 @@ New.addHook(
 );
 
 const createFriend = async (instance) => {
-  //1. 如果是默认分组需要重置为我的好友分组
-  //2. 反向定义朋友，并自动划分到我的好友分组，即我的朋友，他的朋友是我
-  await resetGroupId(instance);
+  // 反向定义朋友，并自动划分到我的好友分组，即我的朋友，他的朋友是我，并定义到初始分组
   const uId = instance.getDataValue("uId");
   const fId = instance.getDataValue("fId");
+  const gInstance = await Group.findOne({
+    where: {
+      uId: fId,
+      initial: true,
+    },
+  });
   const uInstance = await User.findByPk(fId);
-  const fdInstance = await Friend.create({
-    uId: fId,
-    fId: uId,
-    gId: 1,
-    note: uInstance.getDataValue("nickname"),
-  }).catch((err) => false);
+  const fdInstance = await Friend.create(
+    {
+      uId: fId,
+      fId: uId,
+      gId: gInstance.getDataValue("groupId"),
+      note: uInstance.getDataValue("nickname"),
+    },
+    { once: true }
+  ).catch(() => false);
   if (fdInstance == null || !fdInstance) {
     return new Error("数据库内部HOOKS错误，请检查传递的数据格式是否有误");
   }
-  fdInstance && (await resetGroupId(fdInstance));
 };
 
-Friend.addHook("beforeCreate", async (instance, opt) => {
+Friend.addHook("beforeCreate", async (instance, { once }) => {
+  if (once) {
+    return;
+  }
   const has = await Friend.findOne({
     where: {
       uId: instance.getDataValue("uId"),

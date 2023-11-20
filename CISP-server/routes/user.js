@@ -20,14 +20,14 @@ async function validateAdd(userInfo) {
   return await getMeetItemFromObj(
     userInfo,
     [
+      "loginId",
+      "nickname",
       [
         "loginPwd",
         (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd))),
       ],
     ],
     [
-      "loginId",
-      "nickname",
       "enabled",
       "type",
       [

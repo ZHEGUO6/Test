@@ -29,7 +29,7 @@ Group.init(
     freezeTableName: true, //表名与模型名相同
     indexes: [
       {
-        fields: ["name", "uId"],
+        fields: ["name", "uId", "initial"],
       },
       {
         unique: true,

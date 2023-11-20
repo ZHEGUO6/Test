@@ -28,6 +28,7 @@ const readReqData = (req) =>
     }
   });
 
+// 返回true代表无需再响应客户端消息了
 const catchError = (next, error) => {
   return () => {
     next(error);

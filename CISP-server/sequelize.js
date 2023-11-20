@@ -2,7 +2,7 @@ const { Sequelize } = require("sequelize");
 const sequelize = new Sequelize({
   database: "cisp",
   username: "root",
-  password: "TrustmeChenxi.1314",
+  password: "root",
   dialect: "mysql",
   ssl: true,
 });
