@@ -18,7 +18,7 @@ CommentReply.init(
         len: [1, 100],
       },
     },
-    status: boolOpt(), // 是否审核通过
+    status: boolOpt(false), // 是否审核通过
   },
   {
     sequelize,

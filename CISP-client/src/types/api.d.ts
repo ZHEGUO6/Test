@@ -1,4 +1,16 @@
 declare namespace API {
+  // 分页获取
+  interface SearchPage {
+    /**
+     * 查询几条数据
+     */
+    limit?: string
+    /**
+     * 查询第几页数据
+     */
+    page?: string
+  }
+
   // 消息
   declare namespace Message {
     /**
@@ -6,9 +18,9 @@ declare namespace API {
      */
     interface Get {
       /**
-       * 管理员id
+       * 用户id
        */
-      aId: string
+      uId: string
       /**
        * 内容
        */
@@ -86,19 +98,6 @@ declare namespace API {
       saveTime?: number
     }
 
-    // 分页获取
-    interface SearchPage {
-      /**
-       * 查询几条数据
-       */
-      limit?: string
-      /**
-       * 查询第几页数据
-       */
-      page?: string
-      [property: string]: any
-    }
-
     // 添加用户
     interface Add {
       /**
@@ -124,7 +123,7 @@ declare namespace API {
       /**
        * 上次登录时间
        */
-      lastLoginDate: number
+      lastLoginDate?: number
       /**
        * 帐号id
        */

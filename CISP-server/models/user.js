@@ -77,6 +77,7 @@ User.init(
     lastLoginDate: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: new Date(),
       validate: {
         isDate: true,
       },

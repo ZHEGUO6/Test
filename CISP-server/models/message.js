@@ -19,18 +19,12 @@ Message.init(
         len: [2, 20],
       },
     },
-    remove: {
-      ...boolOpt(),
-      defaultValue: false,
-    }, // 是否移除到回收站
+    remove: boolOpt(false), // 是否移除到回收站
     content: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    status: {
-      ...boolOpt(),
-      defaultValue: false,
-    }, // 是否已读
+    status: boolOpt(false), // 是否已读
   },
   {
     sequelize,

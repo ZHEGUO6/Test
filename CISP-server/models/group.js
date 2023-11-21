@@ -19,10 +19,7 @@ Group.init(
         len: [2, 10],
       },
     },
-    initial: {
-      ...boolOpt(),
-      defaultValue: false,
-    }, // 是否是初始分组，初始分组不可删除
+    initial: boolOpt(false), // 是否是初始分组，初始分组不可删除
   },
   {
     sequelize,

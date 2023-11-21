@@ -1,6 +1,10 @@
 import request from './request'
 import { RequestType, RequestUrl } from '@/types/enum'
-import qs from 'query-string'
+
+// 根据当前用户分页查找满足要求的朋友
+export const findMeetFriends = async (id: string, info: API.SearchPage) => {
+  return await request(RequestType.GET, RequestUrl.User_FindMeetFriends, info)
+}
 
 // 验证昵称密码是否正确
 export const validate = async (info: API.User.ValidateLogin) => {
@@ -10,16 +14,6 @@ export const validate = async (info: API.User.ValidateLogin) => {
 // 用户登录
 export const login = async (info: API.User.Login) => {
   return await request(RequestType.POST, RequestUrl.User_Login, info)
-}
-
-// 获取全部用户
-export const getAll = async (id: string) => {
-  return await request(RequestType.GET, RequestUrl.User_GetAll)
-}
-
-// 分页获取用户
-export const getListByPage = async (query: API.User.Find) => {
-  return await request(RequestType.GET, `${RequestUrl.User_GetList}?${qs.stringify(info)}`)
 }
 
 // 获取指定用户

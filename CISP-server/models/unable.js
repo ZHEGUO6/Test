@@ -1,6 +1,5 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../sequelize");
-const { boolOpt } = require("../utils");
 
 class Unable extends Model {}
 
@@ -35,6 +34,7 @@ Unable.init(
     ],
     timestamps: true,
     createdAt: true,
+    updatedAt: true,
     paranoid: true,
   }
 );

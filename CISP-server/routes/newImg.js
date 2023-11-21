@@ -11,22 +11,8 @@ const Router = express.Router({ caseSensitive: true });
 
 // 验证添加新闻图片
 async function validateAdd(info) {
-  return await getMeetItemFromObj(info, ["imgUrl", "nId"], ["scanNumber"]);
+  return await getMeetItemFromObj(info, ["imgUrl", "nId"]);
 }
-
-// 获取某一新闻下的全部图片
-Router.get("/:nId", async function (req, res) {
-  const { nId } = req.params;
-  handleDataEmpty(
-    await NewImg.findAndCountAll({
-      where: {
-        nId,
-      },
-    }),
-    (data) =>
-      res.send(baseSend(200, "", { datas: data.rows, count: data.count }))
-  );
-});
 
 // 新增一个新闻图片
 Router.post("/add", async function (req, res, next) {

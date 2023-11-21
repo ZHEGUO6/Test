@@ -17,11 +17,35 @@ const obj = {
     const disMonth = curMonth - birthMonth;
     return disMonth > 0 ? disYear - 1 : disYear;
   },
+  // 判断是不是闰年
+  isLoopYear(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  },
   // 获取已结交的时间 xxxx年-xx月
   getMakeTime(makeTime) {
     const disYear = obj.getAgeByBirthDay(makeTime);
-    const disMonth = new Date().getMonth() - new Date(makeTime).getMonth();
-    return `${disYear}-${Math.abs(disMonth)}`;
+    const curDate = new Date(); // 当前的时间
+    // 四年一润
+    const disYearDate = new Date(
+      makeTime +
+        disYear *
+          (obj.isLoopYear(curDate.getFullYear() + disYear) ? 366 : 365) *
+          24 *
+          60 *
+          60 *
+          1000
+    ); // 除去已结交年数的时间
+    const disMonth = curDate.getMonth() - disYearDate.getMonth();
+    const finalMonth = Math.abs(disMonth);
+    if (finalMonth === 0) {
+      // 结交时间还没超一个月
+      return `${disYear}-${finalMonth}-${
+        curDate.getDate() - disYearDate.getDate() + 1
+      }`;
+    }
+    return `${disYear}-${finalMonth}-${
+      disYearDate.getDate() - curDate.getDate() + 1
+    }`;
   },
   validators: {
     qq() {
@@ -58,9 +82,9 @@ const obj = {
       max: 1,
     },
   }),
-  boolOpt: () => ({
+  boolOpt: (bool) => ({
     type: DataTypes.BOOLEAN,
-    defaultValue: true,
+    defaultValue: bool ?? true,
     validate: {
       isIn: [[false, true]],
     },

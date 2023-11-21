@@ -39,7 +39,6 @@ const form = reactive<API.User.Add & { captcha: string; saveTime: number; confir
   addr: '100000/116.3683244,39.915085',
   phone: '',
   birthDay: 0,
-  lastLoginDate: 0,
   loginId: uuid()
 }) // 注册表单数据
 
@@ -279,7 +278,6 @@ const preRegistry = () => {
     // 当前为日期对象
     form.birthDay = form.birthDay.getTime()
   }
-  form.lastLoginDate = new Date().getTime()
 }
 
 // 开启或关闭所有加载动画

@@ -1,5 +1,6 @@
 const express = require("express");
 const Search = require("../models/search");
+const SearchImg = require("../models/searchImg");
 const {
   baseSend,
   commonValidate,
@@ -37,6 +38,7 @@ Router.get("/list", async function (req, res, next) {
     limit,
     offset: (+page - 1) * limit,
     order: [["createdAt", "DESC"]],
+    include: [{ model: SearchImg, as: "searchImgs" }],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -76,6 +78,7 @@ Router.get("/list/type/:typeId", async function (req, res, next) {
     where: {
       typeId,
     },
+    include: [{ model: SearchImg, as: "searchImgs" }],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -88,9 +91,9 @@ Router.get("/list/type/:typeId", async function (req, res, next) {
 // 获取单个寻人寻物
 Router.get("/:id", async function (req, res, next) {
   const { id } = req.params;
-  const query = await Search.findByPk(+id).catch(
-    catchError(next, "传递的数据类型有误，请检查")
-  );
+  const query = await Search.findByPk(+id, {
+    include: [{ model: SearchImg, as: "searchImgs" }],
+  }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     query,
     (data) => res.send(baseSend(200, "", { datas: data })),

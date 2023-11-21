@@ -38,7 +38,7 @@ Notice.belongsTo(Admin, {
 New.hasMany(NewImg, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "nId", type: DataTypes.INTEGER },
-  as: "new_NewImg",
+  as: "newImgs",
 });
 New.belongsTo(Admin, {
   foreignKeyConstraint: true,
@@ -49,7 +49,7 @@ New.belongsTo(Admin, {
 NewImg.belongsTo(New, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "nId", type: DataTypes.INTEGER },
-  as: "new_NewImg",
+  as: "newImgs",
 });
 
 // 一个用户可以有多个朋友，多条搜索信息，多个分组，多个禁用记录，多个回复，多个消息
@@ -99,7 +99,7 @@ Search.belongsTo(User, {
 Search.hasMany(SearchImg, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "sId", type: DataTypes.INTEGER },
-  as: "search_SearchImg",
+  as: "searchImgs",
 });
 Search.hasMany(Comment, {
   foreignKeyConstraint: true,
@@ -183,7 +183,7 @@ UnAble.belongsTo(User, {
 SearchImg.belongsTo(Search, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "sId", type: DataTypes.INTEGER },
-  as: "search_SearchImg",
+  as: "searchImgs",
 });
 
 // 统一设置模型的hooks
