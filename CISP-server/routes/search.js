@@ -38,7 +38,9 @@ Router.get("/list", async function (req, res, next) {
     limit,
     offset: (+page - 1) * limit,
     order: [["createdAt", "DESC"]],
-    include: [{ model: SearchImg, as: "searchImgs" }],
+    include: [
+      { model: SearchImg, as: "searchImgs", attributes: ["imgUrl", "sId"] },
+    ],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -78,7 +80,9 @@ Router.get("/list/type/:typeId", async function (req, res, next) {
     where: {
       typeId,
     },
-    include: [{ model: SearchImg, as: "searchImgs" }],
+    include: [
+      { model: SearchImg, as: "searchImgs", attributes: ["imgUrl", "sId"] },
+    ],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -92,7 +96,9 @@ Router.get("/list/type/:typeId", async function (req, res, next) {
 Router.get("/:id", async function (req, res, next) {
   const { id } = req.params;
   const query = await Search.findByPk(+id, {
-    include: [{ model: SearchImg, as: "searchImgs" }],
+    include: [
+      { model: SearchImg, as: "searchImgs", attributes: ["imgUrl", "sId"] },
+    ],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     query,

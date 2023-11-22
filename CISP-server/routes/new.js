@@ -19,6 +19,11 @@ async function validateAdd(info) {
   );
 }
 
+// 验证修改新闻
+async function validateModify(info) {
+  return await getMeetItemFromObj(info, [], ["scanNumber", "important"]);
+}
+
 // 获取新闻数量
 Router.get("/count", async function (req, res) {
   handleDataEmpty(await New.count(), (data) =>
@@ -50,7 +55,13 @@ Router.get("/list", async function (req, res, next) {
     limit,
     offset: (+page - 1) * limit,
     order: [["createdAt", "DESC"]],
-    include: [{ model: NewImg, as: "newImgs" }],
+    include: [
+      {
+        model: NewImg,
+        as: "newImgs",
+        attributes: ["newImgId", "imgUrl"],
+      },
+    ],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -75,7 +86,9 @@ Router.get("/list/important", async function (req, res, next) {
       important: true,
     },
     order: [["createdAt", "DESC"]],
-    include: [{ model: NewImg, as: "newImgs" }],
+    include: [
+      { model: NewImg, as: "newImgs", attributes: ["newImgId", "imgUrl"] },
+    ],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
@@ -89,7 +102,9 @@ Router.get("/list/important", async function (req, res, next) {
 Router.get("/getOne/:id", async function (req, res, next) {
   const { id } = req.params;
   const query = await New.findByPk(+id, {
-    include: [{ model: NewImg, as: "newImgs" }],
+    include: [
+      { model: NewImg, as: "newImgs", attributes: ["newImgId", "imgUrl"] },
+    ],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     query,
@@ -111,6 +126,22 @@ Router.post("/add", async function (req, res, next) {
     NewsInstance,
     (data) => res.send(baseSend(200, "", { datas: data })),
     () => next("新增新闻失败")
+  );
+});
+
+// 修改一个新闻
+Router.put("/:id", async function (req, res, next) {
+  const NewsInstance = await commonValidate(
+    req,
+    next,
+    New,
+    validateModify(),
+    "update"
+  );
+  handleDataEmpty(
+    NewsInstance,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("更新新闻信息失败")
   );
 });
 

@@ -5,7 +5,7 @@ const { boolOpt } = require("../utils");
 class CommentReply extends Model {}
 CommentReply.init(
   {
-    CommentReplyId: {
+    commentReplyId: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       allowNull: false,

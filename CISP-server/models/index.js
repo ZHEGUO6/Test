@@ -56,7 +56,12 @@ NewImg.belongsTo(New, {
 User.hasMany(Friend, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Friend",
+  as: "users",
+});
+User.hasMany(Friend, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "fId", type: DataTypes.STRING(128) },
+  as: "friends",
 });
 User.hasMany(Group, {
   foreignKeyConstraint: true,
@@ -118,12 +123,17 @@ Comment.belongsTo(User, {
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
   as: "user_Comment",
 });
+Comment.hasMany(CommentReply, {
+  foreignKeyConstraint: true,
+  foreignKey: { allowNull: false, name: "cId", type: DataTypes.INTEGER },
+  as: "commentReplys",
+});
 
 // 一条回复对应一条评论，对应一个用户
 CommentReply.belongsTo(Comment, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "cId", type: DataTypes.INTEGER },
-  as: "comment_Reply",
+  as: "commentReplys",
 });
 CommentReply.belongsTo(User, {
   foreignKeyConstraint: true,
@@ -135,12 +145,12 @@ CommentReply.belongsTo(User, {
 Friend.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "uId", type: DataTypes.STRING(128) },
-  as: "user_Friend",
+  as: "users",
 });
 Friend.belongsTo(User, {
   foreignKeyConstraint: true,
   foreignKey: { allowNull: false, name: "fId", type: DataTypes.STRING(128) },
-  as: "user_To_Friend",
+  as: "friends",
 });
 // 一个朋友对应一个分组
 Friend.belongsTo(Group, {

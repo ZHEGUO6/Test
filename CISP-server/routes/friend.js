@@ -65,7 +65,8 @@ Router.post("/add", async function (req, res, next) {
     next,
     Friend,
     validateAdd,
-    "create"
+    "create",
+    (item) => item.fId !== item.uId
   );
   handleDataEmpty(
     FriendsInstance,

@@ -20,11 +20,7 @@ async function validateAdd(info) {
 
 // 验证修改消息
 async function validateModify(info) {
-  return await getMeetItemFromObj(
-    info,
-    [],
-    ["title", "content", "remove", "status"]
-  );
+  return await getMeetItemFromObj(info, [], ["remove", "status"]);
 }
 
 // 分页获取是否移入回收站的消息

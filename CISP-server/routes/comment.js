@@ -1,5 +1,6 @@
 const express = require("express");
 const Comment = require("../models/comment");
+const CommentReply = require("../models/commentReply");
 const {
   baseSend,
   commonValidate,
@@ -16,7 +17,7 @@ async function validateAdd(info) {
 
 // 验证修改
 async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["content", "status"]);
+  return await getMeetItemFromObj(info, [], ["status"]);
 }
 
 // 分页获取评论
@@ -33,6 +34,19 @@ Router.get("/list", async function (req, res, next) {
       limit,
       offset: (+page - 1) * limit,
       order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: CommentReply,
+          as: "commentReplys",
+          attributes: [
+            "CommentReplyId",
+            "uId",
+            "content",
+            "status",
+            "createdAt",
+          ],
+        },
+      ],
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) =>
       res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
@@ -58,6 +72,19 @@ Router.get("/search/list/:sId", async function (req, res, next) {
       limit,
       offset: (+page - 1) * limit,
       order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: CommentReply,
+          as: "commentReplys",
+          attributes: [
+            "CommentReplyId",
+            "uId",
+            "content",
+            "status",
+            "createdAt",
+          ],
+        },
+      ],
     }).catch(catchError(next, "传递的数据类型有误，请检查")),
     (data) =>
       res.send(baseSend(200, "", { datas: data.rows, count: data.count })),

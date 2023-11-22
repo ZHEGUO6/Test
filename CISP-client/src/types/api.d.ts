@@ -297,6 +297,129 @@ declare namespace API {
     }
   }
 
+  declare namespace Comment {
+    export interface Add {
+      /**
+       * 评论内容
+       */
+      content: string
+      /**
+       * 搜寻id
+       */
+      sId: number
+      /**
+       * 是否审核通过
+       */
+      status?: boolean
+      /**
+       * 用户id
+       */
+      uId: string
+    }
+
+    export interface Get {
+      /**
+       * 评论id
+       */
+      commentId: number
+      commentReplys?: Array<{
+        /**
+         * 评论回复id
+         */
+        commentReplyId: number
+        /**
+         * 评论回复内容
+         */
+        content: string
+        /**
+         * 创建时间
+         */
+        createdAt: string
+        /**
+         * 是否审核通过
+         */
+        status: boolean
+        /**
+         * 用户id
+         */
+        uId: string
+      }>
+      /**
+       * 评论内容
+       */
+      content: string
+      /**
+       * 创建时间
+       */
+      createdAt: string
+      /**
+       * 删除时间
+       */
+      deletedAt?: null | string
+      /**
+       * 搜寻id
+       */
+      sId: number
+      /**
+       * 是否审核通过
+       */
+      status: boolean
+      /**
+       * 用户id
+       */
+      uId: string
+      /**
+       * 更新时间
+       */
+      updatedAt: string
+    }
+  }
+
+  declare namespace News {
+    export interface Get {
+      /**
+       * 管理员id
+       */
+      aId: string
+      /**
+       * 内容
+       */
+      content: string
+      /**
+       * 创建时间
+       */
+      createdAt: string
+      /**
+       * 删除时间
+       */
+      deletedAt?: null | string
+      /**
+       * 是否重要
+       */
+      important: boolean
+      /**
+       * 新闻id
+       */
+      newId: number
+      newImgs: Array<{
+        imgUrl: string
+        newImgId: number
+      }>
+      /**
+       * 浏览数
+       */
+      scanNumber: number
+      /**
+       * 标题
+       */
+      title: string
+      /**
+       * 更新时间
+       */
+      updatedAt: string
+    }
+  }
+
   declare interface ServerResponse {
     code: number
     msg: string

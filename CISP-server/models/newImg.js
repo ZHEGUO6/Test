@@ -28,9 +28,6 @@ NewImg.init(
         fields: ["newImgId"],
       },
     ],
-    timestamps: true,
-    createdAt: true,
-    updatedAt: true,
   }
 );
 

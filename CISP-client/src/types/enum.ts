@@ -73,6 +73,7 @@ export enum RequestUrl {
   Notice_GetOne = '/notice/getOne', // 获取单个公告
   Notice_Add = '/notice/add', // 新增单个公告
   Notice_AddList = '/notice/addList', // 新增多个公告
+  Notice_Modify = '/notice', // 修改单个公告
   Notice_Delete = '/notice', // 删除单个公告
 
   New_GetCount = '/news/count', // 获取新闻总数
@@ -81,6 +82,7 @@ export enum RequestUrl {
   New_GetListByImportant = '/news/list/important', // 分页获取重要新闻
   New_GetOne = '/news/getOne', // 获取指定新闻
   New_Add = '/news/add', // 新增单条新闻
+  New_Modify = '/news', // 修改单条新闻
   New_Delete = '/news', // 删除单条新闻
 
   NewImg_Add = '/newsImg/add', // 新增单条新闻图片

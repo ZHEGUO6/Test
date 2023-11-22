@@ -18,6 +18,11 @@ async function validateAdd(info) {
   );
 }
 
+// 验证修改公告
+async function validateModify(info) {
+  return await getMeetItemFromObj(info, [], ["scanNumber", "important"]);
+}
+
 // 获取所有公告数量
 Router.get("/count", async function (req, res, next) {
   handleDataEmpty(
@@ -117,6 +122,22 @@ Router.post("/addList", async function (req, res, next) {
         })
       ),
     () => next("新增公告失败")
+  );
+});
+
+// 修改一个公告
+Router.put("/:id", async function (req, res, next) {
+  const count = await commonValidate(
+    req,
+    next,
+    Notice,
+    validateModify(),
+    "update"
+  );
+  handleDataEmpty(
+    count,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("更新公告信息失败")
   );
 });
 

@@ -16,7 +16,7 @@ async function validateAdd(info) {
 
 // 验证修改
 async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["content", "status"]);
+  return await getMeetItemFromObj(info, [], ["status"]);
 }
 
 // 分页获取某一评论下的评论回复

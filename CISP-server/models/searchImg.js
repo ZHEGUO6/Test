@@ -28,9 +28,6 @@ SearchImg.init(
         fields: ["searchImgId"],
       },
     ],
-    timestamps: true,
-    createdAt: true,
-    updatedAt: true,
   }
 );
 

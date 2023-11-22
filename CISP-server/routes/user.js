@@ -168,17 +168,19 @@ Router.get("/find/friendList/:uId", async function (req, res, next) {
     // 请求未满足期望值
     return catchError(next, "请求的参数数据类型或值不满足要求")();
   }
-  const result = await User.findAndCountAll({
+  const result = await Friend.findAndCountAll({
     limit,
     offset: (+page - 1) * limit,
     where: {
-      ...info,
-      loginId: uId,
+      uId,
     },
     include: [
       {
-        model: Friend,
-        as: "user_Friend",
+        model: User,
+        as: "friends",
+        attributes: {
+          exclude: ["uId", "updateAt"],
+        },
       },
     ],
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
