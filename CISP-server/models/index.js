@@ -161,7 +161,6 @@ Friend.belongsTo(Group, {
     type: DataTypes.INTEGER,
     defaultValue: 1,
   },
-  as: "friend_Group",
 });
 
 // 一个分组对应一个用户
@@ -179,7 +178,6 @@ Group.hasMany(Friend, {
     type: DataTypes.INTEGER,
     defaultValue: 1,
   },
-  as: "friend_Group",
 });
 
 // 一个禁用记录对应一个用户
@@ -376,10 +374,15 @@ Friend.addHook("beforeCreate", async (instance, { once }) => {
   if (once) {
     return;
   }
+  const uId = instance.getDataValue("uId");
+  const fId = instance.getDataValue("fId");
+  if (fId === uId) {
+    throw new Error("错误操作！朋友不能是本人");
+  }
   const has = await Friend.findOne({
     where: {
-      uId: instance.getDataValue("uId"),
-      fId: instance.getDataValue("fId"),
+      uId,
+      fId,
     },
   });
   if (has) {

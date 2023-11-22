@@ -16,7 +16,7 @@ async function validateAdd(info) {
 }
 
 async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["note"]);
+  return await getMeetItemFromObj(info, [], ["note", "gId"]);
 }
 
 // 获取某一用户的所有朋友数量
@@ -65,8 +65,7 @@ Router.post("/add", async function (req, res, next) {
     next,
     Friend,
     validateAdd,
-    "create",
-    (item) => item.fId !== item.uId
+    "create"
   );
   handleDataEmpty(
     FriendsInstance,

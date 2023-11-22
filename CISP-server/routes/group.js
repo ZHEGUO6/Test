@@ -1,4 +1,5 @@
 const express = require("express");
+const sequelize = require("sequelize");
 const Group = require("../models/group");
 const {
   baseSend,
@@ -22,15 +23,25 @@ async function validateModify(groupInfo) {
 // 获取指定用户的所有分组
 Router.get("/list/:uId", async function (req, res, next) {
   const { uId } = req.params;
-  const result = await Group.findAndCountAll({
+  const result = await Group.findAll({
+    attributes: {
+      include: [
+        [
+          sequelize.literal(
+            `(SELECT count(\`Friends\`.\`friendId\`)  FROM \`Friend\` AS \`Friends\` WHERE \`Group\`.\`uId\` = '${uId}' AND \`Friends\`.\`uId\`
+ = '${uId}')`
+          ),
+          "friendCount",
+        ],
+      ],
+    },
     where: {
       uId,
     },
   }).catch(catchError(next, "传递的数据类型有误，请检查"));
   handleDataEmpty(
     result,
-    (data) =>
-      res.send(baseSend(200, "", { datas: data.rows, count: data.count })),
+    (data) => res.send(baseSend(200, "", { datas: data, count: data.length })),
     () => next("传递的id有误，请检查")
   );
 });

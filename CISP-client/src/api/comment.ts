@@ -3,7 +3,7 @@ import { RequestType, RequestUrl } from '@/types/enum'
 import qs from 'query-string'
 
 // 分页获取指定搜寻下的评论
-export const getListBySearch = async (id: string, info: API.SearchPage) => {
+export const getListBySearch = async (id: number, info: API.Comment.Get) => {
   return await request(
     RequestType.GET,
     RequestUrl.Comment_GetListBySearch + `/${id}?${qs.stringify(info)}`
@@ -12,5 +12,5 @@ export const getListBySearch = async (id: string, info: API.SearchPage) => {
 
 // 新增单条评论
 export const addComment = async (info: API.Comment.Add) => {
-  return await request(RequestType.POST, RequestUrl.Comment_Add)
+  return await request(RequestType.POST, RequestUrl.Comment_Add, info)
 }

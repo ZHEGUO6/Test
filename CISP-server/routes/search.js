@@ -19,6 +19,11 @@ async function validateAdd(info) {
   );
 }
 
+// 验证添加寻人寻物
+async function validateModify(info) {
+  return await getMeetItemFromObj(info, [], ["commentNumber", "scanNumber"]);
+}
+
 // 获取所有寻人寻物数量
 Router.get("/count", async function (req, res) {
   handleDataEmpty(await Search.count(), (count) =>
@@ -144,6 +149,22 @@ Router.post("/add", async function (req, res, next) {
 //     () => next("新增搜寻失败")
 //   );
 // });
+
+// 修改一个搜寻
+Router.put("/:id", async function (req, res, next) {
+  const NewsInstance = await commonValidate(
+    req,
+    next,
+    Search,
+    validateModify(),
+    "update"
+  );
+  handleDataEmpty(
+    NewsInstance,
+    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
+    () => next("更新搜寻信息失败")
+  );
+});
 
 // 删除一个寻人寻物
 Router.delete("/:id", async function (req, res, next) {

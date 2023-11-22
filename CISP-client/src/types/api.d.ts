@@ -420,6 +420,227 @@ declare namespace API {
     }
   }
 
+  declare namespace Search {
+    interface Get {
+      /**
+       * 评论数
+       */
+      commentNumber: number
+      /**
+       * 创建时间
+       */
+      createdAt: string
+      /**
+       * 删除时间
+       */
+      deletedAt?: null | string
+      /**
+       * 内容
+       */
+      intro: string
+      /**
+       * 浏览数
+       */
+      scanNumber: number
+      /**
+       * 寻人寻物id
+       */
+      searchId: number
+      searchImgs: Array<{
+        /**
+         * 图片url
+         */
+        imgUrl: string
+        /**
+         * 搜寻id
+         */
+        sId: string
+      }>
+      /**
+       * 标题
+       */
+      title: string
+      /**
+       * 类型，0 表示寻人，1表示交友
+       */
+      typeId: number
+      /**
+       * 用户id
+       */
+      uId: string
+      /**
+       * 更新时间
+       */
+      updatedAt: string
+    }
+
+    interface Add {
+      /**
+       * 评论数
+       */
+      commentNumber?: number
+      /**
+       * 内容
+       */
+      intro: string
+      /**
+       * 浏览数
+       */
+      scanNumber?: number
+      /**
+       * 标题
+       */
+      title: string
+      /**
+       * 类型，0 表示寻人，1表示交友
+       */
+      typeId?: number
+      /**
+       * 用户id
+       */
+      uId: string
+    }
+
+    interface Modify {
+      /**
+       * 评论数
+       */
+      commentNumber?: number
+      /**
+       * 浏览数
+       */
+      scanNumber?: number
+    }
+  }
+
+  declare namespace SearchImg {
+    export interface Add {
+      /**
+       * 图片url
+       */
+      imgUrl: string
+      /**
+       * 搜寻id
+       */
+      sId: string
+    }
+  }
+
+  declare namespace Group {
+    export interface Get {
+      /**
+       * 创建时间
+       */
+      createdAt: string
+      /**
+       * 删除时间
+       */
+      deletedAt?: null | string
+      /**
+       * 分组id
+       */
+      groupId: string
+      /**
+       * 分组名
+       */
+      name: string
+      /**
+       * 用户id
+       */
+      uId: string
+      /**
+       * 更新时间
+       */
+      updatedAt: string
+    }
+
+    export interface Add {
+      /**
+       * 分组名
+       */
+      name: string
+      /**
+       * 用户id
+       */
+      uId: string
+    }
+
+    export interface Modify {
+      /**
+       * 分组名
+       */
+      name: string
+    }
+  }
+
+  declare namespace Friend {
+    export interface Get {
+      /**
+       * 创建时间
+       */
+      createdAt: string
+      /**
+       * 删除时间
+       */
+      deletedAt?: null | string
+      /**
+       * 用户朋友id
+       */
+      fId: string
+      /**
+       * 主键id
+       */
+      friendId: string
+      /**
+       * 分组id
+       */
+      gId: string
+      /**
+       * 相识时间
+       */
+      makeDate: string
+      /**
+       * 备注
+       */
+      note: string
+      /**
+       * 用户id
+       */
+      uId: string
+      /**
+       * 更新时间
+       */
+      updatedAt: string
+    }
+
+    export interface Add {
+      /**
+       * 用户朋友id
+       */
+      fId: string
+      /**
+       * 分组id
+       */
+      gId: string
+      /**
+       * 备注
+       */
+      note: string
+      /**
+       * 用户id
+       */
+      uId: string
+    }
+
+    export interface Modify {
+      /**
+       * 备注
+       */
+      note?: string
+      gId?: number
+    }
+  }
+
   declare interface ServerResponse {
     code: number
     msg: string
