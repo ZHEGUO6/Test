@@ -117,7 +117,7 @@ Router.post("/add", async function (req, res, next) {
 Router.put("/:id", async function (req, res, next) {
   const { id } = req.params;
   handleDataEmpty(
-    await commonValidate(req, next, Comment, validateModify, "update", null, {
+    await commonValidate(req, next, Comment, validateModify, "update", {
       where: {
         commentId: +id,
       },

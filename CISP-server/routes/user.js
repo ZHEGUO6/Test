@@ -315,7 +315,6 @@ Router.put("/:id", async function (req, res, next) {
     User,
     validateModify,
     "update",
-    null,
     {
       where: {
         loginId: id,

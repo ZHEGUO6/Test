@@ -83,7 +83,6 @@ Router.put("/:fId", async function (req, res, next) {
     Friend,
     validateModify,
     "update",
-    null,
     {
       where: {
         friendId: fId,

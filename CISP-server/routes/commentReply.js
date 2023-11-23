@@ -69,20 +69,12 @@ Router.post("/add", async function (req, res, next) {
 Router.put("/:id", async function (req, res, next) {
   const { id } = req.params;
   handleDataEmpty(
-    await commonValidate(
-      req,
-      next,
-      CommentReply,
-      validateModify,
-      "update",
-      null,
-      {
-        where: {
-          CommentReplyId: +id,
-        },
-        returning: true,
-      }
-    ),
+    await commonValidate(req, next, CommentReply, validateModify, "update", {
+      where: {
+        CommentReplyId: +id,
+      },
+      returning: true,
+    }),
     (data) =>
       res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("传递的id有误，请检查")

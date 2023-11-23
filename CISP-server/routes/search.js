@@ -8,6 +8,7 @@ const {
   handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
+const { User } = require("../models");
 const Router = express.Router({ caseSensitive: true });
 
 // 验证添加寻人寻物
@@ -19,7 +20,7 @@ async function validateAdd(info) {
   );
 }
 
-// 验证添加寻人寻物
+// 验证修改寻人寻物
 async function validateModify(info) {
   return await getMeetItemFromObj(info, [], ["commentNumber", "scanNumber"]);
 }
@@ -150,19 +151,32 @@ Router.post("/add", async function (req, res, next) {
 //   );
 // });
 
-// 修改一个搜寻
-Router.put("/:id", async function (req, res, next) {
-  const NewsInstance = await commonValidate(
+// 增加评论、浏览数量
+Router.put("/increase/:id", async function (req, res, next) {
+  const { id } = req.params;
+  const result = await commonValidate(
     req,
     next,
     Search,
-    validateModify(),
-    "update"
+    validateModify,
+    "increment",
+    {
+      where: {
+        searchId: id,
+      },
+    },
+    ({ scanNumber, commentNumber }) => {
+      if (scanNumber && +scanNumber !== 1) {
+        return false;
+      }
+      return !(commentNumber && +commentNumber !== 1);
+    }
   );
   handleDataEmpty(
-    NewsInstance,
-    (data) => res.send(baseSend(200, "", { datas: null, count: data })),
-    () => next("更新搜寻信息失败")
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
+    () => next("传递的id有误，请检查")
   );
 });
 

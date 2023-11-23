@@ -7,25 +7,30 @@ export const getOneGroup = async (id: number) => {
   return await request(RequestType.GET, RequestUrl.Group_GetOne + `/${id}`)
 }
 
-// 分页获取某一用户某一分组的朋友
-export const getFriendList = async (uId: string, gId: number, info: API.SearchPage) => {
+// 获取指定用户的所有分组
+export const getListByUser = async (uId: string, info: API.SearchPage) => {
   return await request(
     RequestType.GET,
-    RequestUrl.Friend_GetListByUser + `/${uId}/${gId}?${qs.stringify(info)}`
+    RequestUrl.Group_GetAllByUser + `/${uId}?${qs.stringify(info)}`
   )
 }
 
-// 新增朋友
-export const addFriend = async (info: API.Friend.Add) => {
-  return await request(RequestType.POST, RequestUrl.Friend_Add, info)
+// 新增分组
+export const addGroup = async (info: API.Group.Add) => {
+  return await request(RequestType.POST, RequestUrl.Group_Add, info)
 }
 
-// 修改朋友
-export const modifyFriend = async (id: number, info: API.Friend.Modify) => {
-  return await request(RequestType.PUT, RequestUrl.Friend_Modify + `/${id}`, info)
+// 新增多条分组
+export const addGroupList = async (info: API.Group.Add) => {
+  return await request(RequestType.POST, RequestUrl.Group_AddList, info)
 }
 
-// 删除朋友
-export const deleteFriend = async (id: number) => {
-  return await request(RequestType.DELETE, RequestUrl.Friend_Delete + `/${id}`)
+// 修改指定分组
+export const modifyGroup = async (id: number, info: API.Group.Modify) => {
+  return await request(RequestType.PUT, RequestUrl.Group_Modify + `/${id}`, info)
+}
+
+// 删除某一用户的分组
+export const deleteGroup = async (id: number, uId: string) => {
+  return await request(RequestType.DELETE, RequestUrl.Group_DeleteByUser + `/${id}/${uId}`)
 }

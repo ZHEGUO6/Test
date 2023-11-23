@@ -7,6 +7,7 @@ const {
   handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
+const Search = require("../models/search");
 const Router = express.Router({ caseSensitive: true });
 
 // 验证添加公告
@@ -20,7 +21,7 @@ async function validateAdd(info) {
 
 // 验证修改公告
 async function validateModify(info) {
-  return await getMeetItemFromObj(info, [], ["scanNumber", "important"]);
+  return await getMeetItemFromObj(info, [], ["important"]);
 }
 
 // 获取所有公告数量
@@ -127,17 +128,45 @@ Router.post("/addList", async function (req, res, next) {
 
 // 修改一个公告
 Router.put("/:id", async function (req, res, next) {
+  const { id } = req.params;
   const count = await commonValidate(
     req,
     next,
     Notice,
     validateModify(),
-    "update"
+    "update",
+    { where: { noticeId: id } }
   );
   handleDataEmpty(
     count,
     (data) => res.send(baseSend(200, "", { datas: null, count: data })),
     () => next("更新公告信息失败")
+  );
+});
+
+// 修改浏览数量
+Router.put("/increase/:id", async function (req, res, next) {
+  const { id } = req.params;
+  const result = await commonValidate(
+    req,
+    next,
+    Notice,
+    validateModify,
+    "increment",
+    {
+      where: {
+        noticeId: id,
+      },
+    },
+    ({ scanNumber }) => {
+      return !(scanNumber && +scanNumber !== 1);
+    }
+  );
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
+    () => next("传递的id有误，请检查")
   );
 });
 

@@ -53,8 +53,8 @@ const commonValidate = async (
   instance,
   validateFunc,
   action,
-  filterCallback = undefined,
-  modelOption = {}
+  modelOption = {},
+  filterCallback = undefined
 ) => {
   async function _validate(item) {
     let yetOver = true;

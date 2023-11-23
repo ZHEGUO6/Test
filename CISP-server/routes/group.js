@@ -100,7 +100,6 @@ Router.put("/:id", async function (req, res, next) {
     Group,
     validateModify,
     "update",
-    null,
     {
       where: {
         groupId: +id,

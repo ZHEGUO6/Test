@@ -3,8 +3,8 @@ import { RequestType, RequestUrl } from '@/types/enum'
 import qs from 'query-string'
 
 // 获取某一用户的所有朋友数量
-export const getFriendCount = async () => {
-  return await request(RequestType.GET, RequestUrl.Friend_GetCountByUser)
+export const getFriendCount = async (uId: string) => {
+  return await request(RequestType.GET, RequestUrl.Friend_GetCountByUser + `/${uId}`)
 }
 
 // 分页获取某一用户某一分组的朋友

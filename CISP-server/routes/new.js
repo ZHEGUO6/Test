@@ -8,6 +8,7 @@ const {
   handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
+const Notice = require("../models/notice");
 const Router = express.Router({ caseSensitive: true });
 
 // 验证添加新闻
@@ -131,17 +132,45 @@ Router.post("/add", async function (req, res, next) {
 
 // 修改一个新闻
 Router.put("/:id", async function (req, res, next) {
+  const { id } = req.params;
   const NewsInstance = await commonValidate(
     req,
     next,
     New,
     validateModify(),
-    "update"
+    "update",
+    { where: { newId: id } }
   );
   handleDataEmpty(
     NewsInstance,
     (data) => res.send(baseSend(200, "", { datas: null, count: data })),
     () => next("更新新闻信息失败")
+  );
+});
+
+// 增加浏览数量
+Router.put("/increase/:id", async function (req, res, next) {
+  const { id } = req.params;
+  const result = await commonValidate(
+    req,
+    next,
+    New,
+    validateModify,
+    "increment",
+    {
+      where: {
+        newId: id,
+      },
+    },
+    ({ scanNumber }) => {
+      return !(scanNumber && +scanNumber !== 1);
+    }
+  );
+  handleDataEmpty(
+    result,
+    (data) =>
+      res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
+    () => next("传递的id有误，请检查")
   );
 });
 

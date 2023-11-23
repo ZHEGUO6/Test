@@ -133,7 +133,6 @@ Router.put("/:id", async function (req, res, next) {
     Message,
     validateModify,
     "update",
-    null,
     {
       where: {
         messageId: id,
@@ -145,30 +144,6 @@ Router.put("/:id", async function (req, res, next) {
     result,
     (data) =>
       res.send(baseSend(200, "", { datas: result[0], count: result[1] ?? 0 })),
-    () => next("传递的id有误，请检查")
-  );
-});
-
-// 修改消息信息
-Router.put("/:id", async function (req, res, next) {
-  const { id } = req.params;
-  const result = await commonValidate(
-    req,
-    next,
-    Message,
-    validateModify,
-    "update",
-    null,
-    {
-      where: {
-        messageId: id,
-      },
-      returning: true,
-    }
-  );
-  handleDataEmpty(
-    result,
-    (data) => res.send(baseSend(200, "", { datas: data[1], count: data[0] })),
     () => next("传递的id有误，请检查")
   );
 });

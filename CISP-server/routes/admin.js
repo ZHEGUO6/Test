@@ -195,20 +195,12 @@ Router.post("/addList", async function (req, res, next) {
 Router.put("/:id", async function (req, res, next) {
   const { id } = req.params;
   handleDataEmpty(
-    await commonValidate(
-      req,
-      next,
-      Admins,
-      validateModifyAdmin,
-      "update",
-      null,
-      {
-        where: {
-          loginId: id,
-        },
-        returning: true,
-      }
-    ),
+    await commonValidate(req, next, Admins, validateModifyAdmin, "update", {
+      where: {
+        loginId: id,
+      },
+      returning: true,
+    }),
     (data) =>
       res.send(baseSend(200, "", { datas: data[0], count: data[1] ?? 0 })),
     () => next("修改管理员信息失败")

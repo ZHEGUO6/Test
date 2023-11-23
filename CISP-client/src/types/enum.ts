@@ -27,6 +27,7 @@ export enum RequestUrl {
   Search_GetListByType = '/search/list/type', // 根据类型分页获取搜寻信息
   Search_GetOne = '/search', // 根据类型分页获取搜寻信息
   Search_Add = '/search/add', // 新增搜寻信息
+  Search_ModifyNum = '/search/increase', // 增加评论或浏览数量
   Search_Delete = '/search', // 删除搜寻信息
 
   SearchImg_Add = '/searchImg/add', // 新增单个搜寻图片
@@ -74,20 +75,22 @@ export enum RequestUrl {
   Notice_Add = '/notice/add', // 新增单个公告
   Notice_AddList = '/notice/addList', // 新增多个公告
   Notice_Modify = '/notice', // 修改单个公告
+  Notice_ModifyCount = '/notice/increase', // 增加浏览数量
   Notice_Delete = '/notice', // 删除单个公告
 
-  New_GetCount = '/news/count', // 获取新闻总数
-  New_GetList = '/news/list', // 分页获取新闻
-  New_GetImportantCount = '/news/count/important', // 获取重要新闻的数量
-  New_GetListByImportant = '/news/list/important', // 分页获取重要新闻
-  New_GetOne = '/news/getOne', // 获取指定新闻
-  New_Add = '/news/add', // 新增单条新闻
-  New_Modify = '/news', // 修改单条新闻
-  New_Delete = '/news', // 删除单条新闻
+  News_GetCount = '/news/count', // 获取新闻总数
+  News_GetList = '/news/list', // 分页获取新闻
+  News_GetImportantCount = '/news/count/important', // 获取重要新闻的数量
+  News_GetListByImportant = '/news/list/important', // 分页获取重要新闻
+  News_GetOne = '/news/getOne', // 获取指定新闻
+  News_Add = '/news/add', // 新增单条新闻
+  News_Modify = '/news', // 修改单条新闻
+  News_ModifyCount = '/news/increase', // 增加浏览数量
+  News_Delete = '/news', // 删除单条新闻
 
-  NewImg_Add = '/newsImg/add', // 新增单条新闻图片
-  NewImg_AddList = '/newsImg/addList', // 新增多条新闻图片
-  NewImg_Delete = '/newsImg', // 删除新闻图片
+  NewsImg_Add = '/newsImg/add', // 新增单条新闻图片
+  NewsImg_AddList = '/newsImg/addList', // 新增多条新闻图片
+  NewsImg_Delete = '/newsImg', // 删除新闻图片
 
   Image_GetInitialAll = '/static/image/all', // 获取所有头像
   Image_UploadOne = '/api/static/upload/add', // 上传用户头像

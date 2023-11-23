@@ -62,7 +62,7 @@ declare namespace API {
       /**
        * 内容
        */
-      content: string
+      content?: string
       /**
        * 标题
        */
@@ -298,7 +298,7 @@ declare namespace API {
   }
 
   declare namespace Comment {
-    export interface Add {
+    interface Add {
       /**
        * 评论内容
        */
@@ -317,7 +317,14 @@ declare namespace API {
       uId: string
     }
 
-    export interface Get {
+    interface Modify {
+      /**
+       * 是否审核通过
+       */
+      status: string
+    }
+
+    interface Get {
       /**
        * 评论id
        */
@@ -376,7 +383,7 @@ declare namespace API {
   }
 
   declare namespace News {
-    export interface Get {
+    interface Get {
       /**
        * 管理员id
        */
@@ -417,6 +424,34 @@ declare namespace API {
        * 更新时间
        */
       updatedAt: string
+    }
+
+    interface Add {
+      /**
+       * 管理员id
+       */
+      aId: string
+      /**
+       * 内容
+       */
+      content: string
+      /**
+       * 是否重要
+       */
+      important?: boolean
+      /**
+       * 浏览数
+       */
+      scanNumber?: number
+      /**
+       * 标题
+       */
+      title: string
+      [property: string]: any
+    }
+
+    interface ModifyCount {
+      scanNumber: number
     }
   }
 
@@ -501,7 +536,7 @@ declare namespace API {
       uId: string
     }
 
-    interface Modify {
+    interface ModifyCount {
       /**
        * 评论数
        */
@@ -514,7 +549,7 @@ declare namespace API {
   }
 
   declare namespace SearchImg {
-    export interface Add {
+    interface Add {
       /**
        * 图片url
        */
@@ -527,7 +562,7 @@ declare namespace API {
   }
 
   declare namespace Group {
-    export interface Get {
+    interface Get {
       /**
        * 创建时间
        */
@@ -536,6 +571,10 @@ declare namespace API {
        * 删除时间
        */
       deletedAt?: null | string
+      /**
+       * 该分组下的朋友数量
+       */
+      friends?: number
       /**
        * 分组id
        */
@@ -554,7 +593,7 @@ declare namespace API {
       updatedAt: string
     }
 
-    export interface Add {
+    interface Add {
       /**
        * 分组名
        */
@@ -565,7 +604,7 @@ declare namespace API {
       uId: string
     }
 
-    export interface Modify {
+    interface Modify {
       /**
        * 分组名
        */
@@ -574,7 +613,7 @@ declare namespace API {
   }
 
   declare namespace Friend {
-    export interface Get {
+    interface Get {
       /**
        * 创建时间
        */
@@ -613,7 +652,7 @@ declare namespace API {
       updatedAt: string
     }
 
-    export interface Add {
+    interface Add {
       /**
        * 用户朋友id
        */
@@ -632,12 +671,80 @@ declare namespace API {
       uId: string
     }
 
-    export interface Modify {
+    interface Modify {
       /**
        * 备注
        */
       note?: string
       gId?: number
+    }
+  }
+
+  declare namespace Notice {
+    export interface Get {
+      /**
+       * 管理员id
+       */
+      aId: string
+      /**
+       * 内容
+       */
+      content: string
+      /**
+       * 创建时间
+       */
+      createdAt: string
+      /**
+       * 删除时间
+       */
+      deletedAt?: null | string
+      /**
+       * 是否重要
+       */
+      important: boolean
+      /**
+       * 公告id
+       */
+      noticeId: number
+      /**
+       * 浏览数
+       */
+      scanNumber: number
+      /**
+       * 标题
+       */
+      title: string
+      /**
+       * 更新时间
+       */
+      updatedAt: string
+    }
+
+    interface ModifyCount {
+      scanNumber: number
+    }
+
+    interface Add {
+      /**
+       * 管理员id
+       */
+      aId: string
+      /**
+       * 内容
+       */
+      content?: string
+      /**
+       * 是否重要
+       */
+      important?: boolean
+      /**
+       * 浏览数
+       */
+      scanNumber?: number
+      /**
+       * 标题
+       */
+      title: string
     }
   }
 
