@@ -1,8 +1,8 @@
-const { Model, DataTypes } = require("sequelize");
+const { Model, DataTypes, ValidationError } = require("sequelize");
 const sequelize = require("../sequelize");
 const {
   getAgeByBirthDay,
-  validators: { qq, wechat, addr, phone, url },
+  validators: { qq, wechat, addr, phone, url, validateTest },
   boolOpt,
 } = require("../utils");
 const uuidv4 = require("uuidv4");
@@ -35,7 +35,7 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
       validate: {
-        is: url(),
+        isTest: validateTest(url(), "string", "avatar"),
       },
     },
     nickname: {
@@ -48,22 +48,27 @@ User.init(
     },
     mail: {
       type: DataTypes.STRING(32),
+      allowNull: false,
       validate: {
-        is: /^([A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+|''|"")$/,
+        isTest: validateTest(
+          /^([A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+|''|"")$/,
+          "string",
+          "mail"
+        ),
       },
     },
     qq: {
       type: DataTypes.STRING(11),
       allowNull: false,
       validate: {
-        is: qq(),
+        isTest: validateTest(qq(), "string", "qq"),
       },
     },
     wechat: {
       type: DataTypes.STRING(20),
       allowNull: false,
       validate: {
-        is: wechat(),
+        isTest: validateTest(wechat(), "string", "wechat"),
       },
     },
     intro: {
@@ -95,14 +100,14 @@ User.init(
       type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
-        is: addr(),
+        isTest: validateTest(addr(), "string", "addr"),
       },
     },
     phone: {
       type: DataTypes.STRING(11),
       allowNull: false,
       validate: {
-        is: phone(),
+        isTest: validateTest(phone(), "string", "phone"),
       },
     },
     online: {
