@@ -62,7 +62,9 @@ const commonValidate = async (
     return yetOver;
   }
   // 剔除不需要的键值对
-  let params = await readReqData(req).catch((err) => catchError(next, err)());
+  let params = await readReqData(req).catch((err) =>
+    catchError(next, err.message)()
+  );
   if (Array.isArray(params)) {
     let filter = [];
     // 剔除不需要的键值对

@@ -48,28 +48,27 @@ User.init(
     },
     mail: {
       type: DataTypes.STRING(32),
-      allowNull: true,
       validate: {
-        is: /^([A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+|\s)$/,
+        is: /^([A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+|''|"")$/,
       },
     },
     qq: {
       type: DataTypes.STRING(11),
-      allowNull: true,
+      allowNull: false,
       validate: {
         is: qq(),
       },
     },
     wechat: {
       type: DataTypes.STRING(20),
-      allowNull: true,
+      allowNull: false,
       validate: {
         is: wechat(),
       },
     },
     intro: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
       validate: {
         len: [0, 255],
       },
@@ -94,14 +93,14 @@ User.init(
     },
     addr: {
       type: DataTypes.STRING(255),
-      allowNull: true,
+      allowNull: false,
       validate: {
         is: addr(),
       },
     },
     phone: {
       type: DataTypes.STRING(11),
-      allowNull: true,
+      allowNull: false,
       validate: {
         is: phone(),
       },
@@ -125,7 +124,7 @@ User.init(
     },
     birthDay: {
       type: DataTypes.DATE,
-      allowNull: true,
+      allowNull: false,
       validate: {
         isDate: true,
       },

@@ -26,10 +26,6 @@ async function validateAdd(userInfo) {
         "loginPwd",
         (loginPwd) => Promise.resolve(encrypt(meetEncrypt(loginPwd))),
       ],
-    ],
-    [
-      "enabled",
-      "type",
       [
         "avatar",
         async (avatar) => {
@@ -45,6 +41,10 @@ async function validateAdd(userInfo) {
           return avatar;
         },
       ],
+    ],
+    [
+      "enabled",
+      "type",
       "mail",
       "qq",
       "wechat",

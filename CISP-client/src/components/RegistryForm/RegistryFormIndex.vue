@@ -38,7 +38,7 @@ const form = reactive<API.User.Add & { captcha: string; saveTime: number; confir
   type: 'student',
   addr: '100000/116.3683244,39.915085',
   phone: '',
-  birthDay: 0,
+  birthDay: Date.now(),
   loginId: uuid()
 }) // 注册表单数据
 
@@ -270,10 +270,6 @@ const preRegistry = () => {
       .filter((i) => i.length > 1)
       .join('-')
   }
-  !form.qq && (form.qq = null)
-  !form.wechat && (form.wechat = null)
-  !form.mail && (form.mail = null)
-  !form.phone && (form.phone = null)
   if (typeof form.birthDay !== 'number') {
     // 当前为日期对象
     form.birthDay = form.birthDay.getTime()
