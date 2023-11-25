@@ -8,8 +8,8 @@ const {
   handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
-const Notice = require("../models/notice");
 const Router = express.Router({ caseSensitive: true });
+const { fn, col } = require("sequelize");
 
 // 验证添加新闻
 async function validateAdd(info) {
@@ -27,20 +27,12 @@ async function validateModify(info) {
 
 // 获取新闻数量
 Router.get("/count", async function (req, res) {
-  handleDataEmpty(await New.count(), (data) =>
-    res.send(baseSend(200, "", { datas: null, count: data }))
-  );
-});
-
-// 获取重要新闻的数量
-Router.get("/count/important", async function (req, res) {
   handleDataEmpty(
-    await New.count({
-      where: {
-        important: true,
-      },
+    await New.findAll({
+      group: "important",
+      attributes: [[fn("count", col("important")), "count"], "important"],
     }),
-    (data) => res.send(baseSend(200, "", { datas: null, count: data }))
+    (data) => res.send(baseSend(200, "", data))
   );
 });
 

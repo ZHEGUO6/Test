@@ -8,7 +8,7 @@ export const getOneMessage = async (id: number) => {
 }
 
 // 分页获取某一用户的消息
-export const getListByUser = async (uId: string, info: API.SearchPage) => {
+export const getMessageListByUser = async (uId: string, info: API.SearchPage) => {
   return await request(
     RequestType.GET,
     RequestUrl.Message_GetList + `/${uId}?${qs.stringify(info)}`

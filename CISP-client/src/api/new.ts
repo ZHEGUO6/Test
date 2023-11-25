@@ -8,29 +8,24 @@ export const getNewsCount = async () => {
 }
 
 // 分页获取新闻
-export const getList = async (info: API.SearchPage) => {
+export const getNewsList = async (info: API.SearchPage) => {
   return await request(RequestType.GET, RequestUrl.News_GetList + `?${qs.stringify(info)}`)
 }
 
 // 分页获取重要新闻
-export const getImportantList = async (info: API.SearchPage) => {
+export const getNewsImportantList = async (info: API.SearchPage) => {
   return await request(
     RequestType.GET,
     RequestUrl.News_GetListByImportant + `?${qs.stringify(info)}`
   )
 }
 
-// 获取重要新闻的数量
-export const getImportantCount = async () => {
-  return await request(RequestType.GET, RequestUrl.News_GetImportantCount)
-}
-
 // 获取指定新闻
-export const getOne = async (id: number) => {
+export const getOneNews = async (id: number) => {
   return await request(RequestType.GET, RequestUrl.News_GetOne + `/${id}`)
 }
 
 // 增加新闻浏览数量
-export const increaseScanNum = async (info: API.News.ModifyCount) => {
+export const increaseNewsScanNum = async (info: API.News.ModifyCount) => {
   return await request(RequestType.PUT, RequestUrl.News_ModifyCount, info)
 }

@@ -12,6 +12,6 @@ export const addSearchImgList = async () => {
 }
 
 // 删除搜寻图片
-export const deleteSearch = async (id: number) => {
+export const deleteSearchImg = async (id: number) => {
   return await request(RequestType.DELETE, RequestUrl.SearchImg_Delete + `/${id}`)
 }

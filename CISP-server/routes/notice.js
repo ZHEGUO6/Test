@@ -7,7 +7,7 @@ const {
   handleDataEmpty,
 } = require("../utils/server");
 const { getMeetItemFromObj } = require("../utils/object");
-const Search = require("../models/search");
+const { fn, col } = require("sequelize");
 const Router = express.Router({ caseSensitive: true });
 
 // 验证添加公告
@@ -27,21 +27,11 @@ async function validateModify(info) {
 // 获取所有公告数量
 Router.get("/count", async function (req, res, next) {
   handleDataEmpty(
-    await Notice.count().catch(
-      catchError(next, "请求的参数数据类型或值不满足要求")
-    ),
-    (result) => res.send(baseSend(200, "", { datas: null, count: result })),
-    () => next("查询公告数据失败")
-  );
-});
-
-// 获取所有重要公告的数量
-Router.get("/count/important", async function (req, res, next) {
-  handleDataEmpty(
-    await Notice.count({ where: { important: true } }).catch(
-      catchError(next, "请求的参数数据类型或值不满足要求")
-    ),
-    (result) => res.send(baseSend(200, "", { datas: null, count: result })),
+    await Notice.findAll({
+      group: "important",
+      attributes: [[fn("count", col("important")), "count"], "important"],
+    }).catch(catchError(next, "请求的参数数据类型或值不满足要求")),
+    (result) => res.send(baseSend(200, "", result)),
     () => next("查询公告数据失败")
   );
 });

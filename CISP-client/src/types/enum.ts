@@ -68,7 +68,6 @@ export enum RequestUrl {
   Group_DeleteByUser = '/group', // 删除某一用户的某个分组
 
   Notice_GetCount = '/notice/count', // 获取公告数量
-  Notice_GetImportantCount = '/notice/count/important', // 获取重要公告数量
   Notice_GetList = '/notice/list', // 分页获取公告
   Notice_GetListByImportant = '/notice/list/important', // 分页获取重要公告
   Notice_GetOne = '/notice/getOne', // 获取单个公告
@@ -80,7 +79,6 @@ export enum RequestUrl {
 
   News_GetCount = '/news/count', // 获取新闻总数
   News_GetList = '/news/list', // 分页获取新闻
-  News_GetImportantCount = '/news/count/important', // 获取重要新闻的数量
   News_GetListByImportant = '/news/list/important', // 分页获取重要新闻
   News_GetOne = '/news/getOne', // 获取指定新闻
   News_Add = '/news/add', // 新增单条新闻

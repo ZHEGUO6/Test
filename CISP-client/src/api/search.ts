@@ -8,12 +8,12 @@ export const getSearchCount = async () => {
 }
 
 // 分页获取搜寻
-export const getList = async (info: API.SearchPage) => {
+export const getSearchList = async (info: API.SearchPage) => {
   return await request(RequestType.GET, RequestUrl.Search_GetList + `?${qs.stringify(info)}`)
 }
 
 // 根据类型分页获取搜寻
-export const getListByType = async (typeId: number, info: API.SearchPage) => {
+export const getSearchListByType = async (typeId: number, info: API.SearchPage) => {
   return await request(
     RequestType.GET,
     RequestUrl.Search_GetListByType + `/${typeId}?${qs.stringify(info)}`
@@ -21,12 +21,12 @@ export const getListByType = async (typeId: number, info: API.SearchPage) => {
 }
 
 // 根据类型获取搜寻的数量
-export const getCountByType = async (typeId: number) => {
+export const getSearchCountByType = async (typeId: number) => {
   return await request(RequestType.GET, RequestUrl.Search_GetCountByType + `/${typeId}`)
 }
 
 // 获取指定搜寻
-export const getOne = async (id: number) => {
+export const getOneSearch = async (id: number) => {
   return await request(RequestType.GET, RequestUrl.Search_GetOne + `/${id}`)
 }
 
@@ -36,7 +36,7 @@ export const addSearch = async () => {
 }
 
 // 增加搜寻评论、浏览数量
-export const increaseNum = async (info: API.Search.ModifyCount) => {
+export const increaseSearchNum = async (info: API.Search.ModifyCount) => {
   return await request(RequestType.PUT, RequestUrl.Search_ModifyNum, info)
 }
 

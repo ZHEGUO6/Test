@@ -1,6 +1,5 @@
 import request from './request'
 import { RequestType, RequestUrl } from '@/types/enum'
-import qs from 'query-string'
 
 // 获取指定分组
 export const getOneGroup = async (id: number) => {
@@ -8,11 +7,8 @@ export const getOneGroup = async (id: number) => {
 }
 
 // 获取指定用户的所有分组
-export const getListByUser = async (uId: string, info: API.SearchPage) => {
-  return await request(
-    RequestType.GET,
-    RequestUrl.Group_GetAllByUser + `/${uId}?${qs.stringify(info)}`
-  )
+export const getGroupListByUser = async (uId: string) => {
+  return await request(RequestType.GET, RequestUrl.Group_GetAllByUser + `/${uId}`)
 }
 
 // 新增分组

@@ -383,7 +383,8 @@ declare namespace API {
   }
 
   declare namespace News {
-    interface Get {
+    type GetCount = Array<{ count: number; important: boolean }>
+    interface GetInfo {
       /**
        * 管理员id
        */
