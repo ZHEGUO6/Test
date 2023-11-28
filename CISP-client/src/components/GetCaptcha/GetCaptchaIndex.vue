@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import CountDown from '@/components/CounDown.vue'
-import { toRefs, onBeforeMount, Component, ref } from 'vue'
+import { Component, onBeforeMount, ref, toRefs } from 'vue'
 
 const props = defineProps<{
   storage: boolean
@@ -43,6 +43,9 @@ onBeforeMount(() => {
       val = Math.floor(val / 1000)
     }
     countDownTime.value = val
+  }
+  if (!countDownTime.value) {
+    btnGetCaptcha() // 上次的倒计时已结束更换验证码
   }
 })
 

@@ -682,6 +682,8 @@ declare namespace API {
   }
 
   declare namespace Notice {
+    type GetCount = Array<{ count: number; important: boolean }>
+
     export interface Get {
       /**
        * 管理员id

@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { toRefs } from 'vue'
+
 const props = defineProps<{ show: boolean }>()
-console.log(props)
+const { show } = toRefs(props)
 </script>
 
 <template>
-  <div class="screenLoadingContainer" v-show="props.show"></div>
+  <div class="screenLoadingContainer" v-show="show"></div>
 </template>
 
 <style lang="less" scoped>

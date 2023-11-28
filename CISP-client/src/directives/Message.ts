@@ -20,6 +20,7 @@ const message = (opts?: MessageOptions) => {
       }
     }
     totalOptions.duration = 99999999999999
+    totalOptions.repeatNum = 1
 
     // 处理关闭模型实例事件
     const handleClose = () => {

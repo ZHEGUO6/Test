@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { Meta } from '@/types/route'
-import { Compass, Setting, Document, Bell, Search, Connection, User } from '@element-plus/icons-vue'
+import { Meta, RoutePath } from '@/types/route'
+import { Bell, Compass, Connection, Document, Search, Setting, User } from '@element-plus/icons-vue'
 
 export type RouteRecord = RouteRecordRaw & {
   meta: Meta
@@ -8,38 +8,41 @@ export type RouteRecord = RouteRecordRaw & {
 
 const routes: readonly RouteRecord[] = [
   {
-    path: '/',
+    path: RoutePath.Home,
     name: 'home',
-    component: () => import('@/views/homePage.vue'),
+    component: () => import('@/views/HomePage/homePage.vue'),
     meta: {
       layout: true,
       label: '首页',
       icon: Compass,
-      exact: true
+      exact: true,
+      auth: true
     }
   },
   {
-    path: '/friend',
+    path: RoutePath.Friend,
     name: 'friend',
     component: () => import('@/views/Friend/friendPage.vue'),
     children: [
       {
-        path: '/chat',
+        path: RoutePath.Friend_Chat,
         name: 'chat',
         component: () => import('@/views/Friend/chatPage.vue'),
         meta: {
-          label: '聊天'
+          label: '聊天',
+          auth: true
         }
       }
     ],
     meta: {
       layout: true,
       label: '通讯录',
-      icon: Connection
+      icon: Connection,
+      auth: true
     }
   },
   {
-    path: '/search',
+    path: RoutePath.Search,
     name: 'search',
     component: () => import('@/views/searchPage.vue'),
     meta: {
@@ -49,7 +52,7 @@ const routes: readonly RouteRecord[] = [
     }
   },
   {
-    path: '/bulletin',
+    path: RoutePath.Bulletin,
     name: 'bulletin',
     component: () => import('@/views/bulletinBoard.vue'),
     meta: {
@@ -59,7 +62,7 @@ const routes: readonly RouteRecord[] = [
     }
   },
   {
-    path: '/news',
+    path: RoutePath.News,
     name: 'news',
     component: () => import('@/views/newsPage.vue'),
     meta: {
@@ -70,7 +73,7 @@ const routes: readonly RouteRecord[] = [
     }
   },
   {
-    path: '/personalCenter',
+    path: RoutePath.PersonalCenter,
     name: 'personalCenter',
     component: () => import('@/views/personalCenter.vue'),
     meta: {
@@ -81,7 +84,7 @@ const routes: readonly RouteRecord[] = [
     }
   },
   {
-    path: '/settings',
+    path: RoutePath.Settings,
     name: 'settings',
     component: () => import('@/views/settingPage.vue'),
     meta: {
@@ -92,7 +95,7 @@ const routes: readonly RouteRecord[] = [
     }
   },
   {
-    path: '/loginOrRegistry',
+    path: RoutePath.LoginOrRegistry,
     name: 'loginOrRegistry',
     component: () => import('@/views/loginAndRegistryPage.vue'),
     meta: {
@@ -101,9 +104,18 @@ const routes: readonly RouteRecord[] = [
     }
   },
   {
-    path: '/forgetPwd',
+    path: RoutePath.ForgetPwd,
     name: 'forgetPwd',
     component: () => import('@/views/forgetPwd.vue'),
+    meta: {
+      layout: false,
+      hideInMenu: true
+    }
+  },
+  {
+    path: RoutePath.NotFound,
+    name: '404',
+    component: () => import('@/views/NotFound/index.vue'),
     meta: {
       layout: false,
       hideInMenu: true

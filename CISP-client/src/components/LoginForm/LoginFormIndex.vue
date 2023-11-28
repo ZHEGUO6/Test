@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { onBeforeMount, reactive, ref, getCurrentInstance, toRefs, Ref } from 'vue'
+import { getCurrentInstance, onBeforeMount, reactive, ref, toRefs } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getCaptcha, validateCaptcha } from '@/api/captcha'
