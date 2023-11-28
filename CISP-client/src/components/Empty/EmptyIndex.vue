@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Slot } from 'vue'
-import { toRefs, ref, onBeforeMount } from 'vue'
+import type { Slot } from "vue";
+import { onBeforeMount, ref, toRefs, watch } from "vue";
 
 interface Slots {
   content: Slot
@@ -17,12 +17,22 @@ const { data } = toRefs(props)
 
 const isEmpty = ref<boolean>(false) // 数据是否为空
 
-onBeforeMount(() => {
-  data.value ?? (isEmpty.value = true)
-  Array.isArray(data.value) && !data.value.length && (isEmpty.value = true)
-  typeof data.value === 'object' && !Object.keys(data.value).length && (isEmpty.value = true)
-  !data.value && (isEmpty.value = true)
-})
+const handleJudgeIsEmpty = () => {
+  if (
+    !data.value ||
+    (Array.isArray(data.value) && !data.value.length) ||
+    (typeof data.value === '"object"&& !Object.keys(data.value).length)
+  ) {
+    isEmpty.value = true
+;    return
+;  }
+  isEmpty.value = false
+;}
+;
+onBeforeMount(handleJudgeIsEmpty)
+;
+watch(data, handleJudgeIsEmpty)
+;
 </script>
 
 <template>

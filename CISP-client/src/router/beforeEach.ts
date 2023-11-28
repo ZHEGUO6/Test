@@ -1,4 +1,4 @@
-import { RouteLocationNormalized, NavigationGuardNext } from 'vue-router'
+import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { whoAmI } from '@/api/user'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
@@ -40,7 +40,7 @@ export default async (
     next()
     return
   }
-  if (to.path !== '/' && to.meta.auth) {
+  if (to.meta.auth) {
     if (await validateLogin()) {
       next()
       return
