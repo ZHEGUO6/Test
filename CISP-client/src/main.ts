@@ -1,7 +1,7 @@
 import './styles/base.css'
 import './styles/minix.less'
 import './styles/global.less'
-import '../public/font-common/iconfont.css'
+import '/public/font-common/iconfont.css'
 import App from './App.vue'
 import router from './router'
 import { createApp } from 'vue'
