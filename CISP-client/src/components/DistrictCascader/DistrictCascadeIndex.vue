@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { reactive, toRefs, onBeforeMount, ref } from 'vue'
+import { reactive, toRefs, onBeforeMount, ref, computed } from 'vue'
 import { GD_WEB_API_DISTRICT } from '@/types/thirty-party'
 import { SessionStorageItemName } from '@/types/enum'
 import { getDistrict } from '@/api/three-party'
 import { last as _last } from 'lodash'
+import { NText, NSelect, NSpace } from 'naive-ui'
 
 const props = defineProps<{
   cascadeGet: { [key: string]: string }
@@ -136,6 +137,10 @@ const onDistrictInp = (prevValue: string, curLevel: string) => {
     if (val) {
       // 当前的搜索有值，筛选已经存在的结果
       cascadeOptions[curLevel] = cascadeOptions[curLevel].filter((i: any) => i.name.includes(val))
+    } else {
+      parseDistrictToTotalArray(totalDistricts.value, prevValue, curLevel, (list) => {
+        cascadeOptions[curLevel] = list
+      })
     }
     // 数据获取完毕
     fetchDistricts[curLevel] = false
@@ -162,9 +167,10 @@ const onDistrictSelectChange = async (value: string, curLevel: string, nextLevel
 const onDistrictSelectVisibleChange = async (
   preValue: string,
   value: boolean,
-  curLevel: string
+  curLevel: string,
+  clear?: boolean // 是否是调用了onclear函数
 ) => {
-  if (value && !cascadeOptions[curLevel].length) {
+  if (value && (!cascadeOptions[curLevel].length || clear)) {
     // 下拉框显示，并且没有数据，获取数据
     // 开始加载数据
     fetchDistricts[curLevel] = true
@@ -176,129 +182,111 @@ const onDistrictSelectVisibleChange = async (
   }
 }
 
+// 处理文字搜索
+const handleSearch = computed(() => ({
+  province: onDistrictInp('100000', 'province'),
+  city: onDistrictInp(cascadeGet.value.province, 'city'),
+  district: onDistrictInp(cascadeGet.value.city, 'district'),
+  street: onDistrictInp(cascadeGet.value.district, 'street')
+}))
+
 onBeforeMount(() => {
   remote().then(() => console.log('获取省市级区列表数据成功'))
 })
 </script>
 
 <template>
-  <el-row class="flexFullBasis">
-    <el-col>
-      <el-row justify="space-evenly">
-        <el-text>省份</el-text>
-        <el-select
-          v-model="cascadeSet.province"
-          :remote="true"
-          :filterable="true"
-          @visible-change="(value:boolean) =>onDistrictSelectVisibleChange( '100000',value,'province')"
-          :remote-method="onDistrictInp('100000', 'province')"
-          @change="(value:string) => onDistrictSelectChange(value, 'province', ['city','district','street'])"
-          :clearable="true"
-          placeholder="请选择省份"
-          :loading="fetchDistricts.province"
-          loading-text="正在加载省份数据，请稍后······"
-        >
-          <el-option
-            v-for="item in cascadeOptions.province"
-            :key="item.name"
-            :label="item.name"
-            :value="item.center"
-          />
-        </el-select>
-      </el-row>
-    </el-col>
+  <n-space class="flexFullBasis gridCenter">
+    <n-space>
+      <n-select
+        v-model:value="cascadeSet.province"
+        :remote="true"
+        filterable
+        :clearable="true"
+        :loading="fetchDistricts.province"
+        :options="cascadeOptions.province"
+        placeholder="请选择省份"
+        value-field="center"
+        label-field="name"
+        @update-show="(value:boolean) =>onDistrictSelectVisibleChange( '100000',value,'province')"
+        @search="handleSearch.province"
+        @update-value="(value:string) => onDistrictSelectChange(value, 'province', ['city','district','street'])"
+        @clear="onDistrictSelectVisibleChange('100000', true, 'province', true)"
+      />
+      <n-text>省份</n-text>
+    </n-space>
 
-    <el-divider class="mg-10"></el-divider>
+    <n-space>
+      <n-select
+        v-model:value="cascadeSet.city"
+        :disabled="!cascadeSet.province"
+        :remote="true"
+        :filterable="true"
+        :clearable="true"
+        :loading="fetchDistricts.city"
+        :options="cascadeOptions.city"
+        placeholder="请选择城市"
+        value-field="center"
+        label-field="name"
+        @update-show="(value:boolean) =>onDistrictSelectVisibleChange(cascadeGet.province, value,'city')"
+        @search="handleSearch.city"
+        @update-value="(value:string) => onDistrictSelectChange(value, 'city', ['district','street'])"
+        @clear="onDistrictSelectVisibleChange(cascadeGet.province, true, 'city', true)"
+      />
+      <n-text>城市</n-text>
+    </n-space>
 
-    <el-col>
-      <el-row justify="space-evenly">
-        <el-text>城市</el-text>
-        <el-select
-          v-model="cascadeSet.city"
-          :disabled="!cascadeSet.province"
-          :remote="true"
-          :filterable="true"
-          @visible-change="(value:boolean) =>onDistrictSelectVisibleChange(cascadeGet.province, value,'city')"
-          :remote-method="onDistrictInp(cascadeGet.province, 'city')"
-          @change="(value:string) => onDistrictSelectChange(value, 'city', ['district','street'])"
-          :clearable="true"
-          placeholder="请选择城市"
-          :loading="fetchDistricts.city"
-          loading-text="正在加载城市数据，请稍后······"
-        >
-          <el-option
-            v-for="item in cascadeOptions.city"
-            :key="item.name"
-            :label="item.name"
-            :value="item.center"
-          />
-        </el-select>
-      </el-row>
-    </el-col>
+    <n-space>
+      <n-select
+        v-model:value="cascadeSet.district"
+        :disabled="!cascadeOptions.district.length && !cascadeSet.district"
+        :remote="true"
+        :filterable="true"
+        :clearable="true"
+        :placeholder="
+          !cascadeOptions.district.length && !cascadeSet.district
+            ? '当前区域没有区县这一分类'
+            : '请选择区县'
+        "
+        :loading="fetchDistricts.district"
+        :options="cascadeOptions.district"
+        value-field="center"
+        label-field="name"
+        @update-show="(value:boolean) =>onDistrictSelectVisibleChange(cascadeGet.city,value,'district')"
+        @search="handleSearch.district"
+        @update-value="(value:string) => onDistrictSelectChange(value, 'district', ['street'])"
+        @clear="onDistrictSelectVisibleChange(cascadeGet.city, true, 'district', true)"
+      />
+      <n-text>区县</n-text>
+    </n-space>
 
-    <el-divider class="mg-10"></el-divider>
-
-    <el-col>
-      <el-row justify="space-evenly">
-        <el-text>区县</el-text>
-        <el-select
-          v-model="cascadeSet.district"
-          :disabled="!cascadeOptions.district.length && !cascadeSet.district"
-          :remote="true"
-          :filterable="true"
-          @visible-change="(value:boolean) =>onDistrictSelectVisibleChange(cascadeGet.city,value,'district')"
-          :remote-method="onDistrictInp(cascadeGet.city, 'district')"
-          @change="(value:string) => onDistrictSelectChange(value, 'district', ['street'])"
-          :clearable="true"
-          :placeholder="
-            !cascadeOptions.district.length && !cascadeSet.district
-              ? '当前区域没有区县这一分类'
-              : '请选择区县'
-          "
-          :loading="fetchDistricts.district"
-          loading-text="正在加载区县数据，请稍后······"
-        >
-          <el-option
-            v-for="item in cascadeOptions.district"
-            :key="item.name"
-            :label="item.name"
-            :value="item.center"
-          />
-        </el-select>
-      </el-row>
-    </el-col>
-
-    <el-divider class="mg-10"></el-divider>
-
-    <el-col>
-      <el-row justify="space-evenly">
-        <el-text>街道</el-text>
-        <el-select
-          v-model="cascadeSet.street"
-          :disabled="!cascadeOptions.street.length && !cascadeSet.street"
-          :remote="true"
-          :filterable="true"
-          @visible-change="(value:boolean) =>onDistrictSelectVisibleChange(cascadeGet.district,value,'street')"
-          :remote-method="onDistrictInp(cascadeGet.district, 'street')"
-          :clearable="true"
-          :placeholder="
-            !cascadeOptions.street.length && !cascadeSet.street
-              ? '当前区域没有街道这一分类'
-              : '请选择街道'
-          "
-          :loading="fetchDistricts.street"
-          loading-text="正在加载街道数据，请稍后······"
-        >
-          <el-option
-            v-for="item in cascadeOptions.street"
-            :key="item.name"
-            :label="item.name"
-            :value="item.center"
-          />
-        </el-select>
-      </el-row>
-    </el-col>
-  </el-row>
+    <n-space>
+      <n-select
+        v-model:value="cascadeSet.street"
+        :disabled="!cascadeOptions.street.length && !cascadeSet.street"
+        :remote="true"
+        :filterable="true"
+        :clearable="true"
+        :placeholder="
+          !cascadeOptions.street.length && !cascadeSet.street
+            ? '当前区域没有街道这一分类'
+            : '请选择街道'
+        "
+        :loading="fetchDistricts.street"
+        :options="cascadeOptions.street"
+        value-field="center"
+        label-field="name"
+        @update-show="(value:boolean) =>onDistrictSelectVisibleChange(cascadeGet.district,value,'street')"
+        @search="handleSearch.street"
+        @clear="onDistrictSelectVisibleChange(cascadeGet.district, true, 'street', true)"
+      />
+      <n-text>街道</n-text>
+    </n-space>
+  </n-space>
 </template>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.gridCenter {
+  align-items: center;
+}
+</style>

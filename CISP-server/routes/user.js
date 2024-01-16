@@ -13,7 +13,7 @@ const { encrypt, meetEncrypt } = require("../utils/encryptOrDecrypt");
 const { getRandom } = require("../utils/math");
 const { promises } = require("fs");
 const { resolve } = require("path");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 // 验证添加用户
 async function validateAdd(userInfo) {
@@ -192,15 +192,20 @@ Router.get("/find/friendList/:uId", async function (req, res, next) {
   );
 });
 
-// 获取单个用户
-Router.get("/:id", async function (req, res, next) {
-  const { id } = req.params;
+// 获取指定用户
+Router.post("/find/one", async function (req, res, next) {
+  const body = await readReqData(req).catch((err) =>
+    catchError(next, `传递的请求体有误，${err}`)()
+  );
+  if (!body) return;
   handleDataEmpty(
-    await User.findByPk(id).catch(
-      catchError(next, "传递的数据类型有误，请检查")
-    ),
-    (data) => res.send(baseSend(200, "", { datas: data })),
-    () => next("传递的id有误，请检查")
+    await User.findOne({
+      where: {
+        ...body,
+      },
+    }).catch(catchError(next, "传递的数据类型有误，请检查")),
+    (data) => res.send(baseSend(200, "", data)),
+    () => next("传递的数据有误，请检查")
   );
 });
 
@@ -219,7 +224,7 @@ Router.post("/validate", async function (req, res, next) {
   }).catch(catchError(next, "传递的数据类型有误"));
   handleDataEmpty(
     result,
-    (data) => res.send(baseSend(200, "", { datas: data })),
+    (data) => res.send(baseSend(200, "", data)),
     () => next("帐号或密码不正确")
   );
 });

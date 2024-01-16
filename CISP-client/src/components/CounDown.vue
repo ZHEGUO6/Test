@@ -1,11 +1,7 @@
-<template>
-  <el-text>
-    {{ time }}
-  </el-text>
-</template>
-
 <script setup lang="ts">
 import { watch, ref, onMounted } from 'vue'
+import { NText } from 'naive-ui'
+
 const props = defineProps<{
   time: number
   onChange: (time: number) => void
@@ -46,5 +42,11 @@ onMounted(() => {
   }
 })
 </script>
+
+<template>
+  <n-text>
+    {{ time }}
+  </n-text>
+</template>
 
 <style scoped></style>

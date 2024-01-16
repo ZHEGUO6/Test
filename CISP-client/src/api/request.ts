@@ -1,6 +1,5 @@
 import axios from 'axios'
 import { RequestType, RequestUrl } from '@/types/enum'
-import { ElMessage } from 'element-plus'
 
 const request = axios.create({
   baseURL: '/api',
@@ -22,19 +21,15 @@ const requestWrapper: (
   options?: object
 ) => Promise<API.ServerResponse> = async (method, url, options) => {
   return await request[method](url, options).catch((err) => {
-    if (err.response) {
-      ElMessage.error({
-        message: `操作失败 ${err.response.data?.msg ?? err.response.data?.info ?? ''}`,
-        duration: 4000,
-        showClose: true
-      })
-      return err.response.data
+    if (window.$rawMessage) {
+      if (err.response) {
+        window.$message(`操作失败 ${err.response.data?.msg ?? err.response.data?.info ?? ''}`, {
+          type: 'error'
+        })
+        return err.response.data
+      }
+      window.$message(`操作失败 ${err.message ?? ''}`, { type: 'error' })
     }
-    ElMessage.error({
-      message: `操作失败 ${err.message ?? ''}`,
-      duration: 4000,
-      showClose: true
-    })
     return { code: err.code, msg: err.message, data: null }
   })
 }

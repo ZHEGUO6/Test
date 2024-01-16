@@ -1,14 +1,10 @@
-import { ElMessage } from 'element-plus'
-import { MessageOptions } from 'element-plus/lib/components'
-
-let ind = 0
+import { MessageProviderProps, MessageOptions, MessageReactive } from 'naive-ui'
 
 // 对ElMessage 进行二次封装
-const message = (opts?: MessageOptions) => {
-  return (options: MessageOptions) => {
+const message = (opts?: MessageProviderProps) => {
+  return (content: string, options: MessageOptions) => {
     const defaultOptions: MessageOptions = { duration: 2000 }
     let timer: number | null = null
-    ind++
     const totalOptions = Object.assign(defaultOptions, opts || {}, options) // 全部的配置
     const onClose = totalOptions.onClose as (type?: string) => void | undefined
     const duration = totalOptions.duration
@@ -20,17 +16,17 @@ const message = (opts?: MessageOptions) => {
       }
     }
     totalOptions.duration = 99999999999999
-    totalOptions.repeatNum = 1
 
     // 处理关闭模型实例事件
     const handleClose = () => {
-      close() // 关闭模型实例
+      destroy() // 关闭模型实例
       onClose && onClose() // 调用传入的函数
     }
 
-    const { close } = ElMessage(totalOptions)
+    const { destroy } = window.$rawMessage.create(content, totalOptions) as MessageReactive
+
     timer = setTimeout(handleClose, duration) as unknown as number
-    const messageInstance = document.getElementById(`message_${ind}`)
+    const messageInstance = document.querySelector('.n-message')
     if (messageInstance) {
       messageInstance.onmouseenter = () => {
         if (timer) {
@@ -42,7 +38,7 @@ const message = (opts?: MessageOptions) => {
         timer = setTimeout(handleClose, duration) as unknown as number
       }
       messageInstance.onclick = () => {
-        close()
+        destroy()
         onClose && onClose('click')
         if (timer) {
           clearTimeout(timer)

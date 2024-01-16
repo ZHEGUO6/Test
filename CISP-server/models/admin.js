@@ -34,7 +34,7 @@ Admin.init(
       },
     },
     nickname: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(10) + "COLLATE utf8mb4_0900_as_cs",
       allowNull: false,
       defaultValue: "新增管理员",
       validate: {

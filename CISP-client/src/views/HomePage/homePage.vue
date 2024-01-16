@@ -1,14 +1,31 @@
 <script setup lang="ts">
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
 import EmptyIndex from '@/components/Empty/EmptyIndex.vue'
 import { getNewsCount, getNewsList } from '@/api/new'
 import { getNoticeCount } from '@/api/notice'
-import { onBeforeMount, ref } from 'vue'
-import { Warning } from '@element-plus/icons-vue'
+import { onBeforeMount, ref, computed } from 'vue'
+import { AlertCircleOutline } from '@vicons/ionicons5'
 import './styles/reset.less'
 import { RoutePath } from '@/types/route'
+import LinkIndex from '@/components/Link/LinkIndex.vue'
+import {
+  NIcon,
+  NSpace,
+  NScrollbar,
+  NGrid,
+  NGi,
+  NCard,
+  NTooltip,
+  NList,
+  NListItem,
+  NButton,
+  NTag,
+  NText,
+  NResult,
+  NFlex
+} from 'naive-ui'
+import { useRouter } from 'vue-router'
 
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
@@ -22,15 +39,23 @@ const newsData = ref<{ count: number; importantCount: number; list: Array<API.Ne
 })
 
 // 公告数据
-const noticeData = ref({
+const noticeData = ref<{ count: number; important: number; list: Array<API.Notice.Get> }>({
   count: 0,
-  importantCount: 0,
+  important: 0,
   list: []
 })
 
-const linkTo = (url: string) => {
-  router.push(url)
-}
+// 新闻卡片主区域样式
+const newsCardBodyStyle = computed(() => ({
+  ['min-height']: !newsData.value.count && `${noticeData.value.count * 72 + 42}px`,
+  display: newsData.value.count ? 'block' : 'flex'
+}))
+
+// 公告卡片主区域样式
+const noticeCardBodyStyle = computed(() => ({
+  ['min-height']: !noticeData.value.count && `${newsData.value.count * 72 + 42}px`,
+  display: noticeData.value.count ? 'block' : 'flex'
+}))
 
 const handleOut = async () => {
   await userStore.loginOut()
@@ -41,7 +66,7 @@ const handleOut = async () => {
     }
   })
 }
-console.log(newsData.value.importantCount)
+
 onBeforeMount(async () => {
   // 获取新闻数据
   const { data: newData } = await getNewsCount()
@@ -64,155 +89,161 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <el-scrollbar max-height="78vh">
-    <main class="homeContainer">
-      <el-space class="originElSpace" direction="vertical" :size="20">
-        <el-row></el-row>
-        <el-row justify="space-evenly">
-          <el-col :span="11">
-            <el-card
-              shadow="hover"
-              :body-style="{
-                ['min-height']: !newsData.count && `${noticeData.count * 72 + 42}px`,
-                display: newsData.count ? 'block' : 'flex'
-              }"
-            >
-              <template #header>
-                <a-flex align="center" justify="space-between" class="card-header">
-                  <span>新闻</span>
-                  <el-space size="2">
-                    <el-tooltip content="重要新闻总数">
-                      <el-button color="#f00" circle>{{ newsData.importantCount }}</el-button>
-                    </el-tooltip>
-                    <el-tooltip content="新闻总数">
-                      <el-button color="#ffde46" circle>{{ newsData.count }}</el-button>
-                    </el-tooltip>
-                  </el-space>
-                </a-flex>
+  <n-scrollbar max-height="78vh">
+    <main class="homePage-container">
+      <n-space vertical class="originElSpace" :size="20">
+        <n-flex :wrap="false" justify="space-between">
+          <n-card
+            header-class="homePage-card-header"
+            content-class="homePage-card-content"
+            hoverable
+            :body-style="newsCardBodyStyle"
+          >
+            <template #header>
+              <n-flex align="center" justify="space-between">
+                <span>新闻</span>
+                <n-space :size="2">
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-button color="#f00" circle>{{ newsData.importantCount }}</n-button>
+                    </template>
+                    <template #default> 重要新闻总数 </template>
+                  </n-tooltip>
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-button color="#ffde46" circle>{{ newsData.count }}</n-button>
+                    </template>
+                    <template #default> 新闻总数 </template>
+                  </n-tooltip>
+                </n-space>
+              </n-flex>
+            </template>
+            <empty-index :data="newsData.count">
+              <template #content>
+                <n-list bordered :data-source="newsData.list" class="homePage-card-content">
+                  <n-list-item :key="item.newId" v-for="item in newsData.list">
+                    <template #prefix>
+                      <n-space>
+                        <link-index :to="`${RoutePath.News}/${item.newId}`"
+                          >{{ item.title }}
+                        </link-index>
+                        <n-tag :type="item.important ? 'error' : 'default'"
+                          >{{ item.important ? '重要' : '普通' }}
+                        </n-tag>
+                      </n-space>
+                    </template>
+                    <n-text>{{ item.content }}</n-text>
+                  </n-list-item>
+                </n-list>
               </template>
-              <empty-index :data="newsData.count">
-                <template #content>
-                  <a-list bordered :data-source="newsData.list" class="card-content">
-                    <template #renderItem="{ item }: { item: API.News.GetInfo }">
-                      <a-list-item :key="item.newId">
-                        <a-list-item-meta :description="item.content">
-                          <template #title>
-                            <a-flex gap="middle">
-                              <el-link
-                                @click="linkTo(`${RoutePath.News}/${item.newId}`)"
-                                :underline="false"
-                                >{{ item.title }}
-                              </el-link>
-                              <el-tag :type="item.important ? 'danger' : ''"
-                                >{{ item.important ? '重要' : '普通' }}
-                              </el-tag>
-                            </a-flex>
-                          </template>
-                        </a-list-item-meta>
-                      </a-list-item>
-                    </template>
-                  </a-list>
-                </template>
-                <template #empty>
-                  <el-result>
-                    <template #title>
-                      <el-text type="danger" class="nowrap">暂无新闻数据</el-text>
-                    </template>
-                    <template #icon>
-                      <el-icon color="#f56c6c">
-                        <Warning />
-                      </el-icon>
-                    </template>
-                  </el-result>
-                </template>
-              </empty-index>
-            </el-card>
-          </el-col>
-          <el-col :span="11">
-            <el-card
-              shadow="hover"
-              :body-style="{
-                ['min-height']: !noticeData.count && `${newsData.count * 72 + 42}px`,
-                display: noticeData.count ? 'block' : 'flex'
-              }"
-            >
-              <template #header>
-                <a-flex align="center" justify="space-between">
-                  <span>公告</span>
-                  <el-space size="2">
-                    <el-tooltip content="重要公告总数">
-                      <el-button color="#f00" circle>{{ noticeData.importantCount }}</el-button>
-                    </el-tooltip>
-                    <el-tooltip content="公告总数">
-                      <el-button color="#ffde46" circle>{{ noticeData.count }}</el-button>
-                    </el-tooltip>
-                  </el-space>
-                </a-flex>
+              <template #empty>
+                <n-result status="error" title="暂无新闻数据"> </n-result>
               </template>
-              <empty-index :data="noticeData.count">
-                <template #content>
-                  <a-list bordered :data-source="noticeData.list">
-                    <template #renderItem="{ item }: { item: API.Notice.Get }">
-                      <a-list-item :key="item.noticeId">
-                        <a-list-item-meta :content="item.content">
-                          <template #title>
-                            <a-flex gap="middle">
-                              <el-link
-                                @click="linkTo(`${RoutePath.Bulletin}/${item.newId}`)"
-                                :underline="false"
-                                >{{ item.title }}
-                              </el-link>
-                              <el-tag :type="item.important ? 'danger' : ''"
-                                >{{ item.important ? '重要' : '普通' }}
-                              </el-tag>
-                            </a-flex>
-                          </template>
-                        </a-list-item-meta>
-                      </a-list-item>
+            </empty-index>
+          </n-card>
+          <n-card
+            header-class="homePage-card-header"
+            content-class="homePage-card-content"
+            hoverable
+            :body-style="noticeCardBodyStyle"
+          >
+            <template #header>
+              <n-space align="center" justify="space-between">
+                <span>公告</span>
+                <n-space :size="2">
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-button color="#f00" circle>{{ noticeData.important }}</n-button>
                     </template>
-                  </a-list>
-                </template>
-                <template #empty>
-                  <a-flex vertical align="center" gap="middle" justify="center" flex="1">
-                    <el-icon size="4rem" color="#f56c6c">
-                      <Warning />
-                    </el-icon>
-                    <el-text type="danger" class="nowrap">暂无公告数据</el-text>
-                  </a-flex>
-                </template>
-              </empty-index>
-            </el-card>
-          </el-col>
-        </el-row>
-        <el-row justify="space-evenly">
-          <el-col :span="11">
-            <el-card shadow="hover" class="">
-              <template #header>数据统计</template>
-              <empty-index :data="0">
-                <template #content>
-                  <div>123</div>
-                </template>
-                <template #empty> empty</template>
-              </empty-index>
-            </el-card>
-          </el-col>
-          <el-col :span="11">
-            <el-card shadow="hover" class="">
-              <template #header>便捷浏览</template>
-              <div>123</div>
-            </el-card>
-          </el-col>
-        </el-row>
+                    <template #default> 重要公告总数 </template>
+                  </n-tooltip>
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-button color="#ffde46" circle>{{ noticeData.count }}</n-button>
+                    </template>
+                    <template #default> 公告总数 </template>
+                  </n-tooltip>
+                </n-space>
+              </n-space>
+            </template>
+            <empty-index :data="noticeData.count">
+              <template #content>
+                <n-list bordered :data-source="noticeData.list">
+                  <n-list-item :key="item.noticeId" v-for="item in noticeData.list">
+                    <template #prefix>
+                      <n-space gap="middle">
+                        <link-index :to="`${RoutePath.Bulletin}/${item.noticeId}`"
+                          >{{ item.title }}
+                        </link-index>
+                        <n-tag :type="item.important ? 'error' : 'default'"
+                          >{{ item.important ? '重要' : '普通' }}
+                        </n-tag>
+                      </n-space>
+                    </template>
+                    <n-text>{{ item.content }}</n-text>
+                  </n-list-item>
+                </n-list>
+              </template>
+              <template #empty>
+                <n-result status="error" title="暂无公告数据"> </n-result>
+              </template>
+            </empty-index>
+          </n-card>
+        </n-flex>
+        <n-flex :wrap="false" justify="space-between">
+          <n-card
+            hoverable
+            header-class="homePage-card-header"
+            content-class="homePage-card-content"
+          >
+            <template #header>数据统计</template>
+            <empty-index :data="0">
+              <template #content>
+                <div>123</div>
+              </template>
+              <template #empty>
+                <n-result status="error" title="暂无相关数据"> </n-result>
+              </template>
+            </empty-index>
+          </n-card>
+          <n-card
+            header-class="homePage-card-header"
+            content-class="homePage-card-content"
+            hoverable
+          >
+            <template #header>便捷浏览</template>
+            <empty-index :data="0">
+              <template #content>
+                <div>123</div>
+              </template>
+              <template #empty>
+                <n-result status="error" title="暂无相关数据"> </n-result>
+              </template>
+            </empty-index>
+          </n-card>
+        </n-flex>
         <div>欢迎你，{{ userInfo.nickname }}</div>
         <div>
-          <el-button @click="handleOut">退出登录</el-button>
+          <n-button @click="handleOut">退出登录</n-button>
         </div>
-      </el-space>
+      </n-space>
     </main>
-  </el-scrollbar>
+  </n-scrollbar>
 </template>
 
-<style scoped lang="less">
+<style lang="less">
 @import 'src/styles/var';
 @import 'src/styles/scoped.module.css';
+
+.homePage-container {
+  padding: 20px 10px;
+}
+
+.homePage-card-header {
+  background: aliceblue;
+}
+
+.homePage-card-content {
+  background: #b4dffd;
+}
 </style>

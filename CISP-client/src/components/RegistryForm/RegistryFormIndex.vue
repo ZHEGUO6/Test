@@ -5,17 +5,41 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { getCaptcha, validateCaptcha } from '@/api/captcha'
 import { SessionStorageItemName, ValidateRegistryEnum } from '@/types/enum'
-import { FormInstance, FormRules } from 'element-plus'
-import { MessageOptions } from 'element-plus/lib/components'
 import { getAllInitialAvatar } from '@/api/image'
+import { findSingleUser } from '@/utils/api'
 import AvatarUploadIndex from '@/components/AvatarUpload/AvatarUploadIndex.vue'
 import { get as _get } from 'lodash'
 import { v4 as uuid } from 'uuid'
-import { Star } from '@element-plus/icons-vue'
 import { formValidators } from '@/utils/validate'
 import GetCaptchaIndex from '@/components/GetCaptcha/GetCaptchaIndex.vue'
 import DistrictCascadeIndex from '@/components/DistrictCascader/DistrictCascadeIndex.vue'
 import { simpleValidatorFunc } from '@/utils/validate'
+import {
+  MessageOptions,
+  FormRules,
+  FormInst,
+  FormItemRule,
+  NForm,
+  NFormItem,
+  NInput,
+  NSelect,
+  NGi,
+  NFormItemGi,
+  NScrollbar,
+  NSwitch,
+  NText,
+  NButton,
+  NGrid,
+  NDrawer,
+  NAvatar,
+  NAvatarGroup,
+  NDatePicker,
+  NSpace,
+  NIcon,
+  AvatarProps
+} from 'naive-ui'
+import CountDown from '@/components/CounDown.vue'
+import { StarHalfSharp } from '@vicons/ionicons5'
 
 const props = defineProps<{ changeType: () => void }>()
 
@@ -24,7 +48,7 @@ const { changeType } = toRefs(props)
 /**
  * data定义
  */
-const form = reactive<API.User.Add & { captcha: string; saveTime: number; confirmPwd: string }>({
+const form = ref<API.User.Add & { captcha: string; saveTime: number; confirmPwd: string }>({
   nickname: '',
   loginPwd: '',
   confirmPwd: '',
@@ -64,7 +88,7 @@ const { isLogin } = storeToRefs(useUserStore())
 const app = getCurrentInstance()?.appContext.config.globalProperties
 const captcha = ref<HTMLElement>() // 验证码
 
-// 选择免登录时间
+// 用户类型
 const userTypeOptions = [
   {
     label: '学生',
@@ -96,7 +120,9 @@ const autoLoginOptions = [
   }
 ]
 
-const initialAvatars = ref<Array<string>>([]) // 系统自带的头像列表
+const initialAvatars = ref<Array<AvatarProps>>([]) // 系统自带的头像列表
+
+const getTimeRef = ref<{ [key: string]: any }>()
 
 const useAutoLogin = ref<boolean>(false) // 是否启用免登录
 const useMoreSettings = ref<boolean>(false) // 是否设置更多注册信息
@@ -105,92 +131,106 @@ const useUploadAvatar = ref<boolean>(false) // 是否上传自己的头像
 const screenLoading = ref<boolean>(false) // 是否加载全屏过渡动画
 const btnLoading = ref<boolean>(false) // 是否按钮加载过渡动画
 
-const formRef = ref<FormInstance>()
-const drawFormRef = ref<FormInstance>() // 抽屉注册表单ref
+// 验证当前表单项是否已经有相应用户了
+const validateIsBind: (key: string, message: string) => FormItemRule = (key, message) => ({
+  asyncValidator: (_: FormItemRule, val: string) =>
+    new Promise(async (resolve, reject) => {
+      const user = await findSingleUser({ [key]: val })
+      if (user) {
+        reject(message)
+      } else {
+        resolve()
+      }
+    }),
+  trigger: ['blur']
+})
 
-const rules = ref<FormRules<typeof form>>({
-  type: [{ required: true, message: '请选择您的角色' }],
-  nickname: [
-    { required: true, message: '请填写昵称' },
-    { min: 2, max: 10, message: '昵称的长度为2-10位', trigger: ['blur'] }
+const formRef = ref<FormInst>()
+const drawFormRef = ref<FormInst>() // 抽屉注册表单ref
+
+const rules = ref<FormRules>({
+  [ValidateRegistryEnum.NickName]: [
+    { required: true, message: '请填写昵称', trigger: ['input', 'blur'] },
+    { min: 2, max: 10, message: '昵称的长度为2-10位', trigger: ['blur'] },
+    validateIsBind(ValidateRegistryEnum.NickName, '当前昵称已被他人注册')
   ],
-  loginPwd: [
-    { required: true, message: '请填写密码' },
+  [ValidateRegistryEnum.LoginPwd]: [
+    { required: true, message: '请填写密码', trigger: ['input', 'blur'] },
     { min: 8, message: '密码不能小于8位', trigger: ['blur'] },
     { max: 32, message: '密码不能超过32位', trigger: ['blur'] },
     {
-      validator: simpleValidatorFunc(
-        (value) => formValidators.password.test(value),
-        '密码要求数字、字母加特殊字符'
-      ),
+      validator: simpleValidatorFunc((value: string) => formValidators.password.test(value)),
+      message: '密码要求数字、字母加特殊字符',
       trigger: ['blur']
     }
   ],
-  confirmPwd: [
-    { required: true, message: '请再次输入密码' },
+  [ValidateRegistryEnum.ConfirmPwd]: [
+    { required: true, message: '请再次输入密码', trigger: ['input', 'blur'] },
     {
-      validator: simpleValidatorFunc(
-        (value) => value === form.loginPwd,
-        '两次输入的密码不一致，请检查'
-      ),
+      validator: simpleValidatorFunc((value: string) => value === form.value.loginPwd),
+      message: '两次输入的密码不一致，请检查',
       trigger: ['blur']
     }
   ],
-  captcha: [
-    { required: true, message: '请填写验证码' },
-    { len: 6, message: '请正确输入验证码' },
+  [ValidateRegistryEnum.Captcha]: [
+    { required: true, message: '请填写验证码', trigger: ['input', 'blur'] },
+    { len: 6, message: '请正确输入验证码', trigger: ['blur'] },
     {
-      validator: (_, value, callback) => {
-        validateCaptcha({ captcha: value }).then(
-          (res: API.ServerResponse) => {
-            if (res.code !== 200) {
-              callback(res.msg)
+      asyncValidator: (_: FormItemRule, value: string) =>
+        new Promise((resolve, reject) => {
+          validateCaptcha({ captcha: value }).then(
+            (res: API.ServerResponse) => {
+              if (res.code !== 200) {
+                reject(res.msg)
+              }
+              resolve()
+            },
+            (err: Error) => {
+              reject(err.message)
             }
-            callback()
-          },
-          (err: Error) => {
-            callback(err.message)
-          }
-        )
-      }
-    }
-  ],
-  mail: [
-    {
-      validator: simpleValidatorFunc(
-        (value) => (value ? formValidators.mail.test(value) : true),
-        '邮箱格式不对，请重新输入'
-      ),
+          )
+        }),
       trigger: ['blur']
     }
   ],
-  qq: [
+  [ValidateRegistryEnum.Mail]: [
     {
-      validator: simpleValidatorFunc(
-        (value) => (value ? formValidators.qq.test(value) : true),
-        'QQ号格式不对，请重新输入'
-      ),
+      validator: simpleValidatorFunc((value) => (value ? formValidators.mail.test(value) : true)),
+      message: '邮箱格式不对，请重新输入',
       trigger: ['blur']
-    }
+    },
+    validateIsBind(ValidateRegistryEnum.Mail, '当前邮箱已被他人绑定')
   ],
-  wechat: [
+  [ValidateRegistryEnum.QQ]: [
     {
-      validator: simpleValidatorFunc(
-        (value) => (value ? formValidators.wechat.test(value) : true),
-        '微信号格式不对，请重新输入'
+      validator: simpleValidatorFunc((value: string) =>
+        value ? formValidators.qq.test(value) : true
       ),
+      message: 'QQ号格式不对，请重新输入',
       trigger: ['blur']
-    }
+    },
+    validateIsBind(ValidateRegistryEnum.QQ, '当前qq号已被他人绑定')
   ],
-  phone: [
-    { required: true, message: '请填写手机号' },
+  [ValidateRegistryEnum.Wechat]: [
     {
-      validator: simpleValidatorFunc(
-        (value) => (value ? formValidators.phone.test(value) : true),
-        '手机号格式不对，请重新输入'
+      validator: simpleValidatorFunc((value: string) =>
+        value ? formValidators.wechat.test(value) : true
       ),
+      message: '微信号格式不对，请重新输入',
       trigger: ['blur']
-    }
+    },
+    validateIsBind(ValidateRegistryEnum.Wechat, '当前微信号已被他人绑定')
+  ],
+  [ValidateRegistryEnum.Phone]: [
+    { required: true, message: '请填写手机号', trigger: ['input', 'blur'] },
+    {
+      validator: simpleValidatorFunc((value: string) =>
+        value ? formValidators.phone.test(value) : true
+      ),
+      message: '手机号格式不对，请重新输入',
+      trigger: ['blur']
+    },
+    validateIsBind(ValidateRegistryEnum.Phone, '当前手机号已被他人绑定')
   ]
 })
 
@@ -205,9 +245,8 @@ const moreSettingSwitchChange = async (val: boolean) => {
     await validateFormFields(
       () => (useMoreSettings.value = true),
       () =>
-        app?.$message({
+        app?.$message(`请先完善必填项再填写更多注册信息~`, {
           type: 'error',
-          message: `请先完善必填项再填写更多注册信息~`,
           duration: 3000
         })
     )
@@ -216,17 +255,16 @@ const moreSettingSwitchChange = async (val: boolean) => {
 
 // 头像上传成功
 const avatarUploadSuccess = (response: API.ServerResponse) => {
-  form.avatar = response.data as unknown as string
-  app.$message({
-    type: 'success',
-    message: '恭喜您，头像上传成功'
+  form.value.avatar = response.data as unknown as string
+  app.$message('恭喜您，头像上传成功', {
+    type: 'success'
   } as MessageOptions)
 }
 
 // 系统自定义头像点击事件
 const initialAvatarClick = (e: any) => {
   const src = _get(e, 'target.src')
-  src && (form.avatar = src)
+  src && (form.value.avatar = src)
 }
 
 // 进行基础表单的验证
@@ -246,13 +284,13 @@ const validateFormFields = async (
 }
 
 // 日期选择框判断该日期是否被禁用
-const disabledDate = (d: Date) => d.getFullYear() < 1960
+const disabledDate = (d: number) => new Date(d).getFullYear() < 1960
 
 // 进行注册前的预处理动作
 const preRegistry = () => {
   if (!useAutoLogin.value) {
     //   未开启免登录，将免登录时间改为0
-    form.saveTime = 0
+    form.value.saveTime = 0
   }
   let addresses = [
     `${cascadeGet.province}/${cascadeSet.province}`,
@@ -261,7 +299,7 @@ const preRegistry = () => {
     `${cascadeGet.street}/${cascadeSet.street}`
   ].filter((i) => i.length > 1)
   if (addresses.length) {
-    form.addr = [
+    form.value.addr = [
       `${cascadeGet.province}/${cascadeSet.province}`,
       `${cascadeGet.city}/${cascadeSet.city}`,
       `${cascadeGet.district}/${cascadeSet.district}`,
@@ -269,10 +307,6 @@ const preRegistry = () => {
     ]
       .filter((i) => i.length > 1)
       .join('-')
-  }
-  if (typeof form.birthDay !== 'number') {
-    // 当前为日期对象
-    form.birthDay = form.birthDay.getTime()
   }
 }
 
@@ -282,77 +316,63 @@ const startOrStopAllLoading = (bool: boolean) => {
   btnLoading.value = bool
 }
 
-// 抽屉关闭之前的回调
-const drawerClose = async (done: (cancel?: boolean) => void) => {
+// 有进行注册的权限
+const accessToRegistry = async (successCallback?: () => void) => {
+  preRegistry()
+  await registry(form.value)
+  if (isLogin.value) {
+    successCallback && successCallback()
+    app?.$message(`注册成功！正在跳转到首页...`, {
+      type: 'success',
+      duration: 2000
+    })
+    await router.push('/')
+  }
+  startOrStopAllLoading(false)
+}
+
+// 抽屉显示状态改变时执行的回调函数
+const drawerUpdateShow = async (cancel: boolean) => {
+  if (cancel) {
+    return
+  }
   startOrStopAllLoading(true) // 开启loading动画
   const formValidate = await drawFormRef.value?.validate().catch((err: Error) => err)
   if (typeof formValidate === 'object') {
     //   表单校验未通过
-    app?.$message({
+    app?.$message(`请按提示完成表单内容的填写~`, {
       type: 'error',
-      message: `请按提示完成表单内容的填写~`,
       duration: 3000
     })
-    done(true) // 终止关闭
     startOrStopAllLoading(false)
     return
   }
   // 表单验证通过，进行注册操作
-  const isValidate = await drawFormRef.value?.validate().catch((err: Error) => err)
-  if (typeof isValidate !== 'object') {
-    //   表单验证成功
-    preRegistry()
-    await registry(form)
-    if (isLogin.value) {
-      done(true)
-      app?.$message({
-        type: 'success',
-        message: `注册成功！正在跳转到首页...`,
-        duration: 2000
-      })
-      await router.push('/')
-    }
-  } else {
-    app?.$message({
-      type: 'error',
-      message: `请完善未验证通过的表单项内容`,
-      duration: 3000
-    })
-  }
-  startOrStopAllLoading(false)
+  await accessToRegistry(() => {
+    useMoreSettings.value = false
+  })
 }
 
 const onSubmit = async () => {
   // 进行基本表单校验
   startOrStopAllLoading(true)
-  await validateFormFields(
-    async () => {
-      preRegistry()
-      await registry(form)
-      if (isLogin.value) {
-        app?.$message({
-          type: 'success',
-          message: `注册成功！正在跳转到首页...`,
-          duration: 2000
-        })
-        await router.push('/')
-      }
-      startOrStopAllLoading(false)
-    },
-    () => {
-      app?.$message({
-        type: 'error',
-        message: `请完善必填项内容`,
-        duration: 3000
-      })
-      startOrStopAllLoading(false)
-    }
-  )
+  await validateFormFields(accessToRegistry, () => {
+    app?.$message(`请完善必填项内容`, {
+      type: 'error',
+      duration: 3000
+    })
+    startOrStopAllLoading(false)
+  })
 }
 
 // 初始化系统自带头像
 const setInitialAvatars = async () => {
-  const links = await getAllInitialAvatar().then((res: API.ServerResponse) => res.data?.datas)
+  const links = await getAllInitialAvatar().then((res: API.ServerResponse) =>
+    (res.data?.datas as Array<string>).map((i) => ({
+      round: true,
+      src: i
+    }))
+  )
   sessionStorage.setItem(SessionStorageItemName.InitialAvatarLinks, JSON.stringify(links))
   initialAvatars.value = links
 }
@@ -361,7 +381,7 @@ const setInitialAvatars = async () => {
 const recoverInitialAvatars = () => {
   initialAvatars.value = JSON.parse(
     sessionStorage.getItem(SessionStorageItemName.InitialAvatarLinks)
-  ) as Array<string>
+  ) as Array<AvatarProps>
 }
 
 // 获取验证码
@@ -374,7 +394,7 @@ const getCaptchaAsync = async () => {
 // 按钮更换验证码
 const btnGetCaptcha = async () => {
   await getCaptchaAsync()
-  form.captcha = ''
+  form.value.captcha = ''
 }
 
 onBeforeMount(async () => {
@@ -390,256 +410,283 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <el-scrollbar>
-    <el-form
-      ref="formRef"
-      :model="form"
-      :rules="rules"
-      class="loginFormOrRegistryForm"
-      label-width="80"
-      label-position="left"
-      status-icon
-      v-loading.fullscreen="screenLoading"
-      element-loading-text="正在注册中，请稍后......"
-      element-loading-background="rgb(39 82 92 / 54%)"
-    >
-      <el-form-item :prop="ValidateRegistryEnum.Type" :required="true" label="角色">
-        <el-select v-model="form.type" placeholder="请选择您的角色">
-          <el-option
-            v-for="item in userTypeOptions"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
-
-      <el-form-item :prop="ValidateRegistryEnum.NickName" :required="true" label="昵称">
-        <el-input
-          v-model="form.nickname"
-          :clearable="true"
-          placeholder="请填写昵称"
-          autocomplete="on"
-          autofocus
-        />
-      </el-form-item>
-
-      <el-form-item required :prop="ValidateRegistryEnum.Phone" label="手机号">
-        <el-input
-          v-model="form.phone"
-          :clearable="true"
-          placeholder="请填写手机号"
-          autocomplete="on"
-        />
-      </el-form-item>
-
-      <el-form-item :prop="ValidateRegistryEnum.LoginPwd" :required="true" label="密码">
-        <el-input
-          v-model="form.loginPwd"
-          :clearable="true"
-          :show-password="true"
-          placeholder="请填写密码"
-          type="password"
-        />
-      </el-form-item>
-
-      <el-form-item :prop="ValidateRegistryEnum.ConfirmPwd" :required="true" label="确认密码">
-        <el-input
-          v-model="form.confirmPwd"
-          :clearable="true"
-          :show-password="true"
-          placeholder="请再次填写相同的密码"
-          type="password"
-        />
-      </el-form-item>
-
-      <el-form-item
-        :prop="ValidateRegistryEnum.Captcha"
-        :required="true"
-        class="alignCenter"
-        label="验证码"
-      >
-        <el-col :span="6">
-          <el-input v-model="form.captcha" :clearable="true" placeholder="请填写验证码" />
-        </el-col>
-
-        <el-col :span="1"></el-col>
-
-        <el-col :span="6">
-          <div class="captchaContainer" v-html="captcha" />
-        </el-col>
-
-        <el-col :span="1"></el-col>
-
-        <el-col :span="9">
-          <div>
-            <get-captcha-index
-              :storage="false"
-              :storage-item-name="SessionStorageItemName.RegistryCaptchaValidateTime"
-              :on-change="btnGetCaptcha"
-            />
-          </div>
-        </el-col>
-      </el-form-item>
-
-      <el-form-item key="settingMore">
-        <el-switch
-          :inline-prompt="true"
-          active-text="取消设置更多信息"
-          inactive-text="是否设置更多注册信息"
-          @change="moreSettingSwitchChange"
-        >
-          设置更多注册信息
-        </el-switch>
-      </el-form-item>
-
-      <el-form-item :key="ValidateRegistryEnum.SaveTime">
-        <el-row>
-          <el-col :span="10">
-            <el-switch
-              v-model="useAutoLogin"
-              :inline-prompt="true"
-              active-text="请选择免登录时间"
-              inactive-text="是否开启免登录"
-              >开启免登录
-            </el-switch>
-          </el-col>
-          <el-col :span="12">
-            <el-select v-if="useAutoLogin" v-model="form.saveTime" placeholder="请选择免登录时间">
-              <el-option
-                v-for="item in autoLoginOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-          </el-col>
-        </el-row>
-      </el-form-item>
-
-      <el-form-item>
-        <el-col>
-          <el-button class="btnCenter" @click="onSubmit" :loading-icon="Star" :loading="btnLoading"
-            >注册</el-button
-          >
-        </el-col>
-      </el-form-item>
-
-      <el-link class="changeFormBtn" @click="changeType">
-        <el-text class="txt">登录</el-text>
-      </el-link>
-    </el-form>
-
-    <el-drawer v-model="useMoreSettings" :before-close="drawerClose" :size="600">
-      <el-form
-        ref="drawFormRef"
+  <div>
+    <n-scrollbar>
+      <n-form
+        ref="formRef"
+        class="loginFormOrRegistryForm"
+        label-width="80"
         :model="form"
         :rules="rules"
-        label-width="80"
-        label-position="left"
-        status-icon
+        require-mark-placement="left"
       >
-        <el-form-item :prop="ValidateRegistryEnum.Avatar" class="labelCenter" label="头像">
-          <el-row class="avatarRow">
-            <el-col :span="4">
-              <AvatarUploadIndex
-                :on-success="avatarUploadSuccess"
-                :upload-options="{ disabled: !useUploadAvatar }"
-                class="hvr-bob"
-              >
-                <template #default>
-                  <el-avatar :src="form.avatar" />
-                </template>
-              </AvatarUploadIndex>
-            </el-col>
+        <n-form-item :path="ValidateRegistryEnum.Type" required label="角色">
+          <n-select
+            v-model:value="form.type"
+            placeholder="请选择您的角色"
+            :options="userTypeOptions"
+          />
+        </n-form-item>
 
-            <el-col :span="20">
-              <ul class="initialAvatarContainer" @click="initialAvatarClick">
-                <el-avatar
-                  v-for="item in initialAvatars"
-                  :src="item"
-                  class="hvr-shrink"
-                  :key="item"
-                />
-              </ul>
-            </el-col>
-
-            <el-col>
-              <el-switch
-                v-model="useUploadAvatar"
-                active-text="点击头像上传自己的头像"
-                inactive-text="使用系统自带头像"
-              />
-            </el-col>
-
-            <el-col>
-              <el-text size="small" type="info">如果不选，将设置随机的系统头像</el-text>
-            </el-col>
-          </el-row>
-        </el-form-item>
-
-        <el-form-item :prop="ValidateRegistryEnum.Mail" label="邮箱">
-          <el-input
-            v-model="form.mail"
-            :clearable="true"
-            placeholder="请填写邮箱"
+        <n-form-item first :path="ValidateRegistryEnum.NickName" required label="昵称">
+          <n-input
+            v-model:value="form.nickname"
+            placeholder="请填写昵称"
             autofocus
-            autocomplete="on"
+            clearable
+            :input-props="{ autocomplete: 'on' }"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item :prop="ValidateRegistryEnum.QQ" label="QQ号">
-          <el-input
-            v-model="form.qq"
-            :clearable="true"
-            placeholder="请填写QQ号"
-            autocomplete="on"
+        <n-form-item first required :path="ValidateRegistryEnum.Phone" label="手机号">
+          <n-input
+            v-model:value="form.phone"
+            placeholder="请填写手机号"
+            clearable
+            :input-props="{ autocomplete: 'on' }"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item :prop="ValidateRegistryEnum.Wechat" label="微信号">
-          <el-input
-            v-model="form.wechat"
-            :clearable="true"
-            placeholder="请填写微信号"
-            autocomplete="on"
+        <n-form-item first :path="ValidateRegistryEnum.LoginPwd" required label="密码">
+          <n-input
+            v-model:value="form.loginPwd"
+            clearable
+            show-password-on="click"
+            placeholder="请填写密码"
+            type="password"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item :prop="ValidateRegistryEnum.Intro" label="个人介绍">
-          <el-input
-            v-model="form.intro"
-            :clearable="true"
-            placeholder="请填写个人介绍"
-            autocomplete="on"
+        <n-form-item first :path="ValidateRegistryEnum.ConfirmPwd" required label="确认密码">
+          <n-input
+            v-model:value="form.confirmPwd"
+            show-password-on="click"
+            placeholder="请再次填写相同的密码"
+            type="password"
+            clearable
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item :prop="ValidateRegistryEnum.Address" label="地址">
-          <district-cascade-index :cascade-set="cascadeSet" :cascade-get="cascadeGet" />
-        </el-form-item>
+        <n-form-item
+          first
+          :path="ValidateRegistryEnum.Captcha"
+          clearable
+          required
+          class="alignCenter"
+          label="验证码"
+        >
+          <n-grid class="gridCenter">
+            <n-gi :span="8">
+              <n-input
+                v-model:value="form.captcha"
+                placeholder="请填写验证码"
+                clearable
+                :input-props="{ autocomplete: 'on' }"
+              />
+            </n-gi>
 
-        <el-form-item :prop="ValidateRegistryEnum.BirthDay" label="生日">
-          <el-date-picker
-            v-model="form.birthDay"
-            :clearable="true"
-            placeholder="请选择生日"
-            :disabled-date="disabledDate"
-          />
-        </el-form-item>
-      </el-form>
-    </el-drawer>
-  </el-scrollbar>
+            <n-gi :span="1" />
+
+            <n-gi :span="7">
+              <div class="captchaContainer" v-html="captcha" />
+            </n-gi>
+
+            <n-gi :span="1" />
+
+            <n-gi :span="7">
+              <get-captcha-index
+                ref="getTimeRef"
+                @change="btnGetCaptcha"
+                :storage="false"
+                auto-refresh
+                :storage-item-name="SessionStorageItemName.RegistryCaptchaValidateTime"
+              >
+                <template #activeContent="{ countChange, countTime }">
+                  <n-button disabled type="info" class="registryFormCaptchaBtn">
+                    <count-down :on-change="countChange" :time="countTime" />
+                    <n-text>&nbsp;秒后自动获取验证码</n-text>
+                  </n-button>
+                </template>
+                <template #finishContent="{ clickFunc }">
+                  <n-button class="registryFormCaptchaBtn" type="primary" @click="clickFunc">
+                    <n-text>获取验证码</n-text>
+                  </n-button>
+                </template>
+              </get-captcha-index>
+            </n-gi>
+          </n-grid>
+        </n-form-item>
+
+        <n-switch @update-value="moreSettingSwitchChange" :value="useMoreSettings">
+          <template #checked>
+            <n-text>取消设置更多信息</n-text>
+          </template>
+          <template #unchecked>
+            <n-text>设置更多注册信息</n-text>
+          </template>
+        </n-switch>
+
+        <n-grid>
+          <n-form-item-gi :span="7">
+            <n-switch v-model:value="useAutoLogin"
+              ><template #checked>
+                <n-text>请选择免登录时间</n-text>
+              </template>
+              <template #unchecked>
+                <n-text>开启免登录</n-text>
+              </template>
+            </n-switch>
+          </n-form-item-gi>
+          <n-form-item-gi :span="7">
+            <n-select
+              v-if="useAutoLogin"
+              v-model:value="form.saveTime"
+              placeholder="请选择免登录时间"
+              :options="autoLoginOptions"
+            />
+          </n-form-item-gi>
+        </n-grid>
+
+        <n-button class="btnCenter" @click="onSubmit" :loading="btnLoading">
+          <template #default>
+            <n-text>注册</n-text>
+          </template>
+          <template #icon v-if="btnLoading">
+            <n-icon>
+              <star-half-sharp />
+            </n-icon>
+          </template>
+        </n-button>
+
+        <div class="changeFormBtn" @click="changeType">
+          <n-text class="txt">登录</n-text>
+        </div>
+      </n-form>
+
+      <n-drawer
+        :show="useMoreSettings"
+        @update-show="drawerUpdateShow"
+        default-width="600"
+        :content-style="{ paddingRight: 20 + 'px', paddingTop: '20px' }"
+      >
+        <n-form
+          ref="drawFormRef"
+          label-width="80"
+          label-placement="left"
+          :model="form"
+          :rules="rules"
+        >
+          <n-form-item :path="ValidateRegistryEnum.Avatar" class="labelCenter" label="头像">
+            <n-space>
+              <n-grid>
+                <n-gi :span="6">
+                  <AvatarUploadIndex
+                    :on-success="avatarUploadSuccess"
+                    :upload-options="{ disabled: !useUploadAvatar }"
+                    class="hvr-bob"
+                  >
+                    <template #default>
+                      <n-avatar :src="form.avatar">
+                        <template #placeholder>加载头像</template>
+                      </n-avatar>
+                    </template>
+                  </AvatarUploadIndex>
+                </n-gi>
+
+                <n-gi :span="18">
+                  <n-avatar-group :options="initialAvatars" @click="initialAvatarClick" />
+                </n-gi>
+              </n-grid>
+              <div>
+                <n-switch v-model:value="useUploadAvatar">
+                  <template #checked>
+                    <n-text>使用系统自带头像</n-text>
+                  </template>
+
+                  <template #unchecked>
+                    <n-text>点击头像上传自己的头像</n-text>
+                  </template>
+                </n-switch>
+                <n-text class="mini-desc">如果不选，将设置随机的系统头像</n-text>
+              </div>
+            </n-space>
+          </n-form-item>
+
+          <n-form-item :path="ValidateRegistryEnum.Mail" label="邮箱">
+            <n-input
+              v-model:value="form.mail"
+              clearable
+              placeholder="请填写邮箱"
+              autofocus
+              :input-props="{ autocomplete: 'on' }"
+            />
+          </n-form-item>
+
+          <n-form-item :path="ValidateRegistryEnum.QQ" label="QQ号">
+            <n-input
+              v-model:value="form.qq"
+              clearable
+              placeholder="请填写QQ号"
+              :input-props="{ autocomplete: 'on' }"
+            />
+          </n-form-item>
+
+          <n-form-item :path="ValidateRegistryEnum.Wechat" label="微信号">
+            <n-input
+              v-model:value="form.wechat"
+              clearable
+              placeholder="请填写微信号"
+              :input-props="{ autocomplete: 'on' }"
+            />
+          </n-form-item>
+
+          <n-form-item :path="ValidateRegistryEnum.Intro" label="个人介绍">
+            <n-input
+              v-model:value="form.intro"
+              clearable
+              placeholder="请填写个人介绍"
+              :input-props="{ autocomplete: 'on' }"
+            />
+          </n-form-item>
+
+          <n-form-item :path="ValidateRegistryEnum.Address" label="地址">
+            <district-cascade-index :cascade-set="cascadeSet" :cascade-get="cascadeGet" />
+          </n-form-item>
+
+          <n-form-item :path="ValidateRegistryEnum.BirthDay" label="生日">
+            <n-date-picker
+              v-model:value="form.birthDay"
+              clearable
+              placeholder="请选择生日"
+              :is-date-disabled="disabledDate"
+            />
+          </n-form-item>
+        </n-form>
+      </n-drawer>
+    </n-scrollbar>
+  </div>
 </template>
 
 <style lang="less" scoped>
-.initialAvatarContainer {
-  padding: 0;
-  display: flex;
-  justify-content: space-evenly;
-}
-
 .avatarRow {
   margin-top: -5px;
+}
+
+.txt {
+  cursor: pointer;
+}
+
+.gridCenter {
+  align-items: center;
+}
+
+.registryFormCaptchaBtn {
+  min-width: 170px;
+}
+
+.mini-desc {
+  font-size: 0.8rem;
+  margin-left: 10px;
+  color: gray;
 }
 </style>

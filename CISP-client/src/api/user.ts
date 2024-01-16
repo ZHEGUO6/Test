@@ -17,8 +17,8 @@ export const login = async (info: API.User.Login) => {
 }
 
 // 获取指定用户
-export const getSingle = async (id: string) => {
-  return await request(RequestType.GET, `${RequestUrl.User_GetOne}/${id}`)
+export const getSingle = async (info: API.User.FindOne) => {
+  return await request(RequestType.POST, RequestUrl.User_GetOne, info)
 }
 
 // 用户恢复登录
@@ -28,7 +28,7 @@ export const whoAmI = async () => {
 
 // 用户退出登录
 export const loginOut = async () => {
-  return await request(RequestType.POST, RequestUrl.User_Logout)
+  return await request(RequestType.GET, RequestUrl.User_Logout)
 }
 
 // 修改用户信息

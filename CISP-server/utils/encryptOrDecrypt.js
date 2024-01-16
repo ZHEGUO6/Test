@@ -20,7 +20,7 @@ const decrypt = (cryptStr) => {
 // 使字符串满足加密要求：字符串的字节数必须是16的倍数
 const meetEncrypt = (str) => {
   if (typeof str !== "string" || str.length % 16 === 0) {
-    return;
+    return str;
   }
   while (str.length % 16) {
     str += "+";

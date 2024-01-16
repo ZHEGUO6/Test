@@ -1,17 +1,35 @@
 <script setup lang="ts">
-import { ref, reactive, Component, getCurrentInstance, computed } from 'vue'
-import { FormInstance, FormItemRule } from 'element-plus'
+import { ref, reactive, Component, getCurrentInstance } from 'vue'
 import GetCaptchaIndex from '@/components/GetCaptcha/GetCaptchaIndex.vue'
 import { SessionStorageItemName } from '@/types/enum'
-import { FormRules } from 'element-plus'
 import { decrypt } from '@/utils/encryptOrDecrypt'
-import { findAll, modify } from '@/api/user'
+import { getSingle, modify } from '@/api/user'
 import { sentForgetMessage } from '@/api/three-party'
 import { filterObj } from '@/utils'
-import { SuccessFilled } from '@element-plus/icons-vue'
-import type { MessageOptions } from 'element-plus/lib/components'
 import { useRouter } from 'vue-router'
 import { simpleValidatorFunc, formValidators } from '@/utils/validate'
+import type { FormInst, FormItemRule, FormRules, MessageOptions } from 'naive-ui'
+import { HappyOutline } from '@vicons/ionicons5'
+import {
+  NLayout,
+  NLayoutHeader,
+  NLayoutContent,
+  NForm,
+  NFormItem,
+  NInput,
+  NGi,
+  NFormItemGi,
+  NText,
+  NButton,
+  NGrid,
+  NSteps,
+  NStep,
+  NSpace,
+  NResult,
+  NIcon
+} from 'naive-ui'
+import type { TextProps } from 'naive-ui'
+import CountDown from '@/components/CounDown.vue'
 
 // 步骤条单项数据格式
 declare interface StepItem {
@@ -23,17 +41,15 @@ declare interface StepItem {
 
 // 当前步骤的状态
 const enum StepItemStatus {
-  Empty = '',
   Wait = 'wait',
   Process = 'process',
   Finish = 'finish',
-  Error = 'error',
-  Success = 'success'
+  Error = 'error'
 }
 
 const sentCaptcha = ref('1234') // 发送的短信验证码
 
-const formRef = ref<FormInstance>()
+const formRef = ref<FormInst>()
 
 // 查找的表单项
 const findFormValue = ref({
@@ -47,35 +63,37 @@ const sentMsgBtnDisabled = ref<boolean>(true) // 获取验证码按钮是否处�
 const app = getCurrentInstance()?.appContext.config.globalProperties
 const router = useRouter()
 
+const TextThemeOverrides: NonNullable<TextProps['themeOverrides']> = {}
+
 // 查找的表单校验规则
 const findFormRules: FormRules = {
   loginId: [{ len: 36, message: '用户id为36位', trigger: ['blur'] }],
   phone: [
     {
       required: true,
-      message: '请填写手机号'
+      message: '请填写手机号',
+      trigger: ['input']
     },
-    { len: 11, message: '手机号位数不正确', trigger: ['blur'] },
+    { len: 11, message: '手机号位数不正确', trigger: ['blur', 'input'] },
     {
-      validator: simpleValidatorFunc(
-        (value: string) =>
-          value.length === 11
-            ? formValidators.phone.test(value) && !(sentMsgBtnDisabled.value = false)
-            : true,
-        '手机号验证未通过'
-      )
+      validator: simpleValidatorFunc((value: string) =>
+        formValidators.phone.test(value)
+          ? !(sentMsgBtnDisabled.value = false)
+          : !(sentMsgBtnDisabled.value = true)
+      ),
+      message: '手机号验证未通过',
+      trigger: ['blur']
     }
   ],
   captcha: [
     {
       required: true,
-      message: '验证码不能为空'
+      message: '验证码不能为空',
+      trigger: ['input']
     },
     {
-      validator: simpleValidatorFunc(
-        (value: string) => value === sentCaptcha.value,
-        '验证码有误，请重新检查或再次获取'
-      ),
+      validator: simpleValidatorFunc((value: string) => value === sentCaptcha.value),
+      message: '验证码有误，请重新检查或再次获取',
       trigger: ['blur']
     }
   ]
@@ -91,35 +109,25 @@ const resetFormValue = ref({
 // 重置的表单校验规则
 const resetFormRules = {
   newPwd: [
-    { required: true, message: '请填写密码' },
     { min: 8, message: '密码不能小于8位', trigger: ['blur'] },
     { max: 32, message: '密码不能超过32位', trigger: ['blur'] },
     {
-      validator: (
-        rule: FormItemRule,
-        value: string,
-        callback: (error?: string | Error) => void
-      ) => {
+      validator: (rule: FormItemRule, value: string) => {
         if (!formValidators.password.test(value)) {
-          callback('密码要求数字、字母加特殊字符')
-          return
+          return new Error('密码要求数字、字母加特殊字符')
         }
         if (resetFormValue.value.oldPwd !== value) {
-          callback('新密码不能与原密码相同')
-          return
+          return new Error('新密码不能与原密码相同')
         }
-        callback()
+        return true
       },
       trigger: ['blur']
     }
   ],
   confirmPwd: [
-    { required: true, message: '请再次输入密码' },
     {
-      validator: simpleValidatorFunc(
-        (value) => value === resetFormValue.value.newPwd,
-        '两次输入的密码不一致，请检查'
-      ),
+      validator: simpleValidatorFunc((value: string) => value === resetFormValue.value.newPwd),
+      message: '两次输入的密码不一致，请检查',
       trigger: ['blur']
     }
   ]
@@ -127,7 +135,7 @@ const resetFormRules = {
 
 const isReseted = ref<boolean>(false) // 判断是否进行了重置密码操作
 
-const activeStep = ref<number>(0)
+const activeStep = ref<number>(2)
 const steps = reactive<Array<StepItem>>([
   {
     title: '找回密码',
@@ -148,34 +156,34 @@ const steps = reactive<Array<StepItem>>([
 
 // 验证第一步表单
 const validateFirst = async () => {
-  const validate = await formRef.value?.validate().catch((err) => err)
+  const validate = await formRef.value?.validate().catch((err: Error) => err)
   if (typeof validate !== 'object') {
     //   表单验证成功
     const info: API.User.Find = {
       phone: findFormValue.value.phone
     }
     findFormValue.value.loginId && (info.loginId = findFormValue.value.loginId)
-    const res = await findAll(info)
-    if (res.data?.count) {
-      resetFormValue.value.oldPwd = decrypt(res.data.datas[0].loginPwd)
-      console.log(resetFormValue.value.oldPwd)
+    const res = await getSingle(info)
+    if (res.data) {
+      resetFormValue.value.oldPwd = decrypt(res.data.loginPwd)
       steps[0].description = '旧密码已成功找到'
       return true
     } else {
       //   未找到对应的用户
-      app?.$message({
-        type: 'error',
-        duration: 4000,
-        message:
-          '未找到对应用户，请确保该用户已注册，4秒后自动跳转到注册页，如果关闭弹窗将拒绝跳转',
-        onClose: (type: string | undefined) => {
-          if (type && type === 'click') {
-            //   取消去注册页
-            return
+      app?.$message(
+        '未找到对应用户，请确保该用户已注册，4秒后自动跳转到注册页，如果关闭弹窗将拒绝跳转',
+        {
+          type: 'error',
+          duration: 4000,
+          onClose: (type: string | undefined) => {
+            if (type && type === 'click') {
+              //   取消去注册页
+              return
+            }
+            router.push({ name: 'loginOrRegistry', state: { type: 'registry' } })
           }
-          router.push({ name: 'loginOrRegistry', state: { type: 'registry' } })
-        }
-      } as MessageOptions)
+        } as MessageOptions
+      )
       steps[0].description = '未找到对应用户信息，请确保该用户已注册'
       return false
     }
@@ -227,7 +235,7 @@ const doNext = async () => {
   // 帮助处理是否进入下一步操作
   function _helpHandleValidate(isValidate: boolean) {
     if (isValidate) {
-      steps[activeStep.value].status = StepItemStatus.Success
+      steps[activeStep.value].status = StepItemStatus.Finish
       activeStep.value = activeStep.value + 1
       steps[activeStep.value].status = StepItemStatus.Process
     } else {
@@ -252,9 +260,12 @@ const onChangeCaptcha = async () => {
   if (res.code === 200) {
     //   响应成功
     sentCaptcha.value = '' + res.data.code
-    app.$message({
-      type: 'success',
-      message: `${res.msg}，请注意查收`
+    app.$message(`${res.msg}，请注意查收`, {
+      type: 'success'
+    } as MessageOptions)
+  } else {
+    app.$message(`短信发送失败 ${res.msg}`, {
+      type: 'error'
     } as MessageOptions)
   }
   findFormValue.value.captcha = ''
@@ -267,162 +278,164 @@ const onFinish = () => {
 </script>
 
 <template>
-  <el-container>
-    <el-header class="center">
-      <el-row justify="center">
-        <el-text class="size30 hvr-wobble-skew" type="primary">密码找回中心</el-text>
-      </el-row>
-    </el-header>
-    <el-main>
-      <el-row justify="center">
-        <el-space direction="vertical" :size="100">
-          <div class="elStepContainer">
-            <el-steps align-center :active="activeStep">
-              <el-step
-                v-for="item in steps"
-                :title="item.title"
-                :description="item.description"
-                :key="item.title"
-                :status="item.status"
-              />
-            </el-steps>
-          </div>
-          <el-row v-if="activeStep === 0">
-            <el-form
-              :model="findFormValue"
-              ref="formRef"
-              label-width="70"
-              label-position="right"
-              class="formContainer"
-              :rules="findFormRules"
-            >
-              <el-space class="originElSpace" direction="vertical" :size="30">
-                <el-row class="rowCenter">
-                  <el-col :span="16">
-                    <el-form-item label="用户id" prop="loginId">
-                      <el-input
-                        v-model="findFormValue.loginId"
-                        placeholder="请填写用户id"
-                        clearable
-                        autocomplete="on"
-                        autofocus
-                      />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="7" :offset="1">
-                    <el-text type="info" class="size12">如果忘记用户id此项可以不填</el-text>
-                  </el-col>
-                </el-row>
-                <el-row>
-                  <el-col :span="16">
-                    <el-form-item label="手机号" prop="phone" required>
-                      <el-input
-                        v-model="findFormValue.phone"
-                        placeholder="请填写手机号"
-                        autocomplete="on"
-                        clearable
-                      />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="7" :offset="1">
-                    <get-captcha-index
-                      :duration-time="1000 * 120"
-                      :on-change="onChangeCaptcha"
-                      :storage="false"
-                      :storage-item-name="SessionStorageItemName.ForgetPwdCaptchaValidateTime"
-                    >
-                      <template v-slot:finishContent="{ clickFunc }">
-                        <el-button
-                          :disabled="sentMsgBtnDisabled"
-                          type="primary"
-                          @click="clickFunc"
-                          plain
-                        >
-                          获取短信验证码
-                        </el-button>
-                      </template>
-                      <template v-slot:activeText>
-                        <el-text>&nbsp;秒后重新获取</el-text>
-                      </template>
-                    </get-captcha-index>
-                  </el-col>
-                </el-row>
-                <el-col :span="8">
-                  <el-form-item prop="captcha" label="验证码" required>
-                    <el-input v-model="findFormValue.captcha" placeholder="请输入短信验证码" />
-                  </el-form-item>
-                </el-col>
-              </el-space>
-            </el-form>
-            <el-col class="center">
-              <el-button @click="doNext">下一步</el-button>
-            </el-col>
-          </el-row>
-          <el-row v-else-if="activeStep === 1">
-            <el-form
-              :model="resetFormValue"
-              ref="formRef"
-              label-width="70"
-              label-position="right"
-              class="formContainer"
-              :rules="resetFormRules"
-            >
-              <el-space direction="vertical" class="originElSpace" :size="30">
-                <el-form-item label="旧密码">
-                  <el-input readonly :model-value="resetFormValue.oldPwd" />
-                </el-form-item>
-                <el-form-item label="新密码" prop="newPwd">
-                  <el-input
-                    type="password"
+  <n-layout>
+    <n-layout-header class="center">
+      <n-space justify="center">
+        <n-text class="size30 hvr-wobble-skew" type="primary">密码找回中心</n-text>
+      </n-space>
+    </n-layout-header>
+    <n-layout-content class="forgetContentContainer">
+      <n-space :size="100" class="center">
+        <div class="NStepContainer">
+          <n-steps :current="activeStep">
+            <n-step
+              v-for="item in steps"
+              :title="item.title"
+              :description="item.description"
+              :key="item.title"
+              :status="item.status"
+            />
+          </n-steps>
+        </div>
+        <n-space v-if="activeStep === 0" vertical align="center">
+          <n-form
+            :model="findFormValue"
+            ref="formRef"
+            label-width="70"
+            label-position="right"
+            class="formContainer"
+            :rules="findFormRules"
+          >
+            <n-space class="originElSpace" vertical :size="30">
+              <n-grid class="rowCenter">
+                <n-form-item-gi :span="14" label="用户id" path="loginId">
+                  <n-input
+                    v-model:value="findFormValue.loginId"
+                    placeholder="请填写用户id"
                     clearable
-                    show-password
-                    v-model="resetFormValue.newPwd"
+                    autocomplete="on"
+                    autofocus
                   />
-                </el-form-item>
-                <el-form-item label="确认密码" prop="confirmPwd">
-                  <el-input
-                    type="password"
+                </n-form-item-gi>
+                <n-gi :span="9" :offset="1" class="selfCenter">
+                  <n-text type="default" class="size12">如果忘记用户id此项可以不填</n-text>
+                </n-gi>
+              </n-grid>
+              <n-grid>
+                <n-form-item-gi :span="16" label="手机号" path="phone" required first>
+                  <n-input
+                    v-model:value="findFormValue.phone"
+                    placeholder="请填写手机号"
+                    autocomplete="on"
                     clearable
-                    show-password
-                    v-model="resetFormValue.confirmPwd"
                   />
-                </el-form-item>
-              </el-space>
-            </el-form>
-            <el-col class="center">
-              <el-button @click="doNext">下一步</el-button>
-            </el-col>
-          </el-row>
-          <el-row v-else>
-            <el-space direction="vertical" :size="40">
-              <el-col class="center">
-                <el-icon color="green" size="12em">
-                  <success-filled class="successIcon" />
-                </el-icon>
-              </el-col>
-              <el-col>
-                <el-text type="success" class="size30"
-                  >恭喜您，{{ isReseted ? '密码重置成功' : '密码找回成功' }}！！！</el-text
-                >
-              </el-col>
-              <el-col class="center">
-                <el-button type="success" @click="onFinish">返回登录</el-button>
-              </el-col>
-            </el-space>
-          </el-row>
-        </el-space>
-      </el-row>
-    </el-main>
-  </el-container>
+                </n-form-item-gi>
+                <n-gi :span="7" :offset="1" class="forgetCaptcha">
+                  <get-captcha-index
+                    :duration-time="1000 * 120"
+                    @change="onChangeCaptcha"
+                    :storage="false"
+                    :storage-item-name="SessionStorageItemName.ForgetPwdCaptchaValidateTime"
+                  >
+                    <template v-slot:finishContent="{ clickFunc }">
+                      <n-button
+                        :disabled="sentMsgBtnDisabled"
+                        type="primary"
+                        @click="clickFunc"
+                        plain
+                      >
+                        获取短信验证码
+                      </n-button>
+                    </template>
+                    <template #activeContent="{ countChange, countTime }">
+                      <n-button disabled type="info" class="registryFormCaptchaBtn">
+                        <n-text>请</n-text>
+                        <count-down :on-change="countChange" :time="countTime" />
+                        <n-text>&nbsp;秒后获取</n-text>
+                      </n-button>
+                    </template>
+                  </get-captcha-index>
+                </n-gi>
+              </n-grid>
+              <n-grid>
+                <n-form-item-gi :span="8" path="captcha" label="验证码" required first>
+                  <n-input v-model:value="findFormValue.captcha" placeholder="请输入短信验证码" />
+                </n-form-item-gi>
+              </n-grid>
+            </n-space>
+          </n-form>
+          <n-button class="center" @click="doNext">下一步</n-button>
+        </n-space>
+        <n-space vertical align="center" v-else-if="activeStep === 1">
+          <n-form
+            :model="resetFormValue"
+            ref="formRef"
+            label-width="70"
+            label-position="right"
+            class="formContainer"
+            :rules="resetFormRules"
+          >
+            <n-space vertical class="originElSpace" :size="30">
+              <n-form-item label="旧密码">
+                <n-input readonly :model-value="resetFormValue.oldPwd" />
+              </n-form-item>
+              <n-form-item label="新密码" path="newPwd" first>
+                <n-input
+                  type="password"
+                  clearable
+                  show-password-toggle
+                  placeholder="请输入新密码"
+                  v-model:value="resetFormValue.newPwd"
+                />
+              </n-form-item>
+              <n-form-item label="确认密码" path="confirmPwd" first>
+                <n-input
+                  type="password"
+                  clearable
+                  show-password-toggle
+                  placeholder="请再次输入新密码"
+                  v-model:value="resetFormValue.confirmPwd"
+                />
+              </n-form-item>
+            </n-space>
+          </n-form>
+          <n-button class="center" @click="doNext">下一步</n-button>
+        </n-space>
+        <n-result v-else :title="`恭喜您，${isReseted ? '密码重置成功' : '密码找回成功'}！！！`">
+          <template #footer>
+            <n-button type="success" @click="onFinish">返回登录</n-button>
+          </template>
+          <template #icon>
+            <n-icon size="20rem" color="green">
+              <HappyOutline />
+            </n-icon>
+          </template>
+        </n-result>
+      </n-space>
+    </n-layout-content>
+  </n-layout>
 </template>
 
 <style lang="less" scoped>
-.elStepContainer {
+.forgetContentContainer {
+  margin-top: 50px;
+}
+
+.NStepContainer {
   width: 1100px;
+  margin-left: 12vw;
 }
 
 .formContainer {
-  width: 600px;
+  width: 800px;
   flex-basis: 100%;
+}
+
+.center {
+  justify-content: center !important;
+}
+
+.forgetCaptcha {
+  margin: auto;
 }
 </style>

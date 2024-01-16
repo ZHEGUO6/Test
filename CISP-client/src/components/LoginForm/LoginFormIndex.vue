@@ -6,11 +6,28 @@ import { useUserStore } from '@/stores/user'
 import { getCaptcha, validateCaptcha } from '@/api/captcha'
 import { validate } from '@/api/user'
 import { SessionStorageItemName, ValidateLoginEnum } from '@/types/enum'
-import { FormInstance, FormRules } from 'element-plus'
-import { MessageOptions } from 'element-plus/lib/components'
-import { Sunny } from '@element-plus/icons-vue'
+import { Aperture } from '@vicons/ionicons5'
 import { formValidators } from '@/utils/validate'
 import GetCaptchaIndex from '@/components/GetCaptcha/GetCaptchaIndex.vue'
+import {
+  NForm,
+  NFormItem,
+  NInput,
+  NFormItemGi,
+  NSelect,
+  NGi,
+  NIcon,
+  NScrollbar,
+  NSwitch,
+  NText,
+  NButton,
+  NGrid,
+  FormRules,
+  FormInst,
+  MessageOptions
+} from 'naive-ui'
+import LinkIndex from '@/components/Link/LinkIndex.vue'
+import CountDown from '@/components/CounDown.vue'
 
 const props = defineProps<{ changeType: () => void }>()
 const { changeType } = toRefs(props)
@@ -27,7 +44,6 @@ const form = reactive<API.User.Login & { captcha: string }>({
 
 const getTimeRef = ref<{ [key: string]: any }>()
 
-const captchaValidated = ref(false) // 验证码是否验证通过
 const router = useRouter()
 const { login } = useUserStore()
 const { isLogin } = storeToRefs(useUserStore())
@@ -55,45 +71,42 @@ const selectOptions = [
 ] // 选择免登录时间
 
 const useAutoLogin = ref<boolean>(false) // 是否启用免登录
-const formRef = ref<FormInstance>()
+const formRef = ref<FormInst | null>(null)
 
-const rules = reactive<FormRules<typeof form>>({
+const rules = reactive<FormRules>({
   nickname: [
-    { required: true, message: '请填写昵称' },
+    { required: true, message: '请填写昵称', trigger: ['input', 'blur'] },
     { min: 2, max: 10, message: '昵称的长度为2-10位', trigger: ['blur'] }
   ],
   loginPwd: [
-    { required: true, message: '请填写密码' },
+    { required: true, message: '请填写密码', trigger: ['input', 'blur'] },
     { min: 8, message: '密码不能小于8位', trigger: ['blur'] },
     { max: 32, message: '密码不能超过32位', trigger: ['blur'] },
     {
-      validator: (_, value, callback) => {
-        if (formValidators.password.test(value)) {
-          callback()
-        } else {
-          callback('密码格式不对，请重新填写')
-        }
-      }
+      validator: (_, value) => formValidators.password.test(value),
+      message: '密码格式不对，请重新填写'
     }
   ],
   captcha: [
-    { required: true, message: '请填写验证码' },
-    { len: 6, message: '请正确填写验证码' },
+    { required: true, message: '请填写验证码', trigger: ['input', 'blur'] },
+    { len: 6, message: '请正确填写验证码', trigger: ['blur'] },
     {
-      validator: (_, value, callback) => {
-        validateCaptcha({ captcha: value }).then(
-          (res: API.ServerResponse) => {
-            if (res.code !== 200) {
-              callback(res.msg)
-              return
+      asyncValidator: (_, value, callback) =>
+        new Promise(() => {
+          validateCaptcha({ captcha: value }).then(
+            (res: API.ServerResponse) => {
+              if (res.code !== 200) {
+                callback(res.msg)
+                return
+              }
+              callback()
+            },
+            (err: Error) => {
+              callback(err.message)
             }
-            callback()
-          },
-          (err: Error) => {
-            callback(err.message)
-          }
-        )
-      }
+          )
+        }),
+      trigger: ['blur']
     }
   ]
 })
@@ -116,16 +129,15 @@ const _login = async () => {
   const res = await validate({ nickname: form.nickname, loginPwd: form.loginPwd }).catch(() => ({
     code: 500
   }))
-  if (res.code !== 200 && res.code !== 500) {
-    app?.$message({
+  if (res.code !== 500 && !res.data) {
+    app?.$message(`您填写的昵称或密码不正确，请核对后操作，点击关闭按钮不会清空您已填写的内容`, {
       type: 'error',
-      message: `您填写的昵称或密码不正确，请核对后操作，点击关闭按钮不会清空您已填写的内容`,
       duration: 3000,
       onClose: (type?: string) => {
         if (!type) {
-          formRef.value?.resetFields(['nickname', 'loginPwd']) // 清空昵称和密码
+          form.nickname = form.loginPwd = '' // 清空昵称和密码
         }
-        formRef.value?.resetFields(['captcha'])
+        form.captcha = ''
         getCaptchaAsync()
         getTimeRef.value.resetCountDownTime() // 重置验证码时间
       }
@@ -139,9 +151,8 @@ const _login = async () => {
   }
   await login(form)
   if (isLogin.value) {
-    app?.$message({
+    app?.$message('恭喜您，登录成功，正在跳转首页...', {
       type: 'success',
-      message: '恭喜您，登录成功，正在跳转首页...',
       duration: 1500
     } as MessageOptions)
     closeAllLoading()
@@ -153,31 +164,18 @@ const _login = async () => {
 
 // 表单提交事件
 const onSubmit = async () => {
-  if (captchaValidated.value) {
-    //   验证码已通过验证
-    formRef.value?.validateField(
-      [ValidateLoginEnum.NickName, ValidateLoginEnum.LoginPwd],
-      async (isValid) => {
-        if (isValid) {
-          await _login()
-        }
-      }
-    )
-  } else {
-    // 进行整体表单校验
-    const formValidate = await formRef.value?.validate().catch((err: Error) => err)
-    if (typeof formValidate === 'object') {
-      //   表单校验未通过
-      app?.$message({
-        type: 'error',
-        message: `未按要求填写表单内容，请继续完善后提交`,
-        duration: 2000
-      })
-      return
-    }
-    // 表单验证通过
-    await _login()
+  // 进行整体表单校验
+  const formValidate = await formRef.value?.validate().catch((err: Error) => err)
+  if (typeof formValidate === 'object') {
+    //   表单校验未通过
+    app?.$message(`未按要求填写表单内容，请继续完善后提交`, {
+      type: 'error',
+      duration: 2000
+    })
+    return
   }
+  // 表单验证通过
+  await _login()
 }
 
 // 获取验证码
@@ -200,120 +198,130 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <el-form
-    :model="form"
-    label-position="left"
-    label-width="80"
-    status-icon
-    :rules="rules"
-    ref="formRef"
-    class="loginFormOrRegistryForm"
-    v-loading.fullscreen="screenLoading"
-    element-loading-text="正在登录中，请稍后......"
-    element-loading-background="rgb(39 82 92 / 54%)"
-  >
-    <el-form-item label="昵称" :required="true" prop="nickname" :key="ValidateLoginEnum.NickName">
-      <el-input
-        v-model="form.nickname"
-        placeholder="请填写昵称"
-        autocomplete="on"
-        :clearable="true"
-      />
-    </el-form-item>
-    <el-form-item
-      label="密码"
-      :required="true"
-      prop="loginPwd"
-      :key="ValidateLoginEnum.LoginPwd"
-      autocomplete="on"
-    >
-      <el-input
-        type="password"
-        v-model="form.loginPwd"
-        :show-password="true"
-        placeholder="请填写密码"
-        autocomplete="on"
-        :clearable="true"
-      />
-    </el-form-item>
-    <el-form-item
-      label="验证码"
-      :required="true"
-      prop="captcha"
-      :key="ValidateLoginEnum.Captcha"
-      class="alignCenter"
-    >
-      <el-col :span="6">
-        <el-input
-          v-model="form.captcha"
-          placeholder="请填写验证码"
-          autocomplete="on"
-          :clearable="true"
-        />
-      </el-col>
-      <el-col :span="1"></el-col>
-      <el-col :span="6">
-        <div class="captchaContainer" v-html="captcha" />
-      </el-col>
-      <el-col :span="1"></el-col>
-      <el-col :span="9">
-        <get-captcha-index
-          ref="getTimeRef"
-          :on-change="btnGetCaptcha"
-          :storage="false"
-          :storage-item-name="SessionStorageItemName.LoginCaptchaValidateTime"
-        />
-      </el-col>
-    </el-form-item>
-
-    <el-form-item :key="ValidateLoginEnum.SaveTime">
-      <el-row>
-        <el-col :span="8">
-          <el-switch
-            active-text="关闭免登录"
-            inactive-text="开启免登录"
-            v-model="useAutoLogin"
-            :inline-prompt="true"
-            >开启免登录</el-switch
-          >
-        </el-col>
-        <el-col :span="12">
-          <el-select v-if="useAutoLogin" v-model="form.saveTime" placeholder="请选择免登录时间">
-            <el-option
-              v-for="item in selectOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-col>
-      </el-row>
-    </el-form-item>
-    <el-form-item>
-      <el-col>
-        <el-button class="btnCenter" @click="onSubmit" :loading-icon="Sunny" :loading="btnLoading"
-          >登录</el-button
-        >
-      </el-col>
-    </el-form-item>
-    <el-col>
-      <el-link
-        type="info"
-        class="forgetPwd"
-        :underline="false"
-        @click="() => router.push({ name: 'forgetPwd' })"
-        >忘记密码？点此查找密码</el-link
+  <div>
+    <n-scrollbar>
+      <n-form
+        :model="form"
+        label-width="80"
+        :rules="rules"
+        ref="formRef"
+        class="loginFormOrRegistryForm"
+        require-mark-placement="left"
       >
-    </el-col>
-    <el-link class="changeFormBtn" @click="changeType">
-      <el-text class="txt">注册</el-text>
-    </el-link>
-  </el-form>
+        <n-form-item label="昵称" first :required="true" path="nickname">
+          <n-input
+            :input-props="{ autocomplete: 'on' }"
+            :clearable="true"
+            v-model:value="form.nickname"
+            placeholder="请填写昵称"
+          />
+        </n-form-item>
+        <n-form-item label="密码" first path="loginPwd" :required="true">
+          <n-input
+            :input-props="{ autocomplete: 'on' }"
+            :clearable="true"
+            type="password"
+            v-model:value="form.loginPwd"
+            show-password-on="click"
+            placeholder="请填写密码"
+          />
+        </n-form-item>
+        <n-form-item :required="true" first label="验证码" path="captcha" class="alignCenter">
+          <n-grid class="gridCenter">
+            <n-gi :span="8">
+              <n-input
+                v-model:value="form.captcha"
+                placeholder="请填写验证码"
+                :input-props="{ autocomplete: 'on' }"
+                :clearable="true"
+              />
+            </n-gi>
+            <n-gi :span="1" />
+            <n-gi :span="7">
+              <div class="captchaContainer" v-html="captcha" />
+            </n-gi>
+            <n-gi :span="1" />
+            <n-gi :span="7">
+              <get-captcha-index
+                ref="getTimeRef"
+                @change="btnGetCaptcha"
+                :storage="false"
+                auto-refresh
+                :storage-item-name="SessionStorageItemName.LoginCaptchaValidateTime"
+              >
+                <template #activeContent="{ countChange, countTime }">
+                  <n-button disabled type="info" class="loginFormCaptchaBtn">
+                    <count-down :on-change="countChange" :time="countTime" />
+                    <n-text>&nbsp;秒后自动获取验证码</n-text>
+                  </n-button>
+                </template>
+                <template #finishContent="{ clickFunc }">
+                  <n-button class="loginFormCaptchaBtn" type="primary" @click="clickFunc">
+                    <n-text>获取验证码</n-text>
+                  </n-button>
+                </template>
+              </get-captcha-index>
+            </n-gi>
+          </n-grid>
+        </n-form-item>
+        <n-grid>
+          <n-form-item-gi :span="5">
+            <n-switch v-model:value="useAutoLogin">
+              <template #checked>
+                <n-text>关闭免登录</n-text>
+              </template>
+              <template #unchecked>
+                <n-text>开启免登录</n-text>
+              </template>
+            </n-switch>
+          </n-form-item-gi>
+          <n-form-item-gi :span="6">
+            <n-select
+              v-if="useAutoLogin"
+              v-model:value="form.saveTime"
+              placeholder="请选择免登录时间"
+              :options="selectOptions"
+            />
+          </n-form-item-gi>
+        </n-grid>
+
+        <n-button class="btnCenter" @click="onSubmit" :loading="btnLoading">
+          <template #default>
+            <n-text>登录</n-text>
+          </template>
+          <template #icon v-if="btnLoading">
+            <n-icon>
+              <aperture />
+            </n-icon>
+          </template>
+        </n-button>
+        <link-index type="info" class="forgetPwd" :underline="true" :to="{ name: 'forgetPwd' }"
+          >忘记密码？点此查找密码</link-index
+        >
+        <div class="changeFormBtn" @click="changeType">
+          <n-text class="txt">注册</n-text>
+        </div>
+      </n-form>
+    </n-scrollbar>
+  </div>
 </template>
 <style scoped lang="less">
 .forgetPwd {
   margin-left: calc(50% - 77px);
-  --el-color-info: #4a5467;
+  --n-color-info: #4a5467;
   font-size: 12px;
+  cursor: pointer;
+}
+
+.gridCenter {
+  align-items: center;
+}
+
+.loginFormCaptchaBtn {
+  min-width: 170px;
+}
+
+.txt {
+  cursor: pointer;
 }
 </style>

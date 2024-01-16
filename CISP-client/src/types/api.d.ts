@@ -98,6 +98,37 @@ declare namespace API {
       saveTime?: number
     }
 
+    interface FindOne {
+      /**
+       * 帐号id
+       */
+      loginId?: string
+      /**
+       * 邮箱
+       */
+      mail?: string
+      /**
+       * 昵称
+       */
+      nickname?: string
+      /**
+       * 手机号
+       */
+      phone?: string
+      /**
+       * qq号
+       */
+      qq?: string
+      /**
+       * 用户类型
+       */
+      type?: 'student' | 'teacher'
+      /**
+       * 微信号
+       */
+      wechat?: string
+    }
+
     // 添加用户
     interface Add {
       /**
@@ -111,7 +142,7 @@ declare namespace API {
       /**
        * 生日
        */
-      birthDay: number | Date
+      birthDay: number
       /**
        * 禁用状态
        */

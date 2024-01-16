@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { getCurrentInstance } from 'vue'
-import { UploadProps, UploadRawFile, UploadUserFile } from 'element-plus'
+import { getCurrentInstance, ref } from 'vue'
 import { RequestUrl } from '@/types/enum'
+import { NUpload, NAvatar } from 'naive-ui'
+import { UploadProps, UploadFileInfo } from 'naive-ui/es'
 
 const props = defineProps<{
   src?: string
@@ -10,11 +11,6 @@ const props = defineProps<{
 }>()
 
 const app = getCurrentInstance()?.appContext.config.globalProperties
-
-// 当超出限制时，执行的钩子函数
-const uploadExceed = (files: File[], uploadFiles: UploadUserFile[]) => {
-  console.log('超出限制', files, uploadFiles)
-}
 
 const uploadError = (error: Error) => {
   let message = ''
@@ -37,33 +33,43 @@ const uploadError = (error: Error) => {
 }
 
 // 图片上传成功
-const uploadSuccess = (response: API.ServerResponse) => {
-  props.onSuccess && props.onSuccess(response)
+const uploadSuccess = ({ event }: { event: ProgressEvent }) => {
+  props.onSuccess && props.onSuccess(JSON.parse(event.currentTarget.response))
+  // warn.js:10 [naive/upload]: File has no corresponding id in current file list. 解决这个警告
+  setTimeout(() => {
+    uploadRef.value.clear() // 清空上传列表
+  })
 }
 
+const uploadRef = ref<any>(null)
+
 // 文件上传之前调用
-const beforeUpload = (rawFile: UploadRawFile) => {
-  const splitTypes = rawFile.type.split('/')
-  return !splitTypes.filter((i) => i !== 'image' && !/(jpg|png|webp|bmp|gif|svg)/.test(i)).length
+const beforeUpload = ({ file }: { file: UploadFileInfo }) => {
+  console.log(file)
+  if (file) {
+    const splitTypes = file.type.split('/')
+    return !splitTypes.filter((i) => i !== 'image' && !/(jpg|png|webp|bmp|gif|svg)/.test(i)).length
+  }
 }
 </script>
 
 <template>
-  <el-upload
+  <n-upload
+    ref="uploadRef"
     v-bind="props.uploadOptions"
-    :action="RequestUrl.Image_UploadOne"
-    list-type="picture"
-    :on-exceed="uploadExceed"
-    :on-success="uploadSuccess"
-    :on-error="uploadError"
     :show-file-list="false"
-    :before-upload="beforeUpload"
+    :max="1"
+    :action="RequestUrl.Image_UploadOne"
+    list-type="image"
     accept=".jpg,.png,.webp,.bmp,.gif,.svg"
+    @before-upload="beforeUpload"
+    @finish="uploadSuccess"
+    @error="uploadError"
   >
     <slot name="default">
-      <el-avatar :src="props.src"></el-avatar>
+      <n-avatar :src="props.src"></n-avatar>
     </slot>
-  </el-upload>
+  </n-upload>
 </template>
 
 <style lang="less" scoped></style>

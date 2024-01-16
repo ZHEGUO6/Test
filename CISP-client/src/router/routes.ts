@@ -1,6 +1,18 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { Meta, RoutePath } from '@/types/route'
-import { Bell, Compass, Connection, Document, Search, Setting, User } from '@element-plus/icons-vue'
+import {
+  Person,
+  PersonCircle,
+  PaperPlaneSharp,
+  NotificationsSharp,
+  NewspaperSharp,
+  LogoWechat,
+  GlobeSharp,
+  FlowerSharp
+} from '@vicons/ionicons5'
+import type { Component } from 'vue'
+import { NIcon } from 'naive-ui'
+import { h } from 'vue'
 
 export type RouteRecord = RouteRecordRaw & {
   meta: Meta
@@ -13,10 +25,9 @@ const routes: readonly RouteRecord[] = [
     component: () => import('@/views/HomePage/homePage.vue'),
     meta: {
       layout: true,
-      label: '首页',
-      icon: Compass,
       exact: true,
-      auth: true
+      label: '首页',
+      icon: PaperPlaneSharp
     }
   },
   {
@@ -29,16 +40,15 @@ const routes: readonly RouteRecord[] = [
         name: 'chat',
         component: () => import('@/views/Friend/chatPage.vue'),
         meta: {
-          label: '聊天',
-          auth: true
+          label: '通讯录',
+          icon: PersonCircle,
         }
       }
     ],
     meta: {
       layout: true,
-      label: '通讯录',
-      icon: Connection,
-      auth: true
+      label: '聊天',
+      icon: LogoWechat,
     }
   },
   {
@@ -48,7 +58,7 @@ const routes: readonly RouteRecord[] = [
     meta: {
       layout: true,
       label: '搜寻',
-      icon: Search
+      icon: GlobeSharp,
     }
   },
   {
@@ -58,40 +68,43 @@ const routes: readonly RouteRecord[] = [
     meta: {
       layout: true,
       label: '公告栏',
-      icon: Bell
+      icon: NotificationsSharp,
     }
   },
   {
     path: RoutePath.News,
     name: 'news',
+
     component: () => import('@/views/newsPage.vue'),
     meta: {
       auth: true,
       layout: true,
       label: '新闻',
-      icon: Document
+      icon: NewspaperSharp,
     }
   },
   {
     path: RoutePath.PersonalCenter,
     name: 'personalCenter',
+
     component: () => import('@/views/personalCenter.vue'),
     meta: {
       auth: true,
       layout: true,
       label: '个人中心',
-      icon: User
+      icon: Person,
     }
   },
   {
     path: RoutePath.Settings,
     name: 'settings',
+
     component: () => import('@/views/settingPage.vue'),
     meta: {
       auth: true,
       layout: true,
       label: '设置',
-      icon: Setting
+      icon: FlowerSharp,
     }
   },
   {

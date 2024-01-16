@@ -3,6 +3,7 @@ import loginForm from '@/components/LoginForm/LoginFormIndex.vue'
 import registryForm from '@/components/RegistryForm/RegistryFormIndex.vue'
 import { ref, onBeforeMount } from 'vue'
 import { LocalStorageItemName } from '@/types/enum'
+import { NText } from 'naive-ui'
 
 declare type LoginOrRegistry = 'login' | 'registry'
 
@@ -37,10 +38,10 @@ onBeforeMount(() => {
 <template>
   <div class="pageContainer">
     <div class="title">
-      <el-text>Welcome to</el-text>
-      <el-text>Campus sharing platform</el-text>
-      <el-text>欢迎来到</el-text>
-      <el-text>校园共享平台</el-text>
+      <n-text>Welcome to</n-text>
+      <n-text>Campus sharing platform</n-text>
+      <n-text>欢迎来到</n-text>
+      <n-text>校园共享平台</n-text>
     </div>
     <div class="loginFormContainer">
       <login-form class="form" v-if="type === 'login'" :change-type="changeType" />
@@ -162,7 +163,7 @@ onBeforeMount(() => {
   }
   & .btnCenter {
     flex-basis: 400px;
-    margin-left: calc(50% - 200px);
+    margin-left: calc(50% - 210px);
   }
 }
 </style>

@@ -39,7 +39,7 @@ User.init(
       },
     },
     nickname: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(10) + "COLLATE utf8mb4_0900_as_cs", // 单列设置排序格式
       allowNull: false,
       defaultValue: "新增用户",
       validate: {
@@ -65,7 +65,7 @@ User.init(
       },
     },
     wechat: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.STRING(20) + "COLLATE utf8mb4_0900_as_cs",
       allowNull: false,
       validate: {
         isTest: validateTest(wechat(), "string", "wechat"),
@@ -149,11 +149,11 @@ User.init(
     freezeTableName: true, //表名与模型名相同
     indexes: [
       {
-        fields: ["online", "qq", "wechat", "loginPwd", "nickname"],
+        fields: ["online", "loginPwd"],
       },
       {
         unique: true,
-        fields: ["loginId", "phone"],
+        fields: ["loginId", "phone", "nickname", "qq", "wechat"],
       },
     ],
     timestamps: true,

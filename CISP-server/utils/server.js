@@ -107,7 +107,7 @@ const commonValidate = async (
  * @param errorCB 数据响应有误的回调
  */
 const handleDataEmpty = (data, successCB, errorCB) => {
-  if (data === null || data === undefined || data === false) {
+  if (data === undefined || data === false) {
     errorCB && errorCB();
     return;
   }

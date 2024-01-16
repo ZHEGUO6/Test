@@ -9,14 +9,14 @@ export enum RequestUrl {
 
   User_Modify = '/user', // 修改用户
   User_Count = '/user/count', // 获取用户数量
-  User_GetOne = '/user', // 获取单个用户
+  User_GetOne = '/user/find/one', // 获取单个用户
   User_Delete = '/user', // 删除用户
   User_AddOne = '/user/add', // 添加单个用户
   User_FindMeetFriends = '/user/find/friendList', // 根据当前用户分页查找满足要求的朋友
   User_FindMeetUsers = '/user/find/list', // 分页查找满足要求的用户
   User_GetList = '/user/list', // 分页获取用户
   User_Login = '/user/login', // 用户登录
-  User_Logout = '/user/logout', // 退出登录
+  User_Logout = '/user/out/logout', // 退出登录
   User_AddList = '/user/addList', // 添加多个用户
   User_Validate = '/user/validate', // 验证账号密码是否正确
   User_WhoAmI = '/user/login/whoAmI', // 恢复登录

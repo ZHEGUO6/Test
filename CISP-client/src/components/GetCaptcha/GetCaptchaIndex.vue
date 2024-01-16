@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import CountDown from '@/components/CounDown.vue'
-import { Component, onBeforeMount, ref, toRefs } from 'vue'
+import { watch, onBeforeMount, ref, toRefs } from 'vue'
+import { NButton, NText } from 'naive-ui'
 
 const props = defineProps<{
   storage: boolean
   storageItemName: string
-  onChange: () => void
-  finishContent?: string | Component
-  activeText?: string | Component
   durationTime?: number
+  autoRefresh?: boolean
 }>()
 
-const { storage, storageItemName, onChange, durationTime } = toRefs(props)
+defineSlots<{
+  activeContent(props: { countTime: number; countChange(timer: number): void }): any
+  finishContent(props: { clickFunc(): void }): any
+}>()
+
+const emits = defineEmits<{ change: () => void }>()
+
+const { storage, storageItemName, durationTime, autoRefresh } = toRefs(props)
 
 const countDownTime = ref<number>(0) // 重新获取验证码的倒计时时间
 const Storage = storage.value ? localStorage : sessionStorage
@@ -31,7 +37,16 @@ const resetCountDownTime = () => {
 // 按钮更换验证码
 const btnGetCaptcha = async () => {
   resetCountDownTime()
-  onChange.value()
+  console.log(222)
+  emits('change')
+}
+
+if (autoRefresh.value) {
+  watch(countDownTime, (count) => {
+    if (!count) {
+      btnGetCaptcha()
+    }
+  })
 }
 
 onBeforeMount(() => {
@@ -44,30 +59,34 @@ onBeforeMount(() => {
     }
     countDownTime.value = val
   }
-  if (!countDownTime.value) {
-    btnGetCaptcha() // 上次的倒计时已结束更换验证码
+  if (autoRefresh.value && !countDownTime.value) {
+    // 首次进入自动更新
+    btnGetCaptcha()
   }
 })
 
 defineExpose({
-  resetCountDownTime
+  resetCountDownTime,
+  countDownTime
 })
 </script>
 
 <template>
   <div>
-    <el-button disabled type="info" v-show="countDownTime">
-      <el-text>请</el-text>
-      <count-down :on-change="onCountDownChange" :time="countDownTime" />
-      <slot name="activeText">
-        <el-text>&nbsp;秒后获取验证码</el-text>
+    <div v-show="countDownTime">
+      <slot name="activeContent" :countTime="countDownTime" :countChange="onCountDownChange">
+        <n-button disabled type="info" v-show="countDownTime">
+          <n-text>请</n-text>
+          <count-down :on-change="onCountDownChange" :time="countDownTime" />
+          <n-text>&nbsp;秒后获取验证码</n-text>
+        </n-button>
       </slot>
-    </el-button>
+    </div>
     <div v-show="!countDownTime">
-      <slot name="finishContent" :click-func="btnGetCaptcha">
-        <el-button type="primary" @click="btnGetCaptcha">
-          <el-text>获取验证码</el-text>
-        </el-button>
+      <slot name="finishContent" :clickFunc="btnGetCaptcha">
+        <n-button type="primary" @click="btnGetCaptcha">
+          <n-text>获取验证码</n-text>
+        </n-button>
       </slot>
     </div>
   </div>

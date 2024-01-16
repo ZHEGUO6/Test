@@ -1,7 +1,7 @@
 import { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { whoAmI } from '@/api/user'
 import { useUserStore } from '@/stores/user'
-import { ElMessage } from 'element-plus'
+import type { MessageOptions } from 'naive-ui'
 
 const validateLogin = async () => {
   const userStore = useUserStore()
@@ -30,11 +30,7 @@ export default async (
     // // 如果已经登录，就直接跳转到首页
     if (await validateLogin()) {
       next('/')
-      ElMessage.success({
-        message: '您已登陆，请勿重复登录',
-        duration: 1500,
-        showClose: true
-      })
+      $message('您已登陆，请勿重复登录', { type: 'success', duration: 1500 } as MessageOptions)
       return
     }
     next()

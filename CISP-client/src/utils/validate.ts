@@ -1,4 +1,4 @@
-import { FormItemRule } from 'element-plus'
+import type { FormItemRule } from 'naive-ui'
 
 export const formValidators = {
   qq: /^(\d{5,11}|'')$/,
@@ -10,12 +10,12 @@ export const formValidators = {
   mail: /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(.[a-zA-Z0-9_-]+)+$/
 }
 
-export const simpleValidatorFunc = (result: (value: any) => boolean, message: string) => {
-  return (rule: FormItemRule, value: string, callback: (error?: string | Error) => void) => {
+export const simpleValidatorFunc = (result: (value: any) => boolean) => {
+  return (rule: FormItemRule, value: string) => {
     if (result(value)) {
-      callback()
+      return true
     } else {
-      callback(message)
+      return false
     }
   }
 }

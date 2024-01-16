@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { computed, getCurrentInstance } from 'vue'
-import { DArrowRight, SwitchButton, Message } from '@element-plus/icons-vue'
+import { Send, MailOpenSharp } from '@vicons/ionicons5'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
-import type { MessageOptions } from 'element-plus/lib/components'
+import AvatarIndex from '@/components/Avatar/AvatarIndex.vue'
+import { NSpace, NBreadcrumb, NBreadcrumbItem, NGrid, NGridItem, NIcon, NText } from 'naive-ui'
+import type { MessageOptions } from 'naive-ui'
 
 const userStore = useUserStore()
 const {
   isLogin: { value: userLogin },
-  userInfo: {
-    value: { nickname, avatar }
-  }
+  userInfo
 } = storeToRefs(userStore)
 const router = useRouter()
 
@@ -38,54 +38,55 @@ const routeMath = computed(() => route.matched)
 </script>
 
 <template>
-  <el-row justify="space-between">
-    <el-row align="middle" class="header-breadcrumb">
-      <el-breadcrumb :separator-icon="DArrowRight">
-        <el-breadcrumb-item
-          v-for="(item, ind) in routeMath"
-          :key="ind"
-          :to="item.children ? null : { name: item.name }"
-          ><el-text size="large" :type="ind === routeMath.length - 1 ? 'primary' : 'info'">{{
+  <n-space justify="space-between" class="headerContainer">
+    <n-breadcrumb>
+      <n-breadcrumb-item v-for="(item, ind) in routeMath" :key="ind">
+        <n-space :size="3" class="headerRouteItem"
+          ><n-icon :component="item.meta.icon" /><n-text size="large">{{
             item.meta.label
-          }}</el-text>
-        </el-breadcrumb-item>
-      </el-breadcrumb>
-    </el-row>
-    <el-row align="middle" class="header-notice">
-      <el-col :span="4">
+          }}</n-text></n-space
+        >
+      </n-breadcrumb-item>
+    </n-breadcrumb>
+    <n-grid class="header-notice">
+      <n-grid-item :span="3">
         <i class="iconfont i-tongzhi"></i>
-      </el-col>
-      <el-col :span="19" class="loopWheelContainer"
-        ><el-text class="loopWheel" type="primary" size="large"
-          >欢迎来到校园共享平台</el-text
-        ></el-col
+      </n-grid-item>
+      <n-grid-item :offset="1" :span="19" class="loopWheelContainer"
+        ><n-text class="loopWheel" type="primary" size="large"
+          >欢迎来到校园共享平台</n-text
+        ></n-grid-item
       >
-    </el-row>
-    <el-row class="center">
-      <el-col :span="5" v-if="userLogin" class="center">
-        <el-space>
-          <el-avatar :size="35" :src="avatar" />
-          <el-text>{{ nickname }}</el-text>
-        </el-space>
-      </el-col>
-      <el-col :span="5" class="center headerItemContainer">
-        <el-space :size="3" @click="handleOut">
-          <el-icon class="headerFuncIcon"><SwitchButton /></el-icon>
-          <span class="curPointer">退出平台</span>
-        </el-space>
-      </el-col>
-      <el-col :span="5" class="center headerItemContainer">
-        <el-space :size="3">
-          <el-icon class="headerFuncIcon"><Message /></el-icon>
-          <span class="curPointer">系统消息</span>
-        </el-space>
-      </el-col>
-    </el-row>
-  </el-row>
+    </n-grid>
+    <n-space class="center">
+      <!-- 用户头像 -->
+      <div class="center">
+        <avatar-index :info="userInfo" />
+      </div>
+      <!-- 系统消息 -->
+      <n-space :size="3" class="headerItemContainer">
+        <n-icon class="headerFuncIcon"><mail-open-sharp /></n-icon>
+        <span class="curPointer">系统消息</span>
+      </n-space>
+      <!-- 退出平台 -->
+      <n-space :size="3" @click="handleOut" class="headerItemContainer">
+        <n-icon class="headerFuncIcon"><Send /></n-icon>
+        <span class="curPointer">退出平台</span>
+      </n-space>
+    </n-space>
+  </n-space>
 </template>
 
 <style scoped lang="less">
 @import 'src/styles/var';
+.headerContainer {
+  height: 100%;
+  align-items: center;
+  padding: 0 20px;
+  & > :first-child {
+    align-self: flex-start;
+  }
+}
 
 .center {
   flex-basis: 500px;
@@ -110,7 +111,8 @@ const routeMath = computed(() => route.matched)
 
 // 滚动通知
 .header-notice {
-  flex-basis: 220px;
+  flex-basis: 250px;
+  align-items: center;
 }
 
 .i-tongzhi {
@@ -121,6 +123,8 @@ const routeMath = computed(() => route.matched)
   position: relative;
   overflow: hidden;
   min-height: 31px;
+  display: flex;
+  align-items: center;
 }
 
 @keyframes wheel {
@@ -136,7 +140,7 @@ const routeMath = computed(() => route.matched)
 .loopWheel {
   position: absolute;
   left: 0;
-  top: 0;
+  top: 8%;
   transform: translateY(-50%);
   transition: all 0.5s;
   animation-name: wheel;

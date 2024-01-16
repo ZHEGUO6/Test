@@ -25,17 +25,17 @@
 .loginFormOrRegistryForm {
   width: 100%;
   height: 100%;
-  --el-fill-color-blank: #ffffff00;
-  --el-text-color-placeholder: #37393cf0;
-  --el-text-color-secondary: #4842bdf0;
-  --el-border-color: #0400ff;
-  --el-border-color-hover: #f88309;
-  --el-color-primary-light-9: #101c6e;
-  --el-input-text-color: #ccc;
+  --n-fill-color-blank: #ffffff00;
+  --n-text-color-placeholder: #37393cf0;
+  --n-text-color-secondary: #4842bdf0;
+  --n-border-color: #0400ff;
+  --n-border-color-hover: #f88309;
+  --n-color-primary-light-9: #101c6e;
+  --n-input-text-color: #ccc;
   padding: 30px 50px 20px 20px;
   overflow: hidden;
   background: #569ec5;
-  --el-text-color-regular: #002060;
+  --n-text-color-regular: #002060;
 
   & .changeFormBtn {
     .changeFormType();
@@ -47,7 +47,7 @@
 
   & .btnCenter {
     width: 400px;
-    margin-left: calc(50% - 240px);
+    margin-left: calc(50% - 210px);
   }
 
   & .captchaContainer {
@@ -61,6 +61,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.selfCenter{
+  align-self: center;
 }
 
 .curPointer {
