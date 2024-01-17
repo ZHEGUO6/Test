@@ -84,6 +84,7 @@ onMounted(() => {
 
 .app-n-layout-content-mainContent {
   min-height: calc(100vh - 160px);
+  padding:20px 10px;
 }
 
 .app-n-layout-header {

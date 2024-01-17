@@ -90,7 +90,7 @@ onBeforeMount(async () => {
 
 <template>
   <n-scrollbar max-height="78vh">
-    <main class="homePage-container">
+    <main>
       <n-space vertical class="originElSpace" :size="20">
         <n-flex :wrap="false" justify="space-between">
           <n-card
@@ -102,7 +102,7 @@ onBeforeMount(async () => {
             <template #header>
               <n-flex align="center" justify="space-between">
                 <span>新闻</span>
-                <n-space :size="2">
+                <n-space :size="4">
                   <n-tooltip trigger="hover">
                     <template #trigger>
                       <n-button color="#f00" circle>{{ newsData.importantCount }}</n-button>
@@ -137,7 +137,7 @@ onBeforeMount(async () => {
                 </n-list>
               </template>
               <template #empty>
-                <n-result status="error" title="暂无新闻数据"> </n-result>
+                <n-result status="info" title="暂无新闻数据"> </n-result>
               </template>
             </empty-index>
           </n-card>
@@ -150,7 +150,7 @@ onBeforeMount(async () => {
             <template #header>
               <n-space align="center" justify="space-between">
                 <span>公告</span>
-                <n-space :size="2">
+                <n-space :size="4">
                   <n-tooltip trigger="hover">
                     <template #trigger>
                       <n-button color="#f00" circle>{{ noticeData.important }}</n-button>
@@ -185,7 +185,7 @@ onBeforeMount(async () => {
                 </n-list>
               </template>
               <template #empty>
-                <n-result status="error" title="暂无公告数据"> </n-result>
+                <n-result status="info" title="暂无公告数据"> </n-result>
               </template>
             </empty-index>
           </n-card>
@@ -202,7 +202,7 @@ onBeforeMount(async () => {
                 <div>123</div>
               </template>
               <template #empty>
-                <n-result status="error" title="暂无相关数据"> </n-result>
+                <n-result status="info" title="暂无相关数据"> </n-result>
               </template>
             </empty-index>
           </n-card>
@@ -217,7 +217,7 @@ onBeforeMount(async () => {
                 <div>123</div>
               </template>
               <template #empty>
-                <n-result status="error" title="暂无相关数据"> </n-result>
+                <n-result status="info" title="暂无相关数据"> </n-result>
               </template>
             </empty-index>
           </n-card>
@@ -234,10 +234,6 @@ onBeforeMount(async () => {
 <style lang="less">
 @import 'src/styles/var';
 @import 'src/styles/scoped.module.css';
-
-.homePage-container {
-  padding: 20px 10px;
-}
 
 .homePage-card-header {
   background: aliceblue;

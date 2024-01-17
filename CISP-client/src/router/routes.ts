@@ -10,9 +10,6 @@ import {
   GlobeSharp,
   FlowerSharp
 } from '@vicons/ionicons5'
-import type { Component } from 'vue'
-import { NIcon } from 'naive-ui'
-import { h } from 'vue'
 
 export type RouteRecord = RouteRecordRaw & {
   meta: Meta
@@ -54,12 +51,31 @@ const routes: readonly RouteRecord[] = [
   {
     path: RoutePath.Search,
     name: 'search',
-    component: () => import('@/views/searchPage.vue'),
     meta: {
       layout: true,
       label: '搜寻',
       icon: GlobeSharp,
-    }
+    },
+    children: [
+      {
+        path: RoutePath.SearchList,
+        name: 'searchList',
+        component: () => import('@/views/Search/searchList.vue'),
+        meta: {
+          label: '搜寻列表',
+          icon: GlobeSharp,
+        }
+      },
+      {
+        path: RoutePath.SearchAdd,
+        name: 'searchAdd',
+        component: () => import('@/views/Search/searchAdd.vue'),
+        meta: {
+          show:false,
+          layout:false
+        }
+      }
+    ],
   },
   {
     path: RoutePath.Bulletin,
@@ -98,7 +114,6 @@ const routes: readonly RouteRecord[] = [
   {
     path: RoutePath.Settings,
     name: 'settings',
-
     component: () => import('@/views/settingPage.vue'),
     meta: {
       auth: true,
@@ -113,7 +128,7 @@ const routes: readonly RouteRecord[] = [
     component: () => import('@/views/loginAndRegistryPage.vue'),
     meta: {
       layout: false,
-      hideInMenu: true
+      show: false
     }
   },
   {
@@ -122,7 +137,7 @@ const routes: readonly RouteRecord[] = [
     component: () => import('@/views/forgetPwd.vue'),
     meta: {
       layout: false,
-      hideInMenu: true
+      show: false
     }
   },
   {
@@ -131,7 +146,7 @@ const routes: readonly RouteRecord[] = [
     component: () => import('@/views/NotFound/index.vue'),
     meta: {
       layout: false,
-      hideInMenu: true
+      show: false
     }
   }
 ]

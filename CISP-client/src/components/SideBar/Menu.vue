@@ -22,8 +22,6 @@ const menuThemeOverrides: MenuThemeOverrides = {
 
 const curActiveKey = ref('home') // 当前激活的路由
 
-const filter = (routes: Array<RouteRecord>) => routes.filter((i) => !i.meta?.hideInMenu ?? false) // 过滤不需要在菜单栏显示的项
-
 // 渲染icon组件
 const renderIcon = (icon: Component) => {
   return () => h(NIcon, null, { default: () => h(icon) })
@@ -45,8 +43,7 @@ const mapToMenuOptions = (routes: Array<RouteRecord>) => {
   return routes.map((i) => _cycle(i))
 }
 
-const menuRoutes = mapToMenuOptions(filter(routes))
-
+const menuRoutes = mapToMenuOptions(routes)
 const menuKeyChange = (key: string) => {
   router.push({ name: key })
 }
