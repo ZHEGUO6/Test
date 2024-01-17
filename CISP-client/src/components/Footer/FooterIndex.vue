@@ -13,4 +13,9 @@ import { NGrid, NGi, NText } from 'naive-ui'
   </n-grid>
 </template>
 
-<style scoped></style>
+<style lang="less">
+.n-layout-footer{
+  background: #e5ecfa;
+  padding:8px 0;
+}
+</style>

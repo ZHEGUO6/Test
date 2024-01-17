@@ -53,14 +53,14 @@ onMounted(() => {
   <n-message-provider>
     <n-config-provider :theme-overrides="themeOverrides">
       <n-layout has-sider v-if="routeConfig.layout" v-screen-loading="isLoading">
-        <n-layout-sider class="elAside">
+        <n-layout-sider class="app-n-layout-aside">
           <side-bar />
         </n-layout-sider>
-        <n-layout-content>
-          <n-layout-header class="elHeader">
+        <n-layout-content content-class="layout-content-mainContainer">
+          <n-layout-header class="app-n-layout-header">
             <header-index />
           </n-layout-header>
-          <n-layout-content class="mainContent">
+          <n-layout-content class="app-n-layout-content-mainContent">
             <RouterView />
           </n-layout-content>
           <n-layout-footer>
@@ -74,20 +74,25 @@ onMounted(() => {
   </n-message-provider>
 </template>
 
-<style scoped lang="less">
+<style lang="less">
 @import 'styles/var.less';
 
-.elAside {
+.app-n-layout-aside {
   height: 100vh;
   width: fit-content;
 }
 
-.mainContent {
+.app-n-layout-content-mainContent {
   min-height: calc(100vh - 160px);
 }
 
-.elHeader {
+.app-n-layout-header {
   background-color: @headerBgColor;
   height: 56px;
+}
+
+.layout-content-mainContainer{
+  display: flex;
+  flex-direction: column;
 }
 </style>
