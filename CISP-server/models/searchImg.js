@@ -15,6 +15,11 @@ SearchImg.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    // 保存图片宽高，用于前端瀑布流展示
+    size:{
+      type:DataTypes.JSON,
+      allowNull:false
+    }
   },
   {
     sequelize,

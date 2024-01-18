@@ -11,7 +11,7 @@ const Router = express.Router({ caseSensitive: true });
 
 // 验证添加寻人寻物图片
 async function validateAdd(info) {
-  return await getMeetItemFromObj(info, ["imgUrl", "sId"]);
+  return await getMeetItemFromObj(info, ["imgUrl", "sId",'size']);
 }
 
 // 新增一个寻人寻物图片
