@@ -32,7 +32,7 @@ const menuControl = () => (collapse.value = !collapse.value)
 @import '../../styles/var.less';
 
 .sideBarContainer {
-  height: 100vh;
+  height: 100%;
   position: relative;
   border-width: 0;
   background: @baseThemeColor;
