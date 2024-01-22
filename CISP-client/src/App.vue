@@ -52,7 +52,7 @@ onMounted(() => {
 <template>
   <n-message-provider>
     <n-config-provider :theme-overrides="themeOverrides">
-      <n-layout has-sider v-if="routeConfig.layout" v-screen-loading="isLoading">
+      <n-layout class="app-n-layout-container" has-sider v-if="routeConfig.layout" v-screen-loading="isLoading">
         <n-layout-sider class="app-n-layout-aside">
           <side-bar />
         </n-layout-sider>
@@ -77,8 +77,11 @@ onMounted(() => {
 <style lang="less">
 @import 'styles/var.less';
 
-.app-n-layout-aside {
+.app-n-layout-container{
   height: 100vh;
+}
+
+.app-n-layout-aside {
   width: fit-content;
 }
 
