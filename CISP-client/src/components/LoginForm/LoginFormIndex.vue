@@ -129,7 +129,10 @@ const _login = async () => {
   const res = await validate({ nickname: form.nickname, loginPwd: form.loginPwd }).catch(() => ({
     code: 500
   }))
-  if (res.code !== 500 && !res.data) {
+  if (res.code === 500) {
+    app?.$message('接口请求超时，服务器问题，请稍后重试', { type: 'error', duration: 2000 })
+    return
+  } else if (!res.data) {
     app?.$message(`您填写的昵称或密码不正确，请核对后操作，点击关闭按钮不会清空您已填写的内容`, {
       type: 'error',
       duration: 3000,
@@ -139,7 +142,7 @@ const _login = async () => {
         }
         form.captcha = ''
         getCaptchaAsync()
-        getTimeRef.value.resetCountDownTime() // 重置验证码时间
+        getTimeRef.value?.resetCountDownTime() // 重置验证码时间
       }
     } as MessageOptions)
     closeAllLoading()
@@ -165,8 +168,9 @@ const _login = async () => {
 // 表单提交事件
 const onSubmit = async () => {
   // 进行整体表单校验
-  const formValidate = await formRef.value?.validate().catch((err: Error) => err)
-  if (typeof formValidate === 'object') {
+  let error = false
+  await formRef.value?.validate().catch(() => (error = true))
+  if (error) {
     //   表单校验未通过
     app?.$message(`未按要求填写表单内容，请继续完善后提交`, {
       type: 'error',

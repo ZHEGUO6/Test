@@ -273,8 +273,12 @@ const validateFormFields = async (
   onError?: (errorFields: any[]) => void
 ) => {
   //   进行基础表单校验
-  const formValidate = await formRef.value?.validate().catch((err) => err)
-  if (typeof formValidate === 'object') {
+  let error = false
+  const formValidate = await formRef.value?.validate().catch((err) => {
+    error = true
+    return err
+  })
+  if (error) {
     //   表单校验未通过
     onError && onError(formValidate)
     return
@@ -337,8 +341,9 @@ const drawerUpdateShow = async (cancel: boolean) => {
     return
   }
   startOrStopAllLoading(true) // 开启loading动画
-  const formValidate = await drawFormRef.value?.validate().catch((err: Error) => err)
-  if (typeof formValidate === 'object') {
+  let error = false
+  await drawFormRef.value?.validate().catch(() => (error = true))
+  if (error) {
     //   表单校验未通过
     app?.$message(`请按提示完成表单内容的填写~`, {
       type: 'error',

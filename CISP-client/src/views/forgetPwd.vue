@@ -47,7 +47,7 @@ const enum StepItemStatus {
   Error = 'error'
 }
 
-const sentCaptcha = ref('1234') // 发送的短信验证码
+const sentCaptcha = ref('') // 发送的短信验证码
 
 const formRef = ref<FormInst>()
 
@@ -156,10 +156,11 @@ const steps = reactive<Array<StepItem>>([
 
 // 验证第一步表单
 const validateFirst = async () => {
-  const validate = await formRef.value?.validate().catch((err: Error) => err)
-  if (typeof validate !== 'object') {
+  let error = false
+  await formRef.value?.validate().catch(() => (error = true))
+  if (error) {
     //   表单验证成功
-    const info: API.User.Find = {
+    const info: API.User.FindOne = {
       phone: findFormValue.value.phone
     }
     findFormValue.value.loginId && (info.loginId = findFormValue.value.loginId)
@@ -200,8 +201,9 @@ const validateSecond = async () => {
     return true
   }
   //   进行表单验证
-  const validate = await formRef.value?.validate().catch((err) => err)
-  if (typeof validate === 'object') {
+  let error = false
+  await formRef.value?.validate().catch(() => (error = true))
+  if (error) {
     // 表单验证失败
     steps[1].status = StepItemStatus.Error
     steps[1].description = '表单验证失败'
@@ -259,12 +261,12 @@ const onChangeCaptcha = async () => {
   const res = await sentForgetMessage(findFormValue.value.phone)
   if (res.code === 200) {
     //   响应成功
-    sentCaptcha.value = '' + res.data.code
-    app.$message(`${res.msg}，请注意查收`, {
+    sentCaptcha.value = '' + res.data?.code
+    app?.$message(`${res.msg}，请注意查收`, {
       type: 'success'
     } as MessageOptions)
   } else {
-    app.$message(`短信发送失败 ${res.msg}`, {
+    app?.$message(`短信发送失败 ${res.msg}`, {
       type: 'error'
     } as MessageOptions)
   }
