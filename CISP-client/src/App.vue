@@ -18,7 +18,9 @@ import {
   NLayoutSider,
   NLayout,
   NConfigProvider,
-  GlobalThemeOverrides
+  GlobalThemeOverrides,
+  zhCN,
+  dateZhCN
 } from 'naive-ui'
 
 const themeOverrides: GlobalThemeOverrides = {
@@ -51,8 +53,13 @@ onMounted(() => {
 
 <template>
   <n-message-provider>
-    <n-config-provider :theme-overrides="themeOverrides">
-      <n-layout class="app-n-layout-container" has-sider v-if="routeConfig.layout" v-screen-loading="isLoading">
+    <n-config-provider :theme-overrides="themeOverrides" :date-locale="dateZhCN" :locale="zhCN">
+      <n-layout
+        class="app-n-layout-container"
+        has-sider
+        v-if="routeConfig.layout"
+        v-screen-loading="isLoading"
+      >
         <n-layout-sider class="app-n-layout-aside">
           <side-bar />
         </n-layout-sider>
@@ -77,7 +84,7 @@ onMounted(() => {
 <style lang="less">
 @import 'styles/var.less';
 
-.app-n-layout-container{
+.app-n-layout-container {
   height: 100vh;
 }
 
@@ -87,7 +94,7 @@ onMounted(() => {
 
 .app-n-layout-content-mainContent {
   min-height: calc(100vh - 160px);
-  padding:20px 10px;
+  padding: 20px 10px;
 }
 
 .app-n-layout-header {
@@ -95,7 +102,7 @@ onMounted(() => {
   height: 56px;
 }
 
-.layout-content-mainContainer{
+.layout-content-mainContainer {
   display: flex;
   flex-direction: column;
 }
