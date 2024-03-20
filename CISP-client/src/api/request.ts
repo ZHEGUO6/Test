@@ -17,9 +17,9 @@ request.interceptors.response.use((options) => options.data)
 
 const requestWrapper: (
   method: RequestType,
-  url: RequestUrl,
+  url: RequestUrl | string,
   options?: object
-) => Promise<API.ServerResponse> = async (method, url, options) => {
+) => API.ServerResponse = async (method, url, options) => {
   return await request[method](url, options).catch((err) => {
     if (window.$rawMessage) {
       if (err.response) {

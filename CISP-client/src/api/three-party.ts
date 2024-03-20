@@ -22,7 +22,7 @@ export const getDistrict = async () => {
     keywords: '100000',
     subdistrict: 4
   }
-  return await request(
+  return request(
     RequestType.GET,
     `https://restapi.amap.com/v3/config/district?${qs.stringify(obj)}`
   )
@@ -31,7 +31,7 @@ export const getDistrict = async () => {
 // unisms短信平台
 // 找回密码短信验证
 export const sentForgetMessage = async (phone: string) => {
-  return await request(RequestType.POST, RequestUrl.ThirtyPart_ForgetPwd_Message, {
+  return request(RequestType.POST, RequestUrl.ThirtyPart_ForgetPwd_Message, {
     phone
   })
 }

@@ -2,11 +2,12 @@
 import type { RouteRecord } from '@/router/routes'
 import routes from '@/router/routes'
 import { useRoute } from 'vue-router'
-import { computed, ref, onBeforeMount, Component, h } from 'vue'
+import { computed, ref, onBeforeMount } from 'vue'
 import { NIcon, NMenu } from 'naive-ui'
 import { last as _last } from 'lodash'
 import { useRouter } from 'vue-router'
 import { MenuProps } from 'naive-ui'
+import useIcon from '@/hooks/useIcon'
 
 type MenuThemeOverrides = NonNullable<MenuProps['themeOverrides']>
 
@@ -23,11 +24,9 @@ const menuThemeOverrides: MenuThemeOverrides = {
 const curActiveKey = ref('home') // 当前激活的路由
 
 // 渲染icon组件
-const renderIcon = (icon: Component) => {
-  return () => h(NIcon, null, { default: () => h(icon) })
-}
+const renderIcon = useIcon()
 
-// 将路由对应的信息映射成menuoptions
+// 将路由对应的信息映射成menuOptions
 const mapToMenuOptions = (routes: Array<RouteRecord>) => {
   const _cycle = (routeItem: RouteRecord) => {
     const newRoute = {

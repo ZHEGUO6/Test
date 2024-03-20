@@ -37,7 +37,6 @@ const resetCountDownTime = () => {
 // 按钮更换验证码
 const btnGetCaptcha = async () => {
   resetCountDownTime()
-  console.log(222)
   emits('change')
 }
 

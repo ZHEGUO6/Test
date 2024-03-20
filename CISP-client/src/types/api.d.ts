@@ -4,11 +4,11 @@ declare namespace API {
     /**
      * 查询几条数据
      */
-    limit?: string
+    limit?: number
     /**
      * 查询第几页数据
      */
-    page?: string
+    page?: number
   }
 
   // 消息
@@ -782,12 +782,9 @@ declare namespace API {
     }
   }
 
-  declare interface ServerResponse {
+  declare interface ServerResponse<T> {
     code: number
     msg: string
-    data: {
-      datas: [] | {}
-      count?: number
-    } | null
+    data: T
   }
 }
